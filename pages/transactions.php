@@ -201,6 +201,7 @@ $units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName"
                             <th>Price</th>
                             <th>Unit</th>
                             <th>Comment</th>
+                            <th style="width: 150px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -244,6 +245,93 @@ $units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName"
 <!-- ============================ -->
 <!-- Modals (Place, Account, Item, Category, Unit) -->
 <!-- ============================ -->
+<!-- Edit Transaction Modal -->
+<div class="modal fade" id="editTransactionModal" tabindex="-1" aria-labelledby="editTransactionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="editTransactionModalLabel">Edit Transaction</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editTransactionForm" novalidate>
+          <input type="hidden" name="IDFinancialTransaction" id="editID">
+
+          <div class="row mb-3">
+            <div class="col">
+              <label>Date</label>
+              <input type="date" class="form-control" name="Date" id="editDate" required>
+            </div>
+            <div class="col">
+              <label>Quantity</label>
+              <input type="number" step="0.01" class="form-control" name="Quantity" id="editQuantity" required>
+            </div>
+            <div class="col">
+              <label>Price</label>
+              <input type="number" step="0.01" class="form-control" name="Price" id="editPrice" required>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col">
+              <label>Place</label>
+              <select class="form-select" name="PlaceID" id="editPlace" required></select>
+            </div>
+            <div class="col">
+              <label>Account</label>
+              <select class="form-select" name="AccountID" id="editAccount" required></select>
+            </div>
+            <div class="col">
+              <label>Type</label>
+              <select class="form-select" name="TypeID" id="editType" required></select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col">
+              <label>Province</label>
+              <select class="form-select" name="ProvinceID" id="editProvince" required></select>
+            </div>
+            <div class="col">
+              <label>Category</label>
+              <select class="form-select" name="CategoryID" id="editCategory" required></select>
+            </div>
+            <div class="col">
+              <label>Item</label>
+              <select class="form-select" name="ItemID" id="editItem" required></select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col">
+              <label>Unit</label>
+              <select class="form-select" name="UnitID" id="editUnit" required></select>
+            </div>
+            <div class="col">
+              <label>Tax</label>
+              <input type="number" step="0.01" class="form-control" name="Tax" id="editTax">
+            </div>
+            <div class="col">
+              <label>Comment</label>
+              <input type="text" class="form-control" name="Comment" id="editComment">
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="saveTransactionBtn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+
+
 <?php
 // Modals same as before: #placeModal, #accountModal, #itemModal, #categoryModal, #unitModal
 // Use the same structure as in previous example
@@ -333,32 +421,44 @@ if (toggleBtn && container) {
     });
 }
 
-// ---------- Load Transactions Table ----------
+// ---------- Begin Load Transactions Table ----------
 function loadTransactions(userId) {
     const tbody = document.querySelector('#transactionsTable tbody');
     if (!userId || !tbody) return;
 
     $.getJSON('get_transactions.php', { userId: userId }, function (data) {
         let rows = '';
-        data.forEach(function (tx) {
-            rows += `<tr>
-                <td>${tx.Date}</td>
-                <td>${tx.Place}</td>
-                <td>${tx.Account}</td>
-                <td>${tx.Type}</td>
-                <td>${tx.Province}</td>
-                <td>${tx.Category}</td>
-                <td>${tx.Item}</td>
-                <td>${tx.Tax}</td>
-                <td>${tx.Quantity}</td>
-                <td>${tx.Price}</td>
-                <td>${tx.Unit}</td>
-                <td>${tx.Comment}</td>
-            </tr>`;
-        });
+        if (!data || data.length === 0) {
+            rows = `<tr><td colspan="13" class="text-center text-muted">No transactions found</td></tr>`;
+        } else {
+            data.forEach(function (tx) {
+                rows += `<tr data-id="${tx.IDFinancialTransaction}">
+                    <td>${tx.Date}</td>
+                    <td>${tx.Place}</td>
+                    <td>${tx.Account}</td>
+                    <td>${tx.Type}</td>
+                    <td>${tx.Province}</td>
+                    <td>${tx.Category}</td>
+                    <td>${tx.Item}</td>
+                    <td>${tx.Tax}</td>
+                    <td>${tx.Quantity}</td>
+                    <td>${tx.Price}</td>
+                    <td>${tx.Unit}</td>
+                    <td>${tx.Comment}</td>
+                    <td style="width: 150px;">
+                        <div class="d-flex">
+                            <button class="btn btn-sm btn-primary me-1" onclick="openEditModal(${tx.IDFinancialTransaction})">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTransaction(${tx.IDFinancialTransaction})">Delete</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        }
         tbody.innerHTML = rows;
     });
 }
+
+// ---------- End Load Transactions Table ----------
 
 let currentBill = []; // array to hold bill items
 
@@ -492,6 +592,191 @@ document.addEventListener("DOMContentLoaded", function() {
         userDropdown.focus();
     }
 });
+// begin JS for EDIT MODAL
+// Preload dropdown options
+// Store dropdown data globally
+let currentUserId = $('#userSelect').val();
+let places, accounts, types, provinces, categories, items, units;
+
+// Toast function
+function showToast(message, type='success') {
+    const toastHTML = `<div class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>`;
+    const $toast = $(toastHTML);
+    $('#toastContainer').append($toast);
+    const toast = new bootstrap.Toast($toast[0]);
+    toast.show();
+}
+
+// Load dropdowns
+function loadDropdowns(callback) {
+    $.getJSON('get_dropdowns.php', function(data) {
+        places = data.places; accounts = data.accounts; types = data.types;
+        provinces = data.provinces; categories = data.categories; items = data.items; units = data.units;
+
+        fillDropdown('#editPlace', places, 'PlaceID', 'PlaceName');
+        fillDropdown('#editAccount', accounts, 'AccountID', 'AccountName');
+        fillDropdown('#editType', types, 'TypeID', 'TypeName');
+        fillDropdown('#editProvince', provinces, 'ProvinceID', 'ProvinceCode');
+        fillDropdown('#editCategory', categories, 'CategoryID', 'CategoryName');
+        fillDropdown('#editItem', items, 'ItemID', 'ItemName');
+        fillDropdown('#editUnit', units, 'UnitID', 'UnitName');
+
+        if (typeof callback === 'function') callback();
+    });
+}
+
+function fillDropdown(selector, data, valueField, textField) {
+    const $sel = $(selector);
+    $sel.empty();
+    data.forEach(d => $sel.append($('<option>').val(String(d[valueField])).text(d[textField])));
+}
+
+// Load transactions
+function loadTransactions(userId) {
+    currentUserId = userId;
+
+    $.getJSON('get_transactions.php', { userId: userId }, function(data) {
+        const tbody = $('#transactionsTable tbody');
+        tbody.empty();
+
+        data.forEach(tx => {
+            tbody.append(`
+                <tr data-id="${tx.IDFinancialTransaction}">
+                    <td>${tx.Date}</td>
+                    <td>${tx.Place}</td>
+                    <td>${tx.Account}</td>
+                    <td>${tx.Type}</td>
+                    <td>${tx.Province}</td>
+                    <td>${tx.Category}</td>
+                    <td>${tx.Item}</td>
+                    <td>${tx.Tax}</td>
+                    <td>${tx.Quantity}</td>
+                    <td>${tx.Price}</td>
+                    <td>${tx.Unit}</td>
+                    <td>${tx.Comment}</td>
+                    <td>
+                        <div class="d-flex">
+                            <button class="btn btn-sm btn-primary me-1" onclick="openEditModal(${tx.IDFinancialTransaction})">Edit</button>
+                            <a href="delete_transaction.php?id=${tx.IDFinancialTransaction}" class="btn btn-sm btn-danger"
+                               onclick="return confirm('Are you sure you want to delete this transaction?');">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+            `);
+        });
+    });
+}
+
+
+// Open modal
+function openEditModal(id) {
+    $.getJSON('get_transaction.php', { id: id }, function(tx) {
+        $('#editID').val(tx.IDFinancialTransaction);
+        $('#editDate').val(tx.Date);
+        $('#editQuantity').val(tx.Quantity);
+        $('#editPrice').val(tx.Price);
+        $('#editTax').val(tx.Tax);
+        $('#editComment').val(tx.Comment);
+
+        loadDropdowns(function() {
+            $('#editPlace').val(String(tx.PlaceID));
+            $('#editAccount').val(String(tx.AccountID));
+            $('#editType').val(String(tx.TypeID));
+            $('#editProvince').val(String(tx.ProvinceID));
+            $('#editCategory').val(String(tx.CategoryID));
+            $('#editItem').val(String(tx.ItemID));
+            $('#editUnit').val(String(tx.UnitID));
+
+            new bootstrap.Modal(document.getElementById('editTransactionModal')).show();
+        });
+    });
+}
+
+// Save changes
+$('#saveTransactionBtn').click(function() {
+    if (!$('#editTransactionForm')[0].checkValidity()) {
+        $('#editTransactionForm')[0].reportValidity();
+        return;
+    }
+
+    $.post('update_transaction.php', $('#editTransactionForm').serialize(), function(response) {
+        if (response.success && response.updatedTx) {
+            // ✅ Close modal
+            bootstrap.Modal.getInstance($('#editTransactionModal')[0]).hide();
+
+            // ✅ Show toast
+            showToast('Transaction updated successfully!', 'success');
+
+            // ✅ Find and update only the edited row
+            const tx = response.updatedTx;
+            const row = $(`#transactionsTable tbody tr[data-id="${tx.IDFinancialTransaction}"]`);
+
+            if (row.length) {
+                row.html(`
+                    <td>${tx.Date}</td>
+                    <td>${tx.Place}</td>
+                    <td>${tx.Account}</td>
+                    <td>${tx.Type}</td>
+                    <td>${tx.Province}</td>
+                    <td>${tx.Category}</td>
+                    <td>${tx.Item}</td>
+                    <td>${tx.Tax}</td>
+                    <td>${tx.Quantity}</td>
+                    <td>${tx.Price}</td>
+                    <td>${tx.Unit}</td>
+                    <td>${tx.Comment}</td>
+                    <td>
+                        <div class="d-flex">
+                            <button class="btn btn-sm btn-primary me-1" onclick="openEditModal(${tx.IDFinancialTransaction})">Edit</button>
+                            <a href="delete_transaction.php?id=${tx.IDFinancialTransaction}" class="btn btn-sm btn-danger"
+                               onclick="return confirm('Are you sure you want to delete this transaction?');">Delete</a>
+                        </div>
+                    </td>
+                `);
+            }
+        } else {
+            showToast(response.message || 'Failed to update transaction', 'danger');
+        }
+    }, 'json');
+});
+
+function deleteTransaction(transactionId) {
+    console.log("deleteTransaction called with ID:", transactionId); // 🔍 Debug line
+
+    if (!transactionId) {
+        console.error("Invalid transactionId:", transactionId);
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this transaction?')) return;
+
+    $.post('delete_transaction.php', { id: transactionId }, function(response) {
+        console.log("Response from delete_transaction.php:", response); // 🔍 Debug line
+        if (response.success) {
+            const row = $(`#transactionsTable tbody tr[data-id="${transactionId}"]`);
+            if (row.length) row.remove();
+            showToast('Transaction deleted successfully!', 'success');
+        } else {
+            showToast(response.message || 'Failed to delete transaction', 'danger');
+        }
+    }, 'json');
+}
+
+// Initialize
+$(document).ready(function() {
+    loadDropdowns(); // preload dropdowns
+    loadTransactions(currentUserId);
+
+    $('#userSelect').change(function() {
+        loadTransactions($(this).val());
+    });
+});
+// END JS for EDIT MODAL
 
 </script>
 
