@@ -1,4 +1,3 @@
-
 <?php
 require_once __DIR__ . '/../config/db.php';
 include __DIR__ . '/../includes/header.php';
@@ -14,231 +13,250 @@ $items      = $pdo->query("SELECT ItemID, ItemName FROM Items ORDER BY ItemName"
 $units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<div class="container mt-4">
-    <div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Insert New Transaction</h4>
+<div class="container-fluid mt-4">
+  <div class="row">
+    <!-- Sidebar: Account Balances -->
+    <div class="col-md-3">
+      <div class="card shadow-sm mb-3" id="sidebar">
+        <div class="card-header bg-secondary text-white">
+          <h5 class="mb-0">Account Balances</h5>
+        </div>
+        <div class="card-body p-2">
+          <table class="table table-sm table-striped" id="accountBalancesTable">
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="2" class="text-center text-muted">Select a user</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <div class="card-body">
-        <!-- Header Form -->
-        <form id="transactionHeaderForm" class="row g-2 align-items-end">
+
+    <!-- Main Content -->
+    <div class="col-md-9">
+      <!-- Header Form -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Insert New Transaction</h4>
+        </div>
+        <div class="card-body">
+          <form id="transactionHeaderForm" class="row g-2 align-items-end">
             <!-- User -->
             <div class="col-md-2">
-                <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#userModal" tabindex="-1">
-                    User +
-                </button>
-                <select id="userDropdown" name="user" class="form-select" required>
-                    <option value="">--Select User--</option>
-                    <?php foreach ($users as $u): ?>
-                        <option value="<?= $u['ID'] ?>"><?= htmlspecialchars($u['username']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+              <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#userModal" tabindex="-1">
+                User +
+              </button>
+              <select id="userDropdown" name="user" class="form-select" required>
+                <option value="">--Select User--</option>
+                <?php foreach ($users as $u): ?>
+                  <option value="<?= $u['ID'] ?>"><?= htmlspecialchars($u['username']) ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
 
             <!-- Date -->
             <div class="col-md-2">
-                <input type="date" name="date" class="form-control" required>
+              <input type="date" name="date" class="form-control" required>
             </div>
 
             <!-- Place -->
             <div class="col-md-2">
-                <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#placeModal" tabindex="-1">
-                    Place +
-                </button>
-                <select name="place" class="form-select">
-                    <option value="">--Select Place--</option>
-                    <?php foreach ($places as $p): ?>
-                        <option value="<?= $p['PlaceID'] ?>"><?= htmlspecialchars($p['PlaceName']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+              <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#placeModal" tabindex="-1">
+                Place +
+              </button>
+              <select name="place" class="form-select">
+                <option value="">--Select Place--</option>
+                <?php foreach ($places as $p): ?>
+                  <option value="<?= $p['PlaceID'] ?>"><?= htmlspecialchars($p['PlaceName']) ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
 
             <!-- Account -->
             <div class="col-md-2">
-                <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#accountModal" tabindex="-1">
-                    Account +
-                </button>
-                <select id="accountDropdown" name="account" class="form-select" required>
-                    <option value="">--Select Account--</option>
-                </select>
+              <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#accountModal" tabindex="-1">
+                Account +
+              </button>
+              <select id="accountDropdown" name="account" class="form-select" required>
+                <option value="">--Select Account--</option>
+              </select>
             </div>
 
             <!-- Type -->
             <div class="col-md-2">
-                <select name="type" class="form-select" required>
-                    <?php foreach ($types as $t): ?>
-                        <option value="<?= $t['TypeID'] ?>"><?= htmlspecialchars($t['TypeName']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+              <select name="type" class="form-select" required>
+                <?php foreach ($types as $t): ?>
+                  <option value="<?= $t['TypeID'] ?>"><?= htmlspecialchars($t['TypeName']) ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
 
             <!-- Province -->
             <div class="col-md-1">
-                <label class="form-label">Province</label>
-                <select name="province" class="form-select">
-                    <option value="">--</option>
-                    <?php foreach ($provinces as $pr): ?>
-                        <option value="<?= $pr['ProvinceID'] ?>"><?= htmlspecialchars($pr['ProvinceCode']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+              <label class="form-label">Province</label>
+              <select name="province" class="form-select">
+                <option value="">--</option>
+                <?php foreach ($provinces as $pr): ?>
+                  <option value="<?= $pr['ProvinceID'] ?>"><?= htmlspecialchars($pr['ProvinceCode']) ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
 
-            <!-- Category in Header -->
+            <!-- Category -->
             <div class="col-md-2 mt-2">
-                <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#categoryModal" tabindex="-1">
-                    Category +
-                </button>
-                <select id="headerCategory" name="category" class="form-select">
-                    <option value="">--Select Category--</option>
-                    <?php foreach ($categories as $c): ?>
-                        <option value="<?= $c['CategoryID'] ?>"><?= htmlspecialchars($c['CategoryName']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+              <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#categoryModal" tabindex="-1">
+                Category +
+              </button>
+              <select id="headerCategory" name="category" class="form-select">
+                <option value="">--Select Category--</option>
+                <?php foreach ($categories as $c): ?>
+                  <option value="<?= $c['CategoryID'] ?>"><?= htmlspecialchars($c['CategoryName']) ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
 
             <!-- Add Items button -->
             <div class="col-12 mt-3">
-                <button type="button" id="headerNextBtn" class="btn btn-primary">Add Items</button>
+              <button type="button" id="headerNextBtn" class="btn btn-primary">Add Items</button>
             </div>
-        </form>
+          </form>
 
-        <!-- Detail Section (hidden initially) -->
-        <form id="transactionDetailForm" class="row g-2 align-items-end mt-3" style="display:none;">
+          <!-- Detail Section (hidden initially) -->
+          <form id="transactionDetailForm" class="row g-2 align-items-end mt-3" style="display:none;">
             <!-- Category (pre-filled from header) -->
             <div class="col-md-2">
-                <select id="detailCategory" name="detailCategory" class="form-select">
-                    <option value="">--Select Category--</option>
-                    <?php foreach ($categories as $c): ?>
-                        <option value="<?= $c['CategoryID'] ?>"><?= htmlspecialchars($c['CategoryName']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+              <select id="detailCategory" name="detailCategory" class="form-select">
+                <option value="">--Select Category--</option>
+                <?php foreach ($categories as $c): ?>
+                  <option value="<?= $c['CategoryID'] ?>"><?= htmlspecialchars($c['CategoryName']) ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
 
             <!-- Item -->
             <div class="col-md-2">
-                <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#itemModal" tabindex="-1">
-                    Item +
-                </button>
-                <select name="item" class="form-select" required>
-                    <option value="">--Select Item--</option>
-                    <?php foreach ($items as $i): ?>
-                        <option value="<?= $i['ItemID'] ?>"><?= htmlspecialchars($i['ItemName']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+              <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#itemModal" tabindex="-1">
+                Item +
+              </button>
+              <select name="item" class="form-select" required>
+                <option value="">--Select Item--</option>
+                <?php foreach ($items as $i): ?>
+                  <option value="<?= $i['ItemID'] ?>"><?= htmlspecialchars($i['ItemName']) ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
 
-            <!-- Tax -->
+            <!-- Tax, Quantity, Price, Unit, Comment -->
             <div class="col-auto d-flex flex-column">
-                <div class="form-check mt-1">
-                    <input type="checkbox" name="tax" value="1" class="form-check-input">
-                    <label class="form-check-label">Tax</label>
-                </div>
+              <div class="form-check mt-1">
+                <input type="checkbox" name="tax" value="1" class="form-check-input">
+                <label class="form-check-label">Tax</label>
+              </div>
             </div>
-
-            <!-- Quantity -->
             <div class="col-auto">
-                <input type="number" name="quantity" class="form-control" placeholder="Qty" step="0.01">
+              <input type="number" name="quantity" class="form-control" placeholder="Qty" step="0.0001">
             </div>
-
-            <!-- Price -->
             <div class="col-auto">
-                <input type="number" name="price" class="form-control" placeholder="Price" step="0.01">
+              <input type="number" name="price" class="form-control" placeholder="Price" step="0.01">
             </div>
-
-            <!-- Unit -->
             <div class="col-auto">
-                <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#unitModal" tabindex="-1">
-                    Unit +
-                </button>
-                <select name="unit" class="form-select">
-                    <option value="">--</option>
-                    <?php foreach ($units as $u): ?>
-                        <option value="<?= $u['UnitID'] ?>"><?= htmlspecialchars($u['UnitName']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+              <button type="button" class="btn btn-outline-primary w-100 mb-1" data-bs-toggle="modal" data-bs-target="#unitModal" tabindex="-1">
+                Unit +
+              </button>
+              <select name="unit" class="form-select">
+                <option value="">--</option>
+                <?php foreach ($units as $u): ?>
+                  <option value="<?= $u['UnitID'] ?>"><?= htmlspecialchars($u['UnitName']) ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
-
-            <!-- Comment -->
             <div class="col-md-4">
-                <input type="text" name="comment" class="form-control" placeholder="Comment">
+              <input type="text" name="comment" class="form-control" placeholder="Comment">
             </div>
 
             <!-- Insert Transaction button -->
             <div class="col-12 text-end mt-2">
-                <button type="submit" class="btn btn-success">Insert Transaction</button>
+              <button type="submit" class="btn btn-success">Insert Transaction</button>
             </div>
-        </form>
-    </div>
-</div>
-
-    <div class="mb-3">
-        <button id="toggleTransactions" class="btn btn-secondary">
-            Show Transactions
-        </button>
-    </div>
-</div>
-
-<div id="transactionsContainer" style="display: none;">
-    <!-- Your table goes here -->
-    <div class="container mt-5">
-        <div class="card shadow-sm">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0">Transactions for Selected User</h5>
-            </div>
-            <div class="card-body">
-                <table class="table table-striped" id="transactionsTable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Place</th>
-                            <th>Account</th>
-                            <th>Type</th>
-                            <th>Province</th>
-                            <th>Category</th>
-                            <th>Item</th>
-                            <th>Tax</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Unit</th>
-                            <th>Comment</th>
-                            <th style="width: 150px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Rows will be filled dynamically via AJAX -->
-                    </tbody>
-                </table>
-            </div>
+          </form>
         </div>
-    </div>  
-</div>
-<div class="card mt-4">
-    <div class="card-header bg-light">
-        <strong>Current Bill</strong>
-    </div>
-    <div class="card-body">
-        <table class="table table-bordered" id="billTable">
-            <thead>
+      </div>
+
+      <!-- Transactions Toggle Button -->
+      <div class="mb-3">
+        <button id="toggleTransactions" class="btn btn-secondary">
+          Show Transactions
+        </button>
+      </div>
+
+      <!-- Transactions Table -->
+      <div id="transactionsContainer" style="display: none;">
+        <div class="card shadow-sm">
+          <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Transactions for Selected User</h5>
+          </div>
+          <div class="card-body">
+            <table class="table table-striped" id="transactionsTable">
+              <thead>
                 <tr>
-                    <th>Category</th>
-                    <th>Item</th>
-                    <th>Tax</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Unit</th>
-                    <th>Comment</th>
-                    <th>Line Total</th>
+                  <th>Date</th>
+                  <th>Place</th>
+                  <th>Account</th>
+                  <th>Type</th>
+                  <th>Province</th>
+                  <th>Category</th>
+                  <th>Item</th>
+                  <th>Tax</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                  <th>Unit</th>
+                  <th>Comment</th>
+                  <th style="width: 150px;">Actions</th>
                 </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Bill -->
+      <div class="card mt-4">
+        <div class="card-header bg-light">
+          <strong>Current Bill</strong>
+        </div>
+        <div class="card-body">
+          <table class="table table-bordered" id="billTable">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Item</th>
+                <th>Tax</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Unit</th>
+                <th>Comment</th>
+                <th>Line Total</th>
+                <th>Actions</th> <!-- new column for buttons -->
+              </tr>
             </thead>
             <tbody></tbody>
-        </table>
-        <div class="text-end">
+          </table>
+          <div class="text-end">
             <strong id="billTotal">Total: $0.00</strong>
-        </div>
-        <div class="mt-2 text-end">
+          </div>
+          <div class="mt-2 text-end">
             <button type="button" id="finalizeBillBtn" class="btn btn-success">Finalize Bill</button>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 
 
@@ -342,6 +360,7 @@ $units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName"
 <!-- ============================ -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+let currentBill = []; // array to hold bill items
     document.addEventListener("DOMContentLoaded", function () {
 
 // ---------- Header/Detail Forms ----------
@@ -460,7 +479,7 @@ function loadTransactions(userId) {
 
 // ---------- End Load Transactions Table ----------
 
-let currentBill = []; // array to hold bill items
+// let currentBill = []; // array to hold bill items
 
 // Intercept detail form submission
 document.getElementById('transactionDetailForm').addEventListener('submit', function(e){
@@ -478,9 +497,12 @@ document.getElementById('transactionDetailForm').addEventListener('submit', func
     const taxAmount = isTaxed ? price * quantity * 0.15 : 0;
     const lineTotal = price * quantity + taxAmount;
 
-    // Replace checkbox value with actual tax amount
-    detail.tax = taxAmount.toFixed(2);
-
+    
+    // Store full precision internally
+    detail.tax = taxAmount;       // store as number, not string
+    detail.quantity = quantity;   // keep all decimals
+    detail.lineTotal = lineTotal; // full precision
+    
     // Merge with headerData
     const transaction = { ...headerData, ...detail };
     currentBill.push(transaction);
@@ -496,14 +518,18 @@ document.getElementById('transactionDetailForm').addEventListener('submit', func
 
 // Add row to bill table
 row.innerHTML = `
-    <td>${categoryName}</td>
-    <td>${itemName}</td>
-    <td>${detail.tax}</td>
-    <td>${quantity}</td>
-    <td>${price}</td>
-    <td>${unitName}</td>
-    <td>${detail.comment}</td>
-    <td>${lineTotal.toFixed(2)}</td>
+  <td>${categoryName}</td>
+  <td>${itemName}</td>
+  <td>${taxAmount.toFixed(2)}</td>
+  <td>${quantity.toFixed(3)}</td>
+  <td>${price}</td>
+  <td>${unitName}</td>
+  <td>${detail.comment}</td>
+  <td>${lineTotal.toFixed(2)}</td>
+  <td>
+    <button class="btn btn-sm btn-primary edit-bill-btn">Edit</button>
+    <button class="btn btn-sm btn-danger delete-bill-btn">Delete</button>
+  </td>
 `;
 tbody.appendChild(row);
 
@@ -766,6 +792,161 @@ function deleteTransaction(transactionId) {
         }
     }, 'json');
 }
+
+// Track current user globally
+
+$('#userDropdown').change(function() {
+    const userId = $(this).val();
+    if (!userId) return;
+
+    currentUserId = userId;
+
+    // Load transactions table
+    loadTransactions(userId);
+
+    // Load account balances for sidebar
+    loadAccountBalances(userId);
+});
+
+// Function to load account balances
+function loadAccountBalances(userId) {
+    $.getJSON('get_account_balances.php', { userId: userId }, function(data) {
+        console.log("Data received from server:", data); // 🔍
+        const tbody = $('#accountBalancesTable tbody');
+        tbody.empty();
+
+        if (!data || data.length === 0) {
+            tbody.append('<tr><td colspan="2" class="text-center text-muted">No accounts found</td></tr>');
+            return;
+        }
+        const formatter = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          });
+          
+        data.forEach(account => {
+            tbody.append(`
+                <tr>
+                    <td>${account.AccountName}</td>
+                    <td>${formatter.format(account.Balance)}</td>
+                </tr>
+            `);
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const billTableBody = document.querySelector('#billTable tbody');
+    const billTotalEl = document.getElementById('billTotal');
+
+    // Global array holding the Current Bill items
+   // let currentBill = []; // this should be the same array used when adding items
+
+    // Function to recalculate and update the total
+    function updateBillTotal() {
+        let total = currentBill.reduce((sum, item) => {
+            const qty = parseFloat(item.quantity || 0);
+            const price = parseFloat(item.price || 0);
+            const tax = parseFloat(item.tax || 0);
+            return sum + qty * price + tax;
+        }, 0);
+        billTotalEl.textContent = 'Total: $' + total.toFixed(2);
+    }
+
+    // Delete button handler
+    billTableBody.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('delete-bill-btn')) {
+            const row = e.target.closest('tr');
+            if (!row) return;
+
+            if (!confirm('Are you sure you want to delete this item?')) return;
+
+            // Find index of the row in the table
+            const rowsArray = Array.from(billTableBody.querySelectorAll('tr'));
+            const index = rowsArray.indexOf(row);
+
+            if (index > -1) {
+                currentBill.splice(index, 1); // remove from array
+            }
+
+            // Remove the row from the table
+            row.remove();
+
+            // Update total
+            updateBillTotal();
+        }
+    });
+    // EDIT handler (replace your current edit handler with this)
+billTableBody.addEventListener('click', function (e) {
+  if (!(e.target && e.target.classList.contains('edit-bill-btn'))) return;
+
+  const row = e.target.closest('tr');
+  if (!row) return;
+
+  // index of the row in the table (maps to currentBill)
+  const rowsArray = Array.from(billTableBody.querySelectorAll('tr'));
+  const index = rowsArray.indexOf(row);
+  if (index === -1) return;
+
+  const item = currentBill[index];
+  if (!item) {
+    console.warn('Edit: no corresponding item in currentBill at index', index);
+    return;
+  }
+
+  // find the detail form
+  const form = document.getElementById('transactionDetailForm');
+  if (!form) {
+    console.error('Edit: transactionDetailForm not found');
+    return;
+  }
+
+  // make form visible (if you hide it with display:none)
+  form.style.display = form.style.display === 'none' ? 'flex' : form.style.display;
+
+  // helper to set a value if the element exists
+  function setIfExists(selector, value, type = 'value') {
+    const el = form.querySelector(selector);
+    if (!el) {
+      console.warn('Edit: missing selector', selector);
+      return;
+    }
+    if (type === 'checked') {
+      el.checked = !!value;
+    } else {
+      // for selects/inputs - assign the value (use '' if null/undefined)
+      el.value = value == null ? '' : String(value);
+      // If it's a select, optionally trigger change in case other logic depends on it:
+      if (el.tagName.toLowerCase() === 'select') {
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+  }
+
+  // Fill fields (adjust these selectors if your form uses different names)
+  setIfExists('select[name="detailCategory"]', item.detailCategory ?? item.category ?? '');
+  setIfExists('select[name="item"]', item.item ?? '');
+  setIfExists('input[name="quantity"]', item.quantity ?? '');
+  setIfExists('input[name="price"]', item.price ?? '');
+  setIfExists('select[name="unit"]', item.unit ?? '');
+  setIfExists('input[name="comment"]', item.comment ?? '');
+  setIfExists('input[name="tax"]', parseFloat(item.tax) > 0, 'checked');
+
+  // Remove the item from the array and row so re-submission will re-add it
+  currentBill.splice(index, 1);
+  row.remove();
+  updateBillTotal();
+
+  // Focus the first field in the form (item select)
+  const firstField = form.querySelector('select[name="item"], input[name="item"], input, select');
+  if (firstField) firstField.focus();
+});
+
+
+});
+
+
 
 // Initialize
 $(document).ready(function() {
