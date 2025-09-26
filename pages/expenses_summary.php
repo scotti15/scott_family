@@ -70,9 +70,16 @@ $categories = $pdo->query("SELECT CategoryID, CategoryName FROM categories ORDER
         </div>
         <div class="card-body">
             <canvas id="expensesChart" height="150"></canvas>
+            <div id="expenseDetails" class="mt-4"></div>
         </div>
     </div>
 </div>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -81,34 +88,24 @@ document.addEventListener("DOMContentLoaded", function() {
     let expensesChart;
 
     function getSelectedCategories() {
-    const checked = document.querySelectorAll('.category-checkbox:checked');
-    return Array.from(checked).map(cb => cb.value).join(',');
-}
+        const checked = document.querySelectorAll('.category-checkbox:checked');
+        return Array.from(checked).map(cb => cb.value).join(',');
+    }
 
-function updateDropdownLabel() {
-    const checked = document.querySelectorAll('.category-checkbox:checked');
-    const names = Array.from(checked).map(cb => cb.nextElementSibling.textContent.trim());
-    const btn = document.getElementById('categoryDropdownBtn');
-    btn.textContent = names.length > 0 ? names.join(', ') : '-- Select Categories --';
-}
+    function updateDropdownLabel() {
+        const checked = document.querySelectorAll('.category-checkbox:checked');
+        const names = Array.from(checked).map(cb => cb.nextElementSibling.textContent.trim());
+        const btn = document.getElementById('categoryDropdownBtn');
+        btn.textContent = names.length > 0 ? names.join(', ') : '-- Select Categories --';
+    }
 
-// Toggle all categories
-document.getElementById('toggleCategoriesBtn').addEventListener('click', function() {
-    const checkboxes = document.querySelectorAll('.category-checkbox');
-    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-
-    checkboxes.forEach(cb => cb.checked = !allChecked);
-
-    // Update button text
-    this.textContent = allChecked ? 'Select All' : 'Unselect All';
-
-    updateDropdownLabel();
-});
-
-// Update dropdown label on checkbox change
-document.querySelectorAll('.category-checkbox').forEach(cb => {
-    cb.addEventListener('change', updateDropdownLabel);
-});
+    document.getElementById('toggleCategoriesBtn').addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('.category-checkbox');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => cb.checked = !allChecked);
+        this.textContent = allChecked ? 'Select All' : 'Unselect All';
+        updateDropdownLabel();
+    });
 
     document.querySelectorAll('.category-checkbox').forEach(cb => {
         cb.addEventListener('change', updateDropdownLabel);
@@ -116,7 +113,7 @@ document.querySelectorAll('.category-checkbox').forEach(cb => {
 
     async function loadExpenses() {
         const user = document.getElementById('userFilter').value;
-        const category = getSelectedCategories(); // multiple categories
+        const category = getSelectedCategories();
         const year = document.getElementById('yearFilter').value;
 
         const params = new URLSearchParams({ user, category, year });
@@ -125,7 +122,8 @@ document.querySelectorAll('.category-checkbox').forEach(cb => {
 
         const labels = data.months;
         const datasets = data.categories.map((cat, index) => ({
-            label: cat,
+            label: cat.name,
+            categoryId: cat.id,
             data: data.values.map(row => row[index]),
             backgroundColor: `hsl(${index * 60 % 360}, 70%, 60%)`
         }));
@@ -134,10 +132,7 @@ document.querySelectorAll('.category-checkbox').forEach(cb => {
 
         expensesChart = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: labels,
-                datasets: datasets
-            },
+            data: { labels: labels, datasets: datasets },
             options: {
                 responsive: true,
                 plugins: {
@@ -152,6 +147,41 @@ document.querySelectorAll('.category-checkbox').forEach(cb => {
                 scales: {
                     x: { stacked: true },
                     y: { stacked: true, beginAtZero: true }
+                },
+                onClick: function(evt, elements) {
+                    if (!elements.length) return;
+
+                    const element = elements[0];
+                    const datasetIndex = element.datasetIndex;
+                    const dataIndex = element.index;
+
+                    const dataset = expensesChart.data.datasets[datasetIndex];
+                    const categoryId = dataset.categoryId;
+                    const month = expensesChart.data.labels[dataIndex];
+                    const year = document.getElementById('yearFilter').value;
+                    const userId = document.getElementById('userFilter').value;
+
+                    const params = new URLSearchParams({ categoryId, month, year, userId });
+                    fetch('get_expense_details.php?' + params.toString())
+                        .then(res => res.text())
+                        .then(html => {
+                            const container = document.getElementById('expenseDetails');
+                            container.innerHTML = html;
+
+                            $('#expenseDetailsTable').DataTable({
+                                lengthChange: true,
+                                pageLength: 10,
+                                columnDefs: [
+                                    { targets: 0, visible: false } // hide ID column
+                                ],
+                                order: [[1, 'asc']] // sort by Date
+                            });
+                        })
+                        .catch(err => {
+                            document.getElementById('expenseDetails').innerHTML =
+                              `<div class="alert alert-danger">Error loading details</div>`;
+                            console.error(err);
+                        });
                 }
             }
         });

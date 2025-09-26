@@ -9,12 +9,13 @@ $year = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
 // Handle multiple categories
 $categories = [];
 if ($categoryParam) {
-    // Assume comma-separated values
     $categories = array_filter(array_map('intval', explode(',', $categoryParam)));
 }
 
 // Build SQL
-$sql = "SELECT MONTH(t.Date) AS month, t.CategoryID, c.CategoryName, 
+$sql = "SELECT MONTH(t.Date) AS month,
+               t.CategoryID,
+               c.CategoryName,
                ABS(SUM(t.Price * t.Quantity + t.Tax)) AS total
         FROM transactions t
         LEFT JOIN categories c ON t.CategoryID = c.CategoryID
@@ -28,7 +29,6 @@ if ($user) {
 }
 
 if (!empty($categories)) {
-    // Build placeholders for IN clause
     $inPlaceholders = [];
     foreach ($categories as $i => $catId) {
         $key = ":cat$i";
@@ -38,7 +38,7 @@ if (!empty($categories)) {
     $sql .= " AND t.CategoryID IN (" . implode(',', $inPlaceholders) . ")";
 }
 
-$sql .= " GROUP BY MONTH(t.Date), t.CategoryID
+$sql .= " GROUP BY MONTH(t.Date), t.CategoryID, c.CategoryName
           ORDER BY MONTH(t.Date), t.CategoryID";
 
 $stmt = $pdo->prepare($sql);
@@ -47,30 +47,38 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Organize data for stacked chart
 $data = [];
+$categoryIds = [];
 $categoryNames = [];
 
-foreach($results as $row){
+foreach ($results as $row) {
     $month = date('F', mktime(0,0,0,$row['month'],1));
+    $catId = $row['CategoryID'];
     $catName = $row['CategoryName'] ?? 'Unknown';
 
     if (!isset($data[$month])) {
         $data[$month] = [];
     }
-    $data[$month][$catName] = floatval($row['total']);
-    $categoryNames[$catName] = true;
+    $data[$month][$catId] = floatval($row['total']);
+
+    $categoryIds[$catId] = true;
+    $categoryNames[$catId] = $catName;
 }
 
-// Prepare final JSON structure
+// Prepare final JSON
 $finalData = [
     'months' => array_keys($data),
-    'categories' => array_keys($categoryNames),
+    'categories' => array_map(fn($id) => [
+        'id' => $id,
+        'name' => $categoryNames[$id]
+    ], array_keys($categoryIds)),
     'values' => []
 ];
 
 foreach ($data as $month => $cats) {
     $row = [];
     foreach ($finalData['categories'] as $cat) {
-        $row[] = $cats[$cat] ?? 0;
+        $catId = $cat['id'];
+        $row[] = $cats[$catId] ?? 0;
     }
     $finalData['values'][] = $row;
 }
