@@ -8,9 +8,13 @@ error_log("userId received in get_transactions.php: $userId"); // debug
 $data = [];
 if ($userId > 0) {
     $stmt = $pdo->prepare("
-        SELECT t.IDFinancialTransaction, t.Date, p.PlaceName AS Place, a.AccountName AS Account, 
-               tt.TypeName AS Type, pr.ProvinceCode AS Province, c.CategoryName AS Category,
-               i.ItemName AS Item, t.Tax, t.Quantity, t.Price, u.UnitName AS Unit, t.Comment
+        SELECT t.IDFinancialTransaction, t.Date, 
+        p.PlaceName AS Place, p.logoPath AS PlaceLogo,
+        a.AccountName AS Account, 
+        tt.TypeName AS Type, pr.ProvinceCode AS Province, 
+        c.CategoryName AS Category,
+        i.ItemName AS Item, t.Tax, t.Quantity, t.Price, 
+        u.UnitName AS Unit, t.Comment
         FROM Transactions t
         LEFT JOIN Places p ON t.PlaceID = p.PlaceID
         LEFT JOIN Accounts a ON t.AccountID = a.AccountID

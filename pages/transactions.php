@@ -203,6 +203,9 @@ $units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName"
           <strong>Current Bill</strong>
         </div>
         <div class="card-body">
+          <div class="text-end">
+            <strong id="billTotal">Total: $0.00</strong>
+          </div>
           <table class="table table-bordered" id="billTable">
             <thead>
               <tr>
@@ -219,9 +222,6 @@ $units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName"
             </thead>
             <tbody></tbody>
           </table>
-          <div class="text-end">
-            <strong id="billTotal">Total: $0.00</strong>
-          </div>
           <div class="mt-2 text-end">
             <button type="button" id="finalizeBillBtn" class="btn btn-success">Finalize Bill</button>
           </div>
@@ -455,6 +455,10 @@ function loadTransactions(userId) {
             rows = `<tr><td colspan="13" class="text-center text-muted">No transactions found</td></tr>`;
         } else {
             data.forEach(function (tx) {
+              const placeCell = tx.PlaceLogo 
+              ? `<img src="${tx.PlaceLogo}" alt="${tx.Place}" style="max-height:40px;">`
+              : tx.Place;
+
               
             let quantity = parseFloat(tx.Quantity) || 0;
             let price = parseFloat(tx.Price) || 0;
@@ -464,7 +468,7 @@ function loadTransactions(userId) {
 
                 rows += `<tr data-id="${tx.IDFinancialTransaction}">
                     <td>${tx.Date}</td>
-                    <td>${tx.Place}</td>
+                    <td>${placeCell}</td>
                     <td>${tx.Account}</td>
                     <td>${tx.Type}</td>
                     <td>${tx.Province}</td>
@@ -550,7 +554,7 @@ row.innerHTML = `
     <button class="btn btn-sm btn-danger delete-bill-btn">Delete</button>
   </td>
 `;
-tbody.appendChild(row);
+tbody.prepend(row);
 
 
     // Update running total

@@ -12,3 +12,130 @@ body {
 .navbar .dropdown-toggle {
     pointer-events: auto;
 }
+
+.container {
+    max-width: 1400px;
+    margin: auto;
+}
+
+.builder {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start;
+  }
+  
+  .food-column {
+    flex: 1;
+    max-width: 30%;
+    min-width: 200px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 80vh;
+    overflow-y: auto;
+    background: #f9f9f9;
+  }
+  
+  .week-column {
+    flex: 2;
+    max-width: 70%;
+    min-width: 400px;
+    padding: 10px;
+    border: 1px solid #ccc;
+  }
+  
+  .food-item {
+    cursor: pointer;
+    padding: 4px 6px;
+    margin: 2px 0;
+    background: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  /* Orignal
+  .meal-item {
+    display: inline-block;
+    margin: 2px;
+    padding: 3px 6px;
+    background: #d4edda;
+    border: 1px solid #28a745;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  */
+  .meal-item {
+    display: block;       /* make each item take a full line */
+    margin: 2px 0;        /* small vertical spacing between items */
+    padding: 3px 5px;     /* optional: nice padding */
+    background-color: #e0f7fa;
+    border: 1px solid #b2ebf2;
+    border-radius: 4px;   /* optional: rounded corners */
+    cursor: pointer;      /* indicates it can be clicked/double-clicked */
+}
+
+  .meal-slot.active {
+    outline: 2px solid #007bff;
+    background-color: #eaf3ff;
+  }
+
+  /* Header container with gradient and shadow */
+.controls {
+    display: flex;
+    flex-wrap: wrap;          
+    gap: 20px;
+    align-items: center;
+    padding: 15px 25px;
+    background: linear-gradient(135deg, #007bff, #00c6ff);
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    margin-bottom: 25px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* Labels stack icon + text nicely */
+  .controls label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+  }
+  
+  /* Inputs styling */
+  .controls select,
+  .controls input[type="date"] {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    margin-top: 5px;
+    font-size: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform 0.15s ease;
+  }
+  
+  .controls select:hover,
+  .controls input[type="date"]:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Print button styling */
+  .controls button {
+    padding: 10px 18px;
+    border-radius: 6px;
+    border: none;
+    background-color: #28a745;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+  }
+  
+  .controls button:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+  }
+  
