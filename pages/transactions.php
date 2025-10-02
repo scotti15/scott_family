@@ -528,7 +528,7 @@ document.getElementById('transactionDetailForm').addEventListener('submit', func
     
     // Merge with headerData
     const transaction = { ...headerData, ...detail };
-    currentBill.push(transaction);
+    currentBill.unshift(transaction);
 
     
     // Add row to bill table

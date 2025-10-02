@@ -7,6 +7,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let activeCell = null;
 
+
+  function makeMealItemDraggable(div) {
+    div.setAttribute('draggable', 'true');
+  
+    div.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', JSON.stringify({
+        itemId: div.dataset.itemId,
+        itemName: div.textContent
+      }));
+      e.dataTransfer.effectAllowed = 'move';
+      div.classList.add('dragging');
+      
+      // store actual dragged element
+      window.draggedElement = div;
+    });
+  
+    div.addEventListener('dragend', () => {
+      div.classList.remove('dragging');
+      window.draggedElement = null;
+    });
+  }
+  
+  
   // --- Load users ---
   fetch('get_users.php')
   .then(res => res.json())
@@ -27,45 +50,56 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
+  let allFoods = []; // store all food elements
+
   // --- Load foods ---
   fetch('get_foods.php')
-      .then(res => res.json())
-      .then(data => {
-          foodList.innerHTML = '';
-          data.forEach(food => {
-              const div = document.createElement('div');
-              div.className = 'food-item';
-              div.dataset.id = food.ItemID;
-              div.textContent = food.ItemName;
-
-              // hover effect
-              div.addEventListener('mouseenter', () => div.style.backgroundColor = '#b2ebf2');
-              div.addEventListener('mouseleave', () => div.style.backgroundColor = '#e0f7fa');
-
-          // Double-click to add food to active cell
-          div.addEventListener('dblclick', () => {
-            if (!activeCell) return;
-
-            // Get existing item IDs in the cell
-            const existingIds = Array.from(activeCell.querySelectorAll('.meal-item'))
-                                    .map(el => el.dataset.itemId)
-                                    .filter(id => id); // remove undefined/null
-
-            if (!existingIds.includes(food.ItemID.toString())) {
-              const item = document.createElement('div');
-              item.className = 'meal-item';
-              item.textContent = food.ItemName;
-              item.dataset.itemId = food.ItemID; // must have valid ID
-              activeCell.appendChild(item);
-
-              saveActiveCell(activeCell); // auto-save
-            }
-          });
-
-              foodList.appendChild(div);
-          });
+    .then(res => res.json())
+    .then(data => {
+      foodList.innerHTML = '';
+      allFoods = data.map(food => {
+        const div = document.createElement('div');
+        div.className = 'food-item';
+        div.dataset.id = food.ItemID;
+        div.textContent = food.ItemName;
+  
+        // hover effect
+        div.addEventListener('mouseenter', () => div.style.backgroundColor = '#b2ebf2');
+        div.addEventListener('mouseleave', () => div.style.backgroundColor = '#e0f7fa');
+  
+        // Double-click to add food to active cell
+        div.addEventListener('dblclick', () => {
+          if (!activeCell) return;
+          const existingIds = Array.from(activeCell.querySelectorAll('.meal-item'))
+                                  .map(el => el.dataset.itemId);
+          if (!existingIds.includes(food.ItemID.toString())) {
+            const item = document.createElement('div');
+            item.className = 'meal-item';
+            item.textContent = food.ItemName;
+            item.dataset.itemId = food.ItemID;
+            makeMealItemDraggable(item);
+            activeCell.appendChild(item);
+            saveActiveCell(activeCell);
+          }
+        });
+  
+        foodList.appendChild(div);
+        return div;
       });
-
+    });
+  
+  // --- Food search filter ---
+  const foodSearch = document.getElementById('foodSearch');
+  foodSearch.addEventListener('input', () => {
+    const query = foodSearch.value.toLowerCase();
+    foodList.innerHTML = '';
+    allFoods.forEach(div => {
+      if (div.textContent.toLowerCase().includes(query)) {
+        foodList.appendChild(div);
+      }
+    });
+  });
+  
   // --- Generate two-week grid ---
   function generateTwoWeekGrid(startDateStr) {
       weekGrid.innerHTML = '';
@@ -95,12 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
           const daysRow = document.createElement('tr');
           const emptyTh = document.createElement('th');
           daysRow.appendChild(emptyTh);
-          const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+          const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
           for (let i = 0; i < 7; i++) {
               const th = document.createElement('th');
               th.textContent = dayNames[i];
               th.style.border = '1px solid #888';
               th.style.padding = '5px';
+              th.style.textAlign = 'center';
+
               daysRow.appendChild(th);
           }
           thead.appendChild(daysRow);
@@ -131,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   td.dataset.date = cellDate.toISOString().split('T')[0];
 
                   td.style.minHeight = '50px';
-                  td.style.border = '1px solid #888';
+                  td.style.border = '2px solid #888';
                   td.style.padding = '5px';
 
                   // Click to activate cell
@@ -148,6 +184,52 @@ document.addEventListener('DOMContentLoaded', () => {
                           saveActiveCell(td);
                       }
                   });
+
+                      /// begin accept drops
+                      td.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        td.style.backgroundColor = '#f1f8e9'; // highlight while dragging
+                      });
+
+                      td.addEventListener('dragleave', () => {
+                        td.style.backgroundColor = '';
+                      });
+
+// --- inside generateTwoWeekGrid, in the td loop ---
+
+              td.addEventListener('drop', e => {
+                e.preventDefault();
+                td.style.backgroundColor = '';
+
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+
+                // Prevent duplicate in the same cell
+                const existingIds = Array.from(td.querySelectorAll('.meal-item'))
+                  .map(el => el.dataset.itemId);
+
+                if (existingIds.includes(data.itemId)) {
+                  return; // already here → do nothing
+                }
+
+                // Move dragged element into this cell
+                if (window.draggedElement) {
+                  td.appendChild(window.draggedElement);
+
+                  // save new cell
+                  saveActiveCell(td);
+
+                  // save old cell (if different)
+                  const oldCell = window.draggedElement.parentElement;
+                  if (oldCell && oldCell !== td) {
+                    saveActiveCell(oldCell);
+                  }
+                }
+              });
+
+
+                      /// end accept drops
+
+                  
 
                   tr.appendChild(td);
               }
@@ -211,6 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
                           div.className = 'meal-item';
                           div.dataset.itemId = item.id;
                           div.textContent = item.name;
+
+                          makeMealItemDraggable(div); 
+
                           cell.appendChild(div);
                       });
                   }
@@ -218,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
           })
           .catch(err => console.error('Load error:', err));
   }
-
+  
   // --- Initial render ---
   //generateTwoWeekGrid(weekStartInput.value);
 

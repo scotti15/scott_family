@@ -1,3 +1,10 @@
+<?php
+require_once __DIR__ . '/../../config/db.php';
+include __DIR__ . '/../../includes/header.php';
+include __DIR__ . '/../../includes/navbar.php';
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,6 +35,13 @@
     <!-- Left Panel: Scrollable Foods -->
     <div class="food-column">
       <h3>Foods</h3>
+      <div>
+        <input 
+          type="text" 
+          id="foodSearch" 
+          placeholder="Search foods..." 
+          style="width: 100%; padding: 5px; margin-bottom: 8px; border: 1px solid #888; border-radius: 4px;">
+      </div>
       <div class="food-list" id="foodList"></div>
     </div>
 
