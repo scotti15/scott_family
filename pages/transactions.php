@@ -583,11 +583,11 @@ document.getElementById('finalizeBillBtn').addEventListener('click', function ()
         return;
     }
 
-    const CASH_ACCOUNT_ID = 2; // Replace with your actual Cash account ID
+    const CASH_ACCOUNT_IDS = [2, 19];  // all account IDs considered "Cash"
     let roundingNeeded = false;
     let roundingAmount = 0;
 
-    if (parseInt(headerData.account) === CASH_ACCOUNT_ID) {
+    if (CASH_ACCOUNT_IDS.includes(parseInt(headerData.account))) {
         // Compute total
         const total = currentBill.reduce((sum, line) => {
             const qty = parseFloat(line.quantity || 0);

@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let activeCell = null;
 
+  
 
   function makeMealItemDraggable(div) {
     div.setAttribute('draggable', 'true');
@@ -104,6 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function generateTwoWeekGrid(startDateStr) {
       weekGrid.innerHTML = '';
       const startDate = new Date(startDateStr);
+
+      // force startDate to Sunday of that week
+      const day = startDate.getDay(); // 0=Sunday, 1=Monday, ...
+      startDate.setDate(startDate.getDate() - day);
+
       const weeks = [0, 7]; // two weeks
 
       weeks.forEach(offset => {
@@ -197,34 +203,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- inside generateTwoWeekGrid, in the td loop ---
 
-              td.addEventListener('drop', e => {
-                e.preventDefault();
-                td.style.backgroundColor = '';
+                    td.addEventListener('drop', e => {
+                      e.preventDefault();
+                      td.style.backgroundColor = '';
 
-                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
 
-                // Prevent duplicate in the same cell
-                const existingIds = Array.from(td.querySelectorAll('.meal-item'))
-                  .map(el => el.dataset.itemId);
+                      // Prevent duplicate in the same cell
+                      const existingIds = Array.from(td.querySelectorAll('.meal-item'))
+                        .map(el => el.dataset.itemId);
+                      if (existingIds.includes(data.itemId)) return;
 
-                if (existingIds.includes(data.itemId)) {
-                  return; // already here → do nothing
-                }
+                      if (window.draggedElement) {  
+                        // --- capture old cell BEFORE moving ---
+                        const oldCell = window.draggedElement.closest('.meal-slot');
 
-                // Move dragged element into this cell
-                if (window.draggedElement) {
-                  td.appendChild(window.draggedElement);
+                        // Move dragged element into new cell
+                        td.appendChild(window.draggedElement);
 
-                  // save new cell
-                  saveActiveCell(td);
+                        // Save both cells
+                        saveActiveCell(td); // new
+                        if (oldCell && oldCell !== td) saveActiveCell(oldCell); // old
+                      }
+                    });
 
-                  // save old cell (if different)
-                  const oldCell = window.draggedElement.parentElement;
-                  if (oldCell && oldCell !== td) {
-                    saveActiveCell(oldCell);
-                  }
-                }
-              });
 
 
                       /// end accept drops
@@ -278,7 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const userId = userSelect.value;
       const weekStart = weekStartInput.value;
 
-      fetch(`load_meals.php?userId=${userId}&weekStart=${weekStart}`)
+          const weekStartDate = new Date(weekStart);
+          const day = weekStartDate.getDay();
+          weekStartDate.setDate(weekStartDate.getDate() - day); // ensure Sunday
+
+          const weekStartISO = weekStartDate.toISOString().split('T')[0];
+          fetch(`load_meals.php?userId=${userId}&weekStart=${weekStartISO}&weeks=2`)
+
           .then(res => res.json())
           .then(data => {
               document.querySelectorAll('.meal-slot').forEach(cell => cell.innerHTML = '');

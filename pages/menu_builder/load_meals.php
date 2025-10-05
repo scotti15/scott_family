@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../config/db.php';
 header('Content-Type: application/json');
 
-// clean any accidental output
+// Clean any accidental output
 if (ob_get_level()) ob_clean();
 
 $userId    = isset($_GET['userId']) ? intval($_GET['userId']) : 0;
@@ -13,12 +13,16 @@ if (!$userId || !$weekStart) {
     exit;
 }
 
-// two-week range
-$startDate = new DateTime($weekStart);
-$endDate   = (clone $startDate)->modify('+13 days');
-
 try {
-    // Get meals for the user in the date range
+    // --- Normalize to the Sunday of that week ---
+    $startDate = new DateTime($weekStart);
+    $dayOfWeek = (int)$startDate->format('w'); // 0 = Sunday
+    $startDate->modify("-{$dayOfWeek} days"); // back to Sunday
+
+    // Two-week range (14 days total)
+    $endDate = (clone $startDate)->modify('+13 days');
+
+    // --- Query meals for the range ---
     $stmt = $pdo->prepare("
         SELECT m.meal_date, m.meal_type, i.ItemID, i.ItemName
         FROM meals m
@@ -30,16 +34,21 @@ try {
     ");
     $stmt->execute([$userId, $startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
 
+    // --- Build nested result array ---
     $meals = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $date = $row['meal_date'];
         $mealType = strtolower($row['meal_type']);
 
-        if (!isset($meals[$date])) $meals[$date] = [];
-        if (!isset($meals[$date][$mealType])) $meals[$date][$mealType] = [];
+        if (!isset($meals[$date])) {
+            $meals[$date] = [];
+        }
+        if (!isset($meals[$date][$mealType])) {
+            $meals[$date][$mealType] = [];
+        }
 
         $meals[$date][$mealType][] = [
-            'id' => $row['ItemID'],
+            'id'   => $row['ItemID'],
             'name' => $row['ItemName']
         ];
     }
