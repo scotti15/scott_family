@@ -27,14 +27,18 @@ if ($owner_id == $userId) {
     $stmt->execute([$owner_id]);
 } else {
     // Other user's wishlist: all gifts, including those added by others
-$stmt = $pdo->prepare("
-    SELECT g.*,
-           COALESCE(SUM(c.quantity),0) AS claimed_quantity,
-           MAX(CASE WHEN c.claimer_id = ? THEN 1 ELSE 0 END) AS i_claimed
-    FROM gifts g
-    LEFT JOIN claims c ON g.gift_id = c.gift_id
-    WHERE g.owner_id = ?  -- or other user ID if viewing someone else's wishlist
-    GROUP BY g.gift_id
+    $stmt = $pdo->prepare("
+        SELECT g.*,
+        COALESCE(SUM(c.quantity), 0) AS claimed_quantity,
+        MAX(CASE WHEN c.claimer_id = ? THEN 1 ELSE 0 END) AS i_claimed,
+        GROUP_CONCAT(DISTINCT CONCAT(u.username, ' (', c.quantity, ')') SEPARATOR ', ') AS claimers
+        FROM gifts g
+        LEFT JOIN claims c ON g.gift_id = c.gift_id
+        LEFT JOIN users u ON c.claimer_id = u.id
+        WHERE g.owner_id = ?
+        AND (g.expiry_date IS NULL OR g.expiry_date >= CURRENT_DATE)
+        GROUP BY g.gift_id
+        ORDER BY g.created_at DESC
 ");
 $stmt->execute([$userId, $owner_id]);
 }
@@ -94,56 +98,43 @@ $gifts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <td><?= $gift['claimed_quantity'] ?? 0 ?></td>
                         <?php endif; ?>
                         <td>
-                        <?php if ($owner_id != $userId): ?>
-                        <td>
-                            <button class="btn btn-sm btn-success"
+                            <?php if ($owner_id != $userId): 
+                                if ($gift['claimed_quantity'] == 0) {
+                                    $btnClass = 'btn-success'; // green
+                                } elseif ($gift['allow_multiple'] || $gift['claimed_quantity'] < 1) {
+                                    $btnClass = 'btn-warning'; // yellow
+                                } else {
+                                    $btnClass = 'btn-danger'; // red
+                                }
+                                ?>
+                                <button class="btn btn-sm <?= $btnClass ?>"
                                     data-bs-toggle="modal"
                                     data-bs-target="#claimModal"
                                     data-gift-id="<?= $gift['gift_id'] ?>"
                                     data-title="<?= htmlspecialchars($gift['title'], ENT_QUOTES) ?>"
-                                    data-allow-multiple="<?= $gift['allow_multiple'] ?>">
+                                    data-allow-multiple="<?= $gift['allow_multiple'] ?>"
+                                    data-bs-toggle="tooltip"
+                                    title="<?= $gift['claimers'] ? 'Claimed by: ' . htmlspecialchars($gift['claimers']) : 'Not yet claimed' ?>">
                                 Claim
                             </button>
-                        </td>
                             <?php else: ?>
-                                <td></td> 
+                                <button class="btn btn-sm btn-warning editGiftBtn"
+                                        data-gift-id="<?= $gift['gift_id'] ?>"
+                                        data-title="<?= htmlspecialchars($gift['title'], ENT_QUOTES) ?>"
+                                        data-description="<?= htmlspecialchars($gift['description'] ?? '', ENT_QUOTES) ?>"
+                                        data-link="<?= htmlspecialchars($gift['link'] ?? '', ENT_QUOTES) ?>"
+                                        data-price="<?= $gift['price'] ?? '' ?>"
+                                        data-allow-multiple="<?= $gift['allow_multiple'] ?>">
+                                    Edit
+                                </button>
+                                <button class="btn btn-sm btn-danger deleteGiftBtn"
+                                        data-gift-id="<?= $gift['gift_id'] ?>"
+                                        data-title="<?= htmlspecialchars($gift['title'], ENT_QUOTES) ?>">
+                                    Delete
+                                </button>
                             <?php endif; ?>
-                            <?php if ($owner_id == $userId): ?>
-                        <td>
-                            <button class="btn btn-sm btn-warning editGiftBtn"
-                                    data-gift-id="<?= $gift['gift_id'] ?>"
-                                    data-title="<?= htmlspecialchars($gift['title'], ENT_QUOTES) ?>"
-                                    data-description="<?= htmlspecialchars($gift['description'] ?? '', ENT_QUOTES) ?>"
-                                    data-link="<?= htmlspecialchars($gift['link'] ?? '', ENT_QUOTES) ?>"
-                                    data-price="<?= $gift['price'] ?? '' ?>"
-                                    data-allow-multiple="<?= $gift['allow_multiple'] ?>">
-                                Edit
-                            </button>
                         </td>
-                            <?php else: ?>
-                                <td>-</td>
-                            <?php endif; ?>
-                            <?php if ($owner_id == $userId): ?>
-                        <td>
-                            <button class="btn btn-sm btn-warning editGiftBtn"
-                                    data-gift-id="<?= $gift['gift_id'] ?>"
-                                    data-title="<?= htmlspecialchars($gift['title'], ENT_QUOTES) ?>"
-                                    data-description="<?= htmlspecialchars($gift['description'] ?? '', ENT_QUOTES) ?>"
-                                    data-link="<?= htmlspecialchars($gift['link'] ?? '', ENT_QUOTES) ?>"
-                                    data-price="<?= $gift['price'] ?? '' ?>"
-                                    data-allow-multiple="<?= $gift['allow_multiple'] ?>">
-                                Edit
-                            </button>
 
-                            <button class="btn btn-sm btn-danger deleteGiftBtn"
-                                    data-gift-id="<?= $gift['gift_id'] ?>"
-                                    data-title="<?= htmlspecialchars($gift['title'], ENT_QUOTES) ?>">
-                                Delete
-                            </button>
-                        </td>
-                    <?php else: ?>
-                        <td>-</td>
-                    <?php endif; ?>
 
                     </tr>
                 <?php endforeach; ?>
@@ -416,6 +407,15 @@ document.getElementById('deleteGiftForm').addEventListener('submit', function(e)
     })
     .catch(err => console.error(err));
 });
+
+// Enable Bootstrap tooltips on hover
+document.addEventListener('DOMContentLoaded', function () {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
 
 </script>
 

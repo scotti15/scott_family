@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Yahtzee 6-game Scorebook</title>
+<link rel="stylesheet" href="yahtzee.css">
+</head>
+<body>
+<h2>Yahtzee Scorebook — 6 Games</h2>
+
+<p>
+Click to cycle (left-click up, right-click down). For dropdown cells click the cell to open choices. Right-click toggles <strong>X</strong> for cells that allow scratch. Clicking a column header unlocks that column.
+</p>
+
+<div id="scorecard-container">
+    <table id="scorecard" aria-label="Yahtzee scorebook">
+    <thead>
+        <tr>
+        <th class="category-col">Category</th>
+        <th class="column-header" data-game="1">Game 1</th>
+        <th class="column-header" data-game="2">Game 2</th>
+        <th class="column-header" data-game="3">Game 3</th>
+        <th class="column-header" data-game="4">Game 4</th>
+        <th class="column-header" data-game="5">Game 5</th>
+        <th class="column-header" data-game="6">Game 6</th>
+        </tr>
+    </thead>
+    <tbody id="body-rows"></tbody>
+    <tfoot id="totals-rows"></tfoot>
+    </table>
+    <div id="scorecard-buttons">
+        <button id="save-btn">Save Game</button>
+        <button id="load-btn">Load Game</button>
+    </div> 
+    <div id="scorecard-controls">
+        <label for="load-session">Load Previous Session:</label>
+        <select id="load-session">
+            <option value="">-- Select Session --</option>
+            <!-- Options will be populated dynamically -->
+        </select>
+    </div>
+    
+</div>
+  
+<script src="yahtzee.js"></script>
+</body>
+</html>

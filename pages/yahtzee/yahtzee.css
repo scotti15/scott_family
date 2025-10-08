@@ -1,0 +1,269 @@
+/* yahtzee.css - polished board look, uniform yellow rows */
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    margin: 20px;
+    background-color: #f2f2f2; /* or a wallpaper image */
+  }
+  
+  h2 {
+    text-align: center;
+    color: #2d3436;
+    margin-bottom: 15px;
+    text-shadow: 1px 1px #b2bec3;
+  }
+  
+  table {
+    border-collapse: separate;
+    border-spacing: 4px;
+    margin: auto;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+    table-layout: fixed;
+  }
+  
+  th, td {
+    text-align: center;
+    font-size: 14px;
+    padding: 6px;
+  }
+  
+  .category-col {
+    text-align: left;
+    font-weight: bold;
+    padding-left: 10px;
+    border-radius: 6px 0 0 6px;
+    box-shadow: inset -1px 0 2px rgba(0,0,0,0.1);
+  }
+  
+  .column-header {
+    background: linear-gradient(135deg,#74b9ff,#0984e3);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: 0.2s all;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  }
+
+  
+  #scorecard .column-header.inverted {
+    background: #000000 !important; /* swapped from default blue */
+    color: #fffb00;         /* default text color for header */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+  
+  .column-header:hover {
+    background: linear-gradient(135deg,#0984e3,#74b9ff);
+  }
+  
+  .scorecell, select.inline {
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    background-color: #ffeaa7; /* uniform yellow */
+    min-width: 60px;
+    text-align: center;
+    box-shadow: inset 0 -1px 1px rgba(0,0,0,0.1);
+  }
+  
+  .scorecell:hover, select.inline:hover {
+    background-color: #74b9ff;
+    color: white;
+  }
+  
+  .scorecell.active {
+    background-color: #81ecec;
+    box-shadow: 0 0 5px #00cec9;
+  }
+  
+  .scorecell.locked, select.inline.locked {
+    background-color: #ffeaa7;
+    color: #636e72;
+    cursor: default;
+    box-shadow: inset 0 -1px 1px rgba(0,0,0,0.1);
+  }
+  
+  .scorecell.scratch, select.inline.locked.scratch {
+    color: #d63031;
+    font-weight: bold;
+  }
+  
+  .upper-total {
+    background-color: #fdcb6e;
+    font-weight: bold;
+    box-shadow: inset 0 -1px 2px rgba(0,0,0,0.2);
+  }
+  
+  .upper-bonus {
+    background-color: #fdcb6e;
+    font-weight: bold;
+    box-shadow: inset 0 -1px 2px rgba(0,0,0,0.2);
+  }
+  
+  .lower-total {
+    background-color: #55efc4;
+    font-weight: bold;
+    box-shadow: inset 0 -1px 2px rgba(0,0,0,0.2);
+  }
+  
+  .grand-total {
+    background-color: #00b894;
+    color: white;
+    font-weight: bold;
+    box-shadow: inset 0 -1px 2px rgba(0,0,0,0.2);
+  }
+  
+  .cumulative-total {
+    background-color: #0984e3;
+    color: white;
+    font-weight: bold;
+    box-shadow: inset 0 -1px 2px rgba(0,0,0,0.2);
+  }
+  
+  select.inline {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 14px;
+    padding: 2px;
+    border-radius: 6px;
+    border: 1px solid #b2bec3;
+  }
+  
+  @keyframes diceRoll {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(20deg); }
+    50% { transform: rotate(-20deg); }
+    75% { transform: rotate(10deg); }
+    100% { transform: rotate(0deg); }
+  }
+  
+  .dice-icon.animate {
+    display: inline-block;
+    animation: diceRoll 0.5s ease;
+  }
+
+  @keyframes diceFlip {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  .dice-icon.flip {
+    display: inline-block;
+    animation: diceFlip 0.4s ease;
+  }
+
+  .scorecell.red { background-color: #f88; }
+.scorecell.yellow { background-color: #ffeb3b; }
+.scorecell.green { background-color: #06800a; color: #fff; }
+.scorecell.neutral {
+    background-color: #fffbe6; /* pale neutral yellow */
+  }
+  
+body {
+    background-image: url('yahtzee-bg.jpg');
+    background-size: cover;       /* Makes it cover the whole screen */
+    background-repeat: no-repeat; /* Prevents tiling */
+    background-position: center;  /* Centers the image */
+    background-attachment: fixed; /* Optional: stays in place while scrolling */
+    font-family: sans-serif;      /* Just for nicer text */
+    text-align: center; /* Centers inline-block elements like your container */
+  }
+  
+
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.6); /* white overlay at 60% opacity */
+    z-index: -1; /* behind the content */
+  }
+
+  #scorecard-container {
+    display: inline-block; /* Makes it center horizontally via text-align:center on body */
+    text-align: left;      /* Keeps the table text aligned normally */
+    margin-top: 20px;
+  }
+
+  #scorecard {
+    margin: 30px auto;
+    background-color: rgba(255, 255, 255, 0.9); /* light translucent box behind table */
+    border-radius: 12px;
+    padding: 15px;
+  }
+  
+
+  #scorecard-container {
+    position: relative;
+    display: inline-block; /* shrink to table width */
+    margin: 20px;
+  }
+  
+  #scorecard-buttons {
+    margin-top: 10px;
+    text-align: right; /* right align the buttons */
+  }
+  
+  #scorecard-buttons button {
+    background-color: #f0e040; /* match your yellow theme */
+    color: #000;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+  }
+  
+  #scorecard-buttons button:hover {
+    background-color: #ffd500;
+    transform: scale(1.05);
+  }
+  
+  #scorecard-buttons button:active {
+    transform: scale(0.95);
+  }
+  
+  .upper-neutral {
+    background-color: #e4d278; /* soft yellow neutral */
+  }
+  
+  .upper-green {
+    background-color: #06800a; /* your chosen green */
+    color: #fff;
+    transition: background-color 0.3s ease;
+  }
+  
+  .upper-red {
+    background-color: #d32f2f; /* bright red */
+    color: #fff;
+    transition: background-color 0.3s ease;
+  }
+  
+
+  .lower-green {
+    background-color: #06800a;
+    color: #fff;
+    transition: background-color 0.3s ease;
+  }
+  
+  .lower-red {
+    background-color: #d32f2f;
+    color: #fff;
+    transition: background-color 0.3s ease;
+  }
+  
+  .lower-neutral {
+    background-color: #fffbe6; /* soft neutral yellow */
+    transition: background-color 0.3s ease;
+  }
+  
+  .upper-total .pace {
+    margin-left: 4px;
+    font-weight: bold;
+    font-size: 0.9em;
+  }

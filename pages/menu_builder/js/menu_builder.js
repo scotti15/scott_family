@@ -103,13 +103,16 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // --- Generate two-week grid ---
   function generateTwoWeekGrid(startDateStr) {
-      weekGrid.innerHTML = '';
-      const startDate = new Date(startDateStr);
-
-      // force startDate to Sunday of that week
-      const day = startDate.getDay(); // 0=Sunday, 1=Monday, ...
+      weekGrid.innerHTML = '';// Parse date in local time to avoid timezone shift issues
+      
+      const [year, month, dayNum] = startDateStr.split('-').map(Number);
+      const startDate = new Date(year, month - 1, dayNum); // local midnight
+      
+      // Force startDate to Sunday of that week
+      const day = startDate.getDay(); // 0=Sunday
       startDate.setDate(startDate.getDate() - day);
-
+      
+      
       const weeks = [0, 7]; // two weeks
 
       weeks.forEach(offset => {
