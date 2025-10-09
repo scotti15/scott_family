@@ -107,16 +107,30 @@ $gifts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     $btnClass = 'btn-danger'; // red
                                 }
                                 ?>
-                                <button class="btn btn-sm <?= $btnClass ?>"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#claimModal"
-                                    data-gift-id="<?= $gift['gift_id'] ?>"
-                                    data-title="<?= htmlspecialchars($gift['title'], ENT_QUOTES) ?>"
-                                    data-allow-multiple="<?= $gift['allow_multiple'] ?>"
-                                    data-bs-toggle="tooltip"
-                                    title="<?= $gift['claimers'] ? 'Claimed by: ' . htmlspecialchars($gift['claimers']) : 'Not yet claimed' ?>">
-                                Claim
-                            </button>
+                                    <?php
+                                    $isClaimedByUser = !empty($gift['i_claimed']); // already calculated in your SQL
+                                    if ($isClaimedByUser):
+                                    ?>
+                                        <button class="btn btn-sm btn-danger"
+                                                data-gift-id="<?= $gift['gift_id'] ?>"
+                                                data-bs-toggle="tooltip"
+                                                title="<?= $gift['claimers'] ? 'Claimed by: ' . htmlspecialchars($gift['claimers']) : 'Claimed' ?>"
+                                                onclick="unclaimGift(<?= $gift['gift_id'] ?>, this)">
+                                            Unclaim
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn btn-sm <?= $btnClass ?>"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#claimModal"
+                                            data-gift-id="<?= $gift['gift_id'] ?>"
+                                            data-title="<?= htmlspecialchars($gift['title'], ENT_QUOTES) ?>"
+                                            data-allow-multiple="<?= $gift['allow_multiple'] ?>"
+                                            data-bs-toggle="tooltip"
+                                            title="<?= $gift['claimers'] ? 'Claimed by: ' . htmlspecialchars($gift['claimers']) : 'Not yet claimed' ?>">
+                                            Claim
+                                        </button>
+                                    <?php endif; ?>
+
                             <?php else: ?>
                                 <button class="btn btn-sm btn-warning editGiftBtn"
                                         data-gift-id="<?= $gift['gift_id'] ?>"
@@ -270,9 +284,29 @@ claimModal.addEventListener('show.bs.modal', function (event) {
 });
 
 // AJAX form submission
+
+// Ensure updateTooltip exists (won't overwrite if you already defined it)
+if (typeof updateTooltip === 'undefined') {
+  window.updateTooltip = function(el, text) {
+    try {
+      const existing = bootstrap.Tooltip.getInstance(el);
+      if (existing) existing.dispose();
+      el.setAttribute('title', text);
+      el.setAttribute('data-bs-original-title', text);
+      new bootstrap.Tooltip(el, { title: text, trigger: 'hover' });
+    } catch (err) {
+      console.warn('updateTooltip error', err);
+    }
+  };
+}
+
+// AJAX form submission - REPLACEMENT handler
 document.getElementById('claimForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    const formData = new FormData(this);
+    const form = this;
+    const formData = new FormData(form);
+    const giftId = formData.get('gift_id');
+    const quantity = parseInt(formData.get('quantity')) || 1;
 
     fetch('claim_gift_ajax.php', {
         method: 'POST',
@@ -283,32 +317,86 @@ document.getElementById('claimForm').addEventListener('submit', function(e) {
         const alertDiv = document.getElementById('claimAlert');
         if (data.success) {
             alertDiv.className = 'alert alert-success';
-            alertDiv.textContent = data.message;
+            alertDiv.textContent = data.message || 'Claim registered';
 
-            // Disable Confirm and Cancel buttons
+            // Disable Confirm and Cancel buttons and show Close
             document.getElementById('confirmClaimBtn').disabled = true;
             document.getElementById('cancelClaimBtn').disabled = true;
-
-            // Show Close button
             document.getElementById('closeClaimBtn').classList.remove('d-none');
 
-            // Update claimed quantity in table dynamically
-            const button = document.querySelector(`button[data-gift-id="${formData.get('gift_id')}"]`);
-            if (button) {
-                const row = button.closest('tr');
-                const claimedCell = row.querySelector('td:nth-last-child(2)');
-                if (claimedCell) {
-                    claimedCell.textContent = parseInt(claimedCell.textContent) + parseInt(formData.get('quantity'));
+            // Update claimed quantity (prefer explicit returned count)
+            const claimedCount = (typeof data.claimed_quantity !== 'undefined')
+                                ? data.claimed_quantity
+                                : (typeof data.claimed_total !== 'undefined')
+                                  ? data.claimed_total
+                                  : null;
+
+            const qtyElById = document.getElementById('claimed_total_' + giftId);
+            if (qtyElById && claimedCount !== null) {
+                qtyElById.textContent = claimedCount;
+            } else {
+                // fallback: try to find a numeric cell in same row and increment or set
+                const button = document.querySelector(`button[data-gift-id="${giftId}"]`);
+                if (button) {
+                    const row = button.closest('tr');
+                    const claimedCell = row ? row.querySelector('td:nth-last-child(2)') : null;
+                    if (claimedCell) {
+                        if (claimedCount !== null) {
+                            claimedCell.textContent = claimedCount;
+                        } else {
+                            // increment fallback
+                            const old = parseInt(claimedCell.textContent) || 0;
+                            claimedCell.textContent = old + quantity;
+                        }
+                    }
                 }
+            }
+
+            // Find the visible button for this gift (claim button)
+            const button = document.querySelector(`button[data-gift-id="${giftId}"]`);
+            if (button) {
+                // build tooltip text: prefer server-provided claimers_text or claimed_by array
+                let tooltipText = data.claimers_text ?? null;
+                if (!tooltipText && Array.isArray(data.claimed_by) && data.claimed_by.length) {
+                    tooltipText = 'Claimed by: ' + data.claimed_by.map(c => {
+                        return c.qty && c.qty > 1 ? `${c.username} (${c.qty})` : `${c.username}`;
+                    }).join(', ');
+                }
+                // older field name fallback
+                if (!tooltipText && typeof data.claimers !== 'undefined') {
+                    tooltipText = 'Claimed by: ' + data.claimers;
+                }
+                if (!tooltipText) tooltipText = 'Claimed';
+
+                // update tooltip reliably
+                updateTooltip(button, tooltipText);
+
+                // change appearance to "Unclaim"
+                button.classList.remove('btn-success', 'btn-warning');
+                button.classList.add('btn-danger');
+                button.textContent = 'Unclaim';
+
+                // remove modal attributes so it won't reopen
+                button.removeAttribute('data-bs-toggle');
+                button.removeAttribute('data-bs-target');
+
+                // attach unclaim handler (uses your existing unclaimGift function)
+                button.onclick = function () {
+                    // call unclaim function you already have defined
+                    unclaimGift(giftId, button);
+                };
             }
 
         } else {
             alertDiv.className = 'alert alert-danger';
-            alertDiv.textContent = data.message;
+            alertDiv.textContent = data.message || 'Claim failed';
         }
     })
     .catch(err => {
-        console.error(err);
+        console.error('Claim fetch error', err);
+        const alertDiv = document.getElementById('claimAlert');
+        alertDiv.className = 'alert alert-danger';
+        alertDiv.textContent = 'Server error while claiming.';
     });
 });
 
@@ -415,6 +503,58 @@ document.addEventListener('DOMContentLoaded', function () {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
+
+// === UNCLAIM GIFT HANDLER ===
+function unclaimGift(giftId, button) {
+    if (!confirm('Remove your claim on this gift?')) return;
+
+    fetch('unclaim_gift_ajax.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'gift_id=' + encodeURIComponent(giftId)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+
+            // update tooltip text immediately and reinit tooltip
+            const existingTooltip = bootstrap.Tooltip.getInstance(button);
+            if (existingTooltip) {
+                existingTooltip.dispose(); // remove old tooltip
+            }
+
+            // update the attribute text
+            button.setAttribute('title', data.claimers_text);
+
+            // create a new tooltip with correct content
+            new bootstrap.Tooltip(button, {
+                title: data.claimers_text,
+                trigger: 'hover'
+});
+            // visually revert button to Claim state
+            button.classList.remove('btn-danger');
+            button.classList.add('btn-success');
+            button.textContent = 'Claim';
+
+            // switch its click handler to open the claim modal again
+            button.onclick = null;
+            button.setAttribute('data-bs-toggle', 'modal');
+            button.setAttribute('data-bs-target', '#claimModal');
+
+            // update claimed count if exists
+            const row = button.closest('tr');
+            const qtyCell = row.querySelector('td:nth-last-child(2)');
+            if (qtyCell) qtyCell.textContent = data.claimed_quantity ?? 0;
+
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Unclaim request failed.');
+    });
+}
 
 
 </script>

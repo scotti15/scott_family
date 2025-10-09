@@ -71,7 +71,7 @@ function renderMenu($parent_id, $menu_tree, $isSubmenu = false) {
                         <a class="nav-link text-white" href="<?php echo BASE_URL; ?>auth/login.php">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="<?php echo BASE_URL; ?>auth/register.php">Sign Up</a>
+                        <a class="nav-link text-white" href="<?php echo BASE_URL; ?>auth/signup.php">Sign Up</a>
                     </li>
                 <?php endif; ?>
             </ul>

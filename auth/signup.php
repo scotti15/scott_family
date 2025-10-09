@@ -1,7 +1,5 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
-include __DIR__ . '/../includes/header.php';
-include __DIR__ . '/../includes/navbar.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
@@ -26,8 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
                 $ins = $pdo->prepare("INSERT INTO users (username, email, password_hash) VALUES (:u, :e, :p)");
                 $ins->execute([':u' => $username, ':e' => $email, ':p' => $hash]);
+
                 flash('success', 'Account created. You can log in now.');
-                header('Location: '.BASE_URL.'auth/login.php');
+
+                // Redirect before sending any output
+                header('Location: ' . BASE_URL . 'auth/login.php');
                 exit;
             }
         } catch (Exception $e) {
@@ -35,6 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// only include output files AFTER all redirect logic
+include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/../includes/navbar.php';
 ?>
 <div class="container mt-4">
   <h1>Sign Up</h1>
