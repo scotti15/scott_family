@@ -278,3 +278,18 @@ body {
 .scorecell.bonus-mode {
   border: 2px dashed #ffd700;
 }
+
+.column-header.completed {
+    background: #034d85 !important; /* dark blue */
+    color: white !important;
+}
+
+/* Game counter */
+#rolls-left {
+  color: #555; /* normal color */
+  transition: color 0.3s ease;
+}
+
+#rolls-left.warning {
+  color: #d32f2f; /* red when only 1 roll left */
+}

@@ -474,6 +474,7 @@
           td.classList.remove('scratch');
 
           updateTotals();
+
         });
       });
 
@@ -503,6 +504,9 @@
              td.classList.remove('scratch');
      
              updateTotals();
+             updateRollsLeft(game);
+
+
          });
      }
      
@@ -545,6 +549,9 @@
 
          td.classList.toggle('scratch', next === 'X');
          updateTotals();
+         updateRollsLeft(game);
+         updateGameHeaderStatus(game);
+
    
          // After change, check if column completed
          checkAndLockCompletedColumns();
@@ -558,7 +565,9 @@
          td.textContent = prevVal;
          td.classList.toggle('scratch', prevVal === 'X');
          updateTotals();
-   
+         updateRollsLeft(game);
+         updateGameHeaderStatus(game);
+
          // No locking triggered by right-click
          checkAndLockCompletedColumns();
        });
@@ -596,12 +605,17 @@
            }
          }
          updateTotals();
+         updateRollsLeft(game);
+
+         updateGameHeaderStatus(game);
+
          // After change, check for completed columns
          checkAndLockCompletedColumns();
        });
 
        sel.addEventListener('change', () => {
         updateTotals();
+        updateGameHeaderStatus(game);
         checkAndLockCompletedColumns();
     
         if (cat.key === 'chance') {
@@ -630,6 +644,7 @@
          const g = h.dataset.game;
          unlockColumn(g);
          updateTotals();
+
        });
      });
    }
@@ -739,6 +754,7 @@
           });
         }
         updateTotals();
+
       });
   }
   
@@ -890,6 +906,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
         // Recalculate totals and colors
         updateTotals();
 
+
         alert('Session loaded successfully!');
     } catch (err) {
         console.error(err);
@@ -928,6 +945,41 @@ function currentActiveGame() {
   }
   return null;
 }
+
+function updateGameHeaderStatus(game) {
+  const allCells = document.querySelectorAll(`.scorecell[data-game="${game}"]`);
+  const blankCells = Array.from(allCells).filter(td => td.textContent.trim() === '');
+  const header = document.querySelector(`.column-header[data-game="${game}"]`);
+
+  if (!header) return;
+
+  if (blankCells.length === 0) {
+      header.classList.add('completed');   // dark blue when done
+  } else {
+      header.classList.remove('completed'); // revert to light blue if not complete
+  }
+}
+
+
+function updateRollsLeft(game) {
+  const cycleCells = Array.from(document.querySelectorAll(`.scorecell[data-game="${game}"]`));
+  const manualCells = Array.from(document.querySelectorAll(`select.inline[data-game="${game}"]`));
+  const allCells = cycleCells.concat(manualCells);
+
+  let blanks = 0;
+  allCells.forEach(cell => {
+      const val = cell.tagName === 'SELECT' ? cell.value.trim() : cell.textContent.trim();
+      if (val === '') blanks++;
+  });
+
+  const counter = document.getElementById('rolls-left');
+  if (counter) {
+      counter.textContent = blanks;              // show remaining rolls
+      counter.style.color = (blanks === 1) ? 'red' : ''; // red when only 1 left
+  }
+}
+
+
 
    /* =========================
       Initialization
