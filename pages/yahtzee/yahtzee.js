@@ -7,20 +7,34 @@
    ========================= */
    const upperCats = ['ones','twos','threes','fours','fives','sixes'];
    const lowerCats = ['three_kind','four_kind','full_house','small_straight','large_straight','yahtzee','chance'];
-   
-   const cycleValues = {
-     ones:    [1,2,3,4,5],
-     twos:    [2,4,6,8,10],
-     threes:  [3,6,9,12,15],
-     fours:   [4,8,12,16,20],
-     fives:   [5,10,15,20,25],
-     sixes:   [6,12,18,24,30],
-     full_house: [25],
-     small_straight: [30],
-     large_straight: [40],
-     yahtzee: [50,150,250,350,450,550,650,750,850,950,1050,1150]
-   };
-   
+
+   // per-game flag: when true, yahtzee cycles use bonus values (100,200,...) instead of normal (50,150,...)
+    const yahtzeeBonusModeByGame = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false };
+
+    const yahtzeeBonusMode = {}; // keyed by game number
+
+    // helper to read/write cleanly
+    function isYahtzeeBonusMode(game) {
+      return !!yahtzeeBonusModeByGame[Number(game)];
+    }
+    function setYahtzeeBonusMode(game, on) {
+      yahtzeeBonusModeByGame[Number(game)] = !!on;
+    }
+
+    const cycleValues = {
+      ones:    [1,2,3,4,5],
+      twos:    [2,4,6,8,10],
+      threes:  [3,6,9,12,15],
+      fours:   [4,8,12,16,20],
+      fives:   [5,10,15,20,25],
+      sixes:   [6,12,18,24,30],
+      full_house: [25],
+      small_straight: [30],
+      large_straight: [40],
+      yahtzee: [50,150,250,350,450,550,650,750,850,950,1050,1150],
+      bonus_yahtzee: [100,200,300,400,500,600,700,800,900,1000]
+    };
+    
    const manualCategories = ['three_kind','four_kind','chance'];
    
    // track active element per game column
@@ -113,6 +127,7 @@
     const tdLabel = document.createElement('td');
     tdLabel.className = 'category-col';
     tdLabel.textContent = cat.label;
+    tdLabel.dataset.category = cat.key;
     tr.appendChild(tdLabel);
 
     for (let g = 1; g <= 6; g++) {
@@ -217,16 +232,20 @@
    /* =========================
       Utilities
       ========================= */
-   function cycleNext(cat, cur) {
-     const vals = cycleValues[cat];
-     if (!vals) return '';
-     cur = String(cur || '').trim();
-     if (cur === '') return String(vals[0]);
-     if (cur === 'X') return '';
-     const idx = vals.indexOf(Number(cur));
-     if (idx === -1) return String(vals[0]);
-     return (idx === vals.length - 1) ? 'X' : String(vals[idx + 1]);
-   }
+      function cycleNext(cat, cur, customVals) {
+        const vals = customVals || cycleValues[cat];
+        if (!vals) return '';
+        cur = String(cur || '').trim();
+      
+        if (cur === '') return String(vals[0]);
+        if (cur === 'X') return '';
+        
+        const idx = vals.indexOf(Number(cur));
+        if (idx === -1) return String(vals[0]);
+        
+        return (idx === vals.length - 1) ? 'X' : String(vals[idx + 1]);
+      }
+      
    
    function cyclePrev(cat, cur) {
      const vals = cycleValues[cat];
@@ -339,10 +358,12 @@
       ========================= */
    function lockOtherNonBlankInColumn(game, exceptEl=null) {
      // cycle cells
-     document.querySelectorAll(`.scorecell[data-game="${game}"]`).forEach(td => {
-       if (td === exceptEl) return;
-       const raw = td.textContent.trim();
-       if (raw !== '') td.classList.add('locked'); else td.classList.remove('locked');
+     document.querySelectorAll(`.scorecell[data-game="${game}"], select.inline[data-game="${game}"]`)
+     .forEach(el => {
+         if (el === exceptEl) return;
+         const value = el.value ?? el.textContent.trim();
+         if (value !== '') el.classList.add('locked');
+         else el.classList.remove('locked');
      });
    
      // manual selects
@@ -409,7 +430,84 @@
       Event attachment
       ========================= */
    function attachHandlers() {
+
+    // document.querySelectorAll('.scorecell[data-category="yahtzee"]').forEach(td => {
+    //   td.addEventListener('dblclick', (e) => {
+    //     const game = td.dataset.game;
+    //     const val = td.textContent.trim();
+    
+    //     // Only allow toggling if Yahtzee was scratched
+    //     if (val === 'X') {
+    //       yahtzeeBonusMode[game] = !yahtzeeBonusMode[game]; // flip mode
+    //       td.classList.toggle('bonus-mode', yahtzeeBonusMode[game]);
+    
+    //       // Optionally update the cell to first value in bonus list
+    //       if (yahtzeeBonusMode[game]) {
+    //         td.textContent = cycleValues['bonus_yahtzee'][0];
+    //         td.classList.remove('scratch');
+    //       } else {
+    //         td.textContent = 'X';
+    //       }
+    
+    //       updateTotals();
+    //     }
+    //   });
+    // });
+    
+      // Add toggle for Yahtzee bonus mode
+      document.querySelectorAll('.scorecell[data-category="yahtzee"]').forEach(td => {
+        td.addEventListener('dblclick', (e) => {
+          // Only allow toggle if this cell is scratched
+          if (td.textContent.trim() !== 'X') return;
+
+          // Toggle bonus mode
+          if (!td.dataset.bonusMode || td.dataset.bonusMode === 'off') {
+            td.dataset.bonusMode = 'on';
+            cycleValues.yahtzee = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+          } else {
+            td.dataset.bonusMode = 'off';
+            cycleValues.yahtzee = [50, 150, 250, 350, 450, 550, 650, 750, 850, 950, 1050, 1150];
+          }
+
+          // Reset current cell to first value in new array
+          td.textContent = String(cycleValues.yahtzee[0]);
+          td.classList.remove('scratch');
+
+          updateTotals();
+        });
+      });
+
      // cycle cells
+     
+     const yahtzeeHeader = document.querySelector('.category-col[data-category="yahtzee"]');
+     if (yahtzeeHeader) {
+         yahtzeeHeader.addEventListener('dblclick', (e) => {
+             const game = currentActiveGame(); // however you determine the active game column
+             if (!game) return;
+     
+             const td = document.querySelector(`.scorecell[data-category="yahtzee"][data-game="${game}"]`);
+             if (!td) return;
+     
+             if (td.textContent.trim() !== 'X') return; // only toggle if scratched
+     
+             // toggle bonus mode
+             if (!td.dataset.bonusMode || td.dataset.bonusMode === 'off') {
+                 td.dataset.bonusMode = 'on';
+                 cycleValues.yahtzee = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+             } else {
+                 td.dataset.bonusMode = 'off';
+                 cycleValues.yahtzee = [50, 150, 250, 350, 450, 550, 650, 750, 850, 950, 1050, 1150];
+             }
+     
+             td.textContent = String(cycleValues.yahtzee[0]);
+             td.classList.remove('scratch');
+     
+             updateTotals();
+         });
+     }
+     
+
+
      document.querySelectorAll('.scorecell').forEach(td => {
        const cat = td.dataset.category;
        const game = td.dataset.game;
@@ -434,9 +532,17 @@
          td.classList.add('active');
          lockOtherNonBlank(td);
    
-         // cycle up
-         const next = cycleNext(cat, td.textContent.trim());
-         td.textContent = next;
+        // cycle up — support Yahtzee bonus mode
+        let values = cycleValues[cat];
+
+        // If this is a Yahtzee cell, check for bonus mode
+        if (cat === 'yahtzee' && isYahtzeeBonusMode(game)) {
+          values = cycleValues['bonus_yahtzee'];
+        }
+
+        const next = cycleNext(cat, td.textContent.trim(), values);
+        td.textContent = next;
+
          td.classList.toggle('scratch', next === 'X');
          updateTotals();
    
@@ -493,12 +599,25 @@
          // After change, check for completed columns
          checkAndLockCompletedColumns();
        });
+
+       sel.addEventListener('change', () => {
+        updateTotals();
+        checkAndLockCompletedColumns();
+    
+        if (cat.key === 'chance') {
+            updateChanceWarning(g);
+        }
+    });
+    
    
        sel.addEventListener('contextmenu', (e) => {
          e.preventDefault();
          if (sel.disabled) return;
          if (cat === 'chance') return; // chance disallows scratch
          sel.value = (sel.value === 'X') ? '' : 'X';
+         if (cat.key === 'chance') {
+           updateChanceWarning(g);
+         }
          updateTotals();
          // Right-click scratch does not lock
          checkAndLockCompletedColumns();
@@ -777,6 +896,38 @@ document.getElementById('load-btn').addEventListener('click', async () => {
         alert('Error loading session');
     }
 });
+
+function updateChanceWarning(game) {
+  const warningId = `chance-warning-${game}`;
+
+  // Remove existing warning first
+  const existing = document.getElementById(warningId);
+  if (existing) existing.remove();
+
+  // Find the chance cell for this game
+  const sel = document.querySelector(`select.inline[data-category="chance"][data-game="${game}"]`);
+  if (!sel) return;  // exit if not found
+
+  // Only show warning if a value has been selected (and not scratched)
+  if (sel.value !== '' && sel.value !== 'X') {
+      const icon = document.createElement('span');
+      icon.id = warningId;
+      icon.textContent = '⚠️';            // warning icon
+      icon.style.marginLeft = '6px';
+      icon.title = 'Chance taken — stakes are higher';
+
+      // Append to the column header for this game
+      const header = document.querySelector(`#scorecard thead th[data-game="${game}"]`);
+      if (header) header.appendChild(icon);
+  }
+}
+
+function currentActiveGame() {
+  for (const g in activeByGame) {
+    if (activeByGame[g]) return g;
+  }
+  return null;
+}
 
    /* =========================
       Initialization
