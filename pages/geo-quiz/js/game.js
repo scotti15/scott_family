@@ -59,6 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
     currentRegionKey = key;
     regionData = REGIONS[key];
     svgRoot = await UI.loadSVG(regionData.mapFile);
+    // assume svgRoot is your loaded SVG element
+    svgPanZoom(svgRoot, {
+      zoomEnabled: true,
+      controlIconsEnabled: true, // shows zoom buttons
+      minZoom: 0.5,
+      maxZoom: 3,
+      fit: true,
+      center: true
+    });
+
     if(!svgRoot) return;
 
     // build list of state ids

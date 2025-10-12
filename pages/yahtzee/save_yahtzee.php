@@ -1,23 +1,29 @@
 <?php
+session_set_cookie_params([
+    'path' => '/', // must match login.php
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
-require_once __DIR__ . '/../../config/db.php';
 
+require_once __DIR__ . '/../../config/db.php';
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['user_id'])) {
+// Accept either user_id or id
+$userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
+if (!$userId) {
     http_response_code(403);
     echo json_encode(['error' => 'Not logged in']);
     exit;
 }
 
-$userId = $_SESSION['user_id'];
 $data = json_decode(file_get_contents('php://input'), true);
-
 if (!$data || !isset($data['scores'])) {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid data']);
     exit;
 }
+
 
 try {
     // Determine current session

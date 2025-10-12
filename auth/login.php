@@ -1,5 +1,12 @@
 <?php
 ob_start(); // start output buffering
+
+// ensure cookies are valid for the whole site
+session_set_cookie_params([
+    'path' => '/',         // ✅ allows access from all folders
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
 
 require_once __DIR__ . '/../config/db.php';

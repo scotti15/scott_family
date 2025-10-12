@@ -789,7 +789,7 @@
             });
         }
 
-        const response = await fetch('/yahtzee/save.php', {
+        const response = await fetch('save_yahtzee.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({scores})
@@ -804,27 +804,40 @@
     }
 });
 async function populateSessions() {
-    const select = document.getElementById('load-session');
-    try {
-        const res = await fetch('/yahtzee/list_sessions.php');
-        const data = await res.json();
-        data.sessions.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.id;
-            opt.textContent = `Session ${s.id} — ${s.created_at}`;
-            select.appendChild(opt);
-        });
-    } catch (err) {
-        console.error("Failed to load sessions:", err);
+  const select = document.getElementById('load-session');
+  try {
+    const res = await fetch('list_sessions.php', {
+      credentials: 'include' // ✅ ensures PHP session cookie is sent
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP error ${res.status}`);
     }
+
+    const data = await res.json();
+    if (!data.sessions) {
+      throw new Error('No sessions returned');
+    }
+
+    data.sessions.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.session_id; // ✅ match your PHP output
+      opt.textContent = `Session ${s.session_id} — ${s.created_at}`;
+      select.appendChild(opt);
+    });
+
+  } catch (err) {
+    console.error("Failed to load sessions:", err);
+  }
 }
+
 
 document.getElementById('load-session').addEventListener('change', async (e) => {
     const sessionId = e.target.value;
     if (!sessionId) return;
 
     try {
-        const res = await fetch(`/yahtzee/load_session.php?session_id=${sessionId}`);
+        const res = await fetch(`load_session.php?session_id=${sessionId}`);
         const data = await res.json();
         if (!data.scores) return;
 
@@ -861,7 +874,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
     try {
         // Optionally, you could prompt user for a session id
         // const sessionId = prompt("Enter session ID (or leave blank for latest):");
-        const response = await fetch('/yahtzee/load.php'); // adjust path
+        const response = await fetch('load_session.php'); // adjust path
         if (!response.ok) throw new Error("Failed to load session");
 
         const data = await response.json();
