@@ -516,47 +516,47 @@
        const cat = td.dataset.category;
        const game = td.dataset.game;
    
-       td.addEventListener('click', (e) => {
-        
-        // remove inversion from the header once a cell is clicked
-        const header = document.querySelector(`.column-header[data-game="${td.dataset.game}"]`);
-        if (header) header.classList.remove('inverted');
-        
-         // ignore if locked
-         if (td.classList.contains('locked')) return;
-   
-         // deactivate previous active in this column
-         const prev = activeByGame[game];
-         if (prev && prev !== td) {
-           if (prev.classList) prev.classList.remove('active');
-         }
-   
-         // set this as active and lock other non-blank in column except this
-         activeByGame[game] = td;
-         td.classList.add('active');
-         lockOtherNonBlank(td);
-   
-        // cycle up — support Yahtzee bonus mode
-        let values = cycleValues[cat];
+td.addEventListener('click', (e) => {
+    const game = td.dataset.game;
 
-        // If this is a Yahtzee cell, check for bonus mode
-        if (cat === 'yahtzee' && isYahtzeeBonusMode(game)) {
-          values = cycleValues['bonus_yahtzee'];
-        }
+    // --- revert header color for this game ---
+    const header = document.querySelector(`.column-header[data-game="${game}"]`);
+    if (header) {
+        header.classList.remove('inverted'); // revert to default color
+        console.log('Header revert triggered for game', game);
+    } else {
+        console.warn('Header not found for game', game);
+    }
 
-        const next = cycleNext(cat, td.textContent.trim(), values);
-        td.textContent = next;
+    // ignore if locked
+    if (td.classList.contains('locked')) return;
 
-         td.classList.toggle('scratch', next === 'X');
-         updateTotals();
-         updateRollsLeft(game);
-         updateGameHeaderStatus(game);
+    // deactivate previous active in this column
+    const prev = activeByGame[game];
+    if (prev && prev !== td) prev.classList.remove('active');
 
-   
-         // After change, check if column completed
-         checkAndLockCompletedColumns();
-       });
-   
+    // set this as active and lock other non-blank cells except this
+    activeByGame[game] = td;
+    td.classList.add('active');
+    lockOtherNonBlank(td);
+
+    // cycle the value (handle Yahtzee bonus mode if needed)
+    let values = cycleValues[td.dataset.category];
+    if (td.dataset.category === 'yahtzee' && isYahtzeeBonusMode(game)) {
+        values = cycleValues['bonus_yahtzee'];
+    }
+    const next = cycleNext(td.dataset.category, td.textContent.trim(), values);
+    td.textContent = next;
+    td.classList.toggle('scratch', next === 'X');
+
+    updateTotals();
+    updateRollsLeft(game);
+    updateGameHeaderStatus(game);
+
+    // check completed columns
+    checkAndLockCompletedColumns();
+});
+
        td.addEventListener('contextmenu', (e) => {
          e.preventDefault();
          if (td.classList.contains('locked')) return;
@@ -586,7 +586,7 @@
          // set this as active
          activeByGame[game] = sel;
          // lock other non-blank in column except sel
-         lockOtherNonBlank(td);
+         lockOtherNonBlank(sel);
 
        });
    
@@ -638,15 +638,23 @@
        });
      });
    
-     // column header unlock
-     document.querySelectorAll('.column-header').forEach(h => {
-       h.addEventListener('click', (e) => {
-         const g = h.dataset.game;
-         unlockColumn(g);
-         updateTotals();
+        // column header unlock
+        document.querySelectorAll('.column-header').forEach(h => {
+          h.addEventListener('click', (e) => {
+            const g = h.dataset.game;
+            if (!g) return;
 
-       });
-     });
+            // remove highlight from all headers first
+            document.querySelectorAll('.column-header').forEach(hh => hh.classList.remove('inverted'));
+
+            // highlight only this one
+            h.classList.add('inverted');
+
+            unlockColumn(g);
+            updateTotals();
+          });
+        });
+
    }
    
 
@@ -690,51 +698,82 @@
     }
   }
   
-  
-  function updateLowerCellColor(cat, game, value) {
-    let td;
+function updateLowerCellColor(cat, game, value) {
+    let target;
     if (manualCategories.includes(cat)) {
-      td = document.querySelector(`select.inline[data-category="${cat}"][data-game="${game}"]`);
-      if (!td) return;
+        target = document.querySelector(`select.inline[data-category="${cat}"][data-game="${game}"]`);
     } else {
-      td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${game}"]`);
-      if (!td) return;
+        target = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${game}"]`);
     }
-  
-    // Remove previous color classes
-    td.classList.remove('red', 'green');
-  
+    if (!target) return;
+
+    // Remove all color classes
+    target.classList.remove('red', 'yellow', 'green', 'neutral');
+
     if (value === '' || value === null) return; // blank: no color
-    if (value === 'X') td.classList.add('red');
-    else td.classList.add('green');
+    if (value === 'X') {
+        target.classList.add('red'); // scratch
+        return;
+    }
+
+    const numVal = Number(value);
+
+    if (['three_kind','four_kind','chance'].includes(cat)) {
+        if (numVal >= 20) {
+            target.classList.add('green'); // green background, white text
+        } else {
+            target.classList.add('yellow'); // yellow background, default text
+        }
+    } else {
+        // Default behavior for other categories
+        target.classList.add('green');
+    }
+}
+
+
+ function saveGame() {
+  const scores = {};
+  for (let g = 1; g <= 6; g++) {
+    scores[g] = {};
+
+    // Upper categories
+    upperCats.forEach(cat => {
+      const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${g}"]`);
+      scores[g][cat] = td ? td.textContent.trim() : '';
+    });
+
+    // Lower categories
+    lowerCats.forEach(cat => {
+      const sel = document.querySelector(`select.inline[data-category="${cat}"][data-game="${g}"]`);
+      const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${g}"]`);
+      if (sel) scores[g][cat] = sel.value;
+      else if (td) scores[g][cat] = td.textContent.trim();
+    });
   }
 
-  function saveGame() {
-    const scores = {};
-    for (let g=1; g<=6; g++) {
-      scores[g] = {};
-      // Upper categories
-      upperCats.forEach(cat => {
-        const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${g}"]`);
-        scores[g][cat] = td ? td.textContent.trim() : '';
-      });
-      // Lower categories
-      lowerCats.forEach(cat => {
-        const sel = document.querySelector(`select.inline[data-category="${cat}"][data-game="${g}"]`);
-        const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${g}"]`);
-        if (sel) scores[g][cat] = sel.value;
-        else if (td) scores[g][cat] = td.textContent.trim();
-      });
-    }
-  
-    fetch('save_yahtzee.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ scores })
-    }).then(res => res.json())
-      .then(data => { if(data.status === 'ok') alert('Game saved!'); })
-      .catch(err => console.error(err));
-  }
+  // Always start a new session for now
+  const payload = {
+    scores,
+    session_id: 0 // <-- this signals PHP to create a new session
+  };
+
+  fetch('save_yahtzee.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log('Save result:', data);
+      if (data.status === 'ok') {
+        alert(`Game saved! (Session ${data.session_id})`);
+      } else {
+        alert('Save failed: ' + (data.error || 'unknown error'));
+      }
+    })
+    .catch(err => console.error('Save error:', err));
+}
+
 
   function loadGame() {
     fetch('load_yahtzee.php')
@@ -758,6 +797,34 @@
       });
   }
   
+  document.getElementById('new-session-btn').addEventListener('click', async () => {
+  if (!confirm("Start a new session? This will clear the current board.")) return;
+
+  try {
+    const res = await fetch('new_yahtzee_session.php', { method: 'POST' });
+    const data = await res.json();
+
+    if (data.status === 'ok') {
+      alert(`New session started (Session ${data.session_id}).`);
+      clearScorecard(); // we'll define this below
+    } else {
+      alert('Failed to start new session.');
+    }
+  } catch (err) {
+    console.error('Error creating new session:', err);
+    alert('Error creating new session.');
+  }
+});
+
+// helper to blank all cells
+function clearScorecard() {
+  document.querySelectorAll('.scorecell, select.inline').forEach(el => {
+    if (el.tagName === 'SELECT') el.value = '';
+    else el.textContent = '';
+    el.classList.remove('red', 'green', 'yellow', 'scratch');
+  });
+}
+
   document.getElementById('save-btn').addEventListener('click', async () => {
     try {
         // Optionally, prompt for session or use the latest/current

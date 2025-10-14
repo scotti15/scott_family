@@ -104,20 +104,20 @@ body {
   }
   
   .lower-total {
-    background-color: #55efc4;
+    background-color: #81c9f3;
     font-weight: bold;
     box-shadow: inset 0 -1px 2px rgba(0,0,0,0.2);
   }
   
   .grand-total {
-    background-color: #00b894;
+    background-color: #156aa3;
     color: white;
     font-weight: bold;
     box-shadow: inset 0 -1px 2px rgba(0,0,0,0.2);
   }
   
   .cumulative-total {
-    background-color: #0984e3;
+    background-color: #01375f;
     color: white;
     font-weight: bold;
     box-shadow: inset 0 -1px 2px rgba(0,0,0,0.2);
@@ -156,13 +156,21 @@ body {
     animation: diceFlip 0.4s ease;
   }
 
-  .scorecell.red { background-color: #f88; }
-.scorecell.yellow { background-color: #ffeb3b; }
+/* Score cells */
+.scorecell.red { background-color: #f88; color: #000; }
+.scorecell.yellow { background-color: #ffeb3b; color: #000; }
 .scorecell.green { background-color: #06800a; color: #fff; }
-.scorecell.neutral {
-    background-color: #fffbe6; /* pale neutral yellow */
-  }
+.scorecell.neutral { background-color: #fffbe6; }
+
+/* Manual select dropdowns match score cell colors */
+select.inline.red { background-color: #f88; color: #000; }
+select.inline.yellow { background-color: #ffeb3b; color: #000; }
+select.inline.green { background-color: #06800a; color: #fff; }
+
+select.inline.neutral { background-color: #fffbe6; color: #000; }
+
   
+
 body {
     background-image: url('yahtzee-bg.jpg');
     background-size: cover;       /* Makes it cover the whole screen */

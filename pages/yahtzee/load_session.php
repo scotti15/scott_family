@@ -57,6 +57,9 @@ try {
         $scoresResult[$game['game_number']] = $scoresAssoc;
     }
 
+        // After fetching the session data successfully:
+    $_SESSION['yahtzee_session_id'] = $sessionId;
+
     echo json_encode([
         'status' => 'ok',
         'session_id' => $sessionId,

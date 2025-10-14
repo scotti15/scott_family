@@ -17,10 +17,20 @@ if (!$userId) {
     exit;
 }
 
+
 $data = json_decode(file_get_contents('php://input'), true);
 if (!$data || !isset($data['scores'])) {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid data']);
+    exit;
+}
+//$requestedSession = isset($data['session_id']) ? (int)$data['session_id'] : null;
+// ✅ Always use the session currently set by the user (via dropdown or New Session button)
+$sessionId = $_SESSION['yahtzee_session_id'] ?? null;
+
+// Safety check — make sure there’s a session
+if (!$sessionId) {
+    echo json_encode(['error' => 'No active session selected']);
     exit;
 }
 
@@ -44,11 +54,6 @@ try {
     $stmt->execute([':user_id' => $userId, ':session_id' => $lastSession]);
     $countGames = (int)$stmt->fetchColumn();
     
-    if ($countGames >= 6 || $lastSession === 0) {
-        $sessionId = $lastSession + 1; // start new session
-    } else {
-        $sessionId = $lastSession;
-    }
 
     // Loop through games and upsert
     foreach ($data['scores'] as $gameNumber => $categories) {
