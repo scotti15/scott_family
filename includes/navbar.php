@@ -4,8 +4,19 @@ require_once __DIR__ . '/../config/db.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+// Determine role
+$role = $_SESSION['role'] ?? 'guest';
 
-$stmt = $pdo->query("SELECT * FROM menu_items ORDER BY sort_order ASC");
+// Prepare query based on role
+if ($role === 'admin') {
+    $stmt = $pdo->query("SELECT * FROM menu_items ORDER BY sort_order ASC");
+} else {
+    // Only show 'user' menu items for non-admins
+    $stmt = $pdo->prepare("SELECT * FROM menu_items WHERE min_role = 'user' ORDER BY sort_order ASC");
+    $stmt->execute();
+}
+
+
 $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Build tree
@@ -19,7 +30,17 @@ function renderMenu($parent_id, $menu_tree, $isSubmenu = false) {
 
     foreach ($menu_tree[$parent_id] as $item) {
         $hasChildren = isset($menu_tree[$item['id']]);
-        $link = $item['link'] ? BASE_URL . ltrim($item['link'], '/') : '#';
+
+        // Determine the href
+        if (!$item['link'] || $item['link'] === '#') {
+            $link = '#';
+        } elseif (preg_match('/^https?:\/\//', $item['link'])) {
+            // External link — leave as-is
+            $link = $item['link'];
+        } else {
+            // Internal link — prepend BASE_URL
+            $link = rtrim(BASE_URL, '/') . '/' . ltrim($item['link'], '/');
+        }
 
         if ($hasChildren) {
             echo '<li class="' . ($isSubmenu ? 'dropdown-submenu' : 'nav-item dropdown') . '">';
@@ -37,6 +58,7 @@ function renderMenu($parent_id, $menu_tree, $isSubmenu = false) {
         }
     }
 }
+
 ?>
 
 <!-- Navbar HTML -->

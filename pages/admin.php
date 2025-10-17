@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     places: ['PlaceID','PlaceName','logoPath','Province'],
     units: ['UnitID','UnitName'],
     transactiontypes: ['TypeID','TypeName'],
-    menu_items: ['id','parent_id','title','link','sort_order']
+    menu_items: ['id','parent_id','title','link','sort_order','min_role']
   };
 
   const booleanFields = {
@@ -158,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     container.innerHTML = html;
   }
 
+
   // Show modal
   function showModal(edit=false, data=null){
     formFields.innerHTML = '';
@@ -166,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cols.forEach(c=>{
       let val = edit && data ? data[c] : '';
 
-      // Special case: items.is_food → checkbox
+      // Special cases: items.is_food → checkbox
       if(currentTable === 'items' && c === 'is_food'){
         formFields.innerHTML += `
           <div class="form-check mb-3">
@@ -174,7 +175,17 @@ document.addEventListener('DOMContentLoaded', () => {
             <label class="form-check-label" for="${c}">${c}</label>
           </div>
         `;
-      } else {
+      } else if (currentTable === 'menu_items' && c === 'min_role') {
+      formFields.innerHTML += `
+        <div class="mb-3">
+          <label class="form-label">Role</label>
+          <select class="form-select" name="fields[min_role]" required>
+            <option value="user" ${val === 'user' ? 'selected' : ''}>User</option>
+            <option value="admin" ${val === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </div>
+      `;
+       } else {
         formFields.innerHTML += `
           <div class="mb-3">
             <label class="form-label">${c}</label>

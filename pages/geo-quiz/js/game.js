@@ -114,17 +114,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function onSubmit(){ checkAnswer(guessInput.value.trim()); }
 
-  function onSkip(){
-  if(!currentTarget) return;
+  function onSkip() {
+  if (!currentTarget) return;
   score -= SKIP_PENALTY;
+
   const answer = quizByCapital
     ? regionData.capitals[currentTarget]
     : regionData.names[currentTarget];
+
   message(`Skipped. The answer was ${answer} (−${SKIP_PENALTY})`, 'muted');
-  markCorrect(currentTarget);
-  unsolvedIds.splice(unsolvedIds.indexOf(currentTarget),1);
+
+  markSkipped(currentTarget); // 👈 new function for skipped
+  unsolvedIds.splice(unsolvedIds.indexOf(currentTarget), 1);
+  guessInput.value = '';
   pickNext();
 }
+
 
 
 function checkAnswer(guess) {
@@ -138,6 +143,7 @@ function checkAnswer(guess) {
     markCorrect(currentTarget);
     message(`Correct — ${correctAnswer}`, 'success');
     unsolvedIds.splice(unsolvedIds.indexOf(currentTarget), 1);
+    guessInput.value = '';
     pickNext();
   } else {
     score -= WRONG_PENALTY;
@@ -147,21 +153,47 @@ function checkAnswer(guess) {
       setTimeout(() => el.classList.remove('wrong'), 400);
     }
     message(`Incorrect — try again (−${WRONG_PENALTY})`, 'error');
+    guessInput.value = '';
     updateStats();
   }
 }
 
+/* MARK AS CORRECT */
+function markCorrect(id) {
+  const el = svgRoot.getElementById(id);
+  if (el) {
+    el.classList.remove('highlight');
+    el.classList.add('correct');
 
-  function markCorrect(id){
-    const el = svgRoot.getElementById(id);
-    if(el){
-      el.classList.remove('highlight');
-      el.classList.add('correct');
-      const title = document.createElementNS('http://www.w3.org/2000/svg','title');
-      title.textContent = regionData.names[id];
-      el.appendChild(title);
-    }
+    const labelText = quizByCapital
+      ? regionData.capitals[id]
+      : regionData.names[id];
+
+    // 🏷️ Add label on the map
+    labelRegion(id, labelText);
+
+    // Keep your existing tooltip title
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    title.textContent = regionData.names[id];
+    el.appendChild(title);
   }
+}
+
+/*    MARK AS SKIPPED */ 
+function markSkipped(id) {
+  const el = svgRoot.getElementById(id);
+  if (el) {
+    el.classList.remove('highlight');
+    el.classList.add('skipped');
+
+    const labelText = quizByCapital
+      ? regionData.capitals[id]
+      : regionData.names[id];
+
+    // show label on map
+    labelRegion(id, labelText);
+  }
+}
 
   // --- stats ---
   function updateStats(){
@@ -275,6 +307,38 @@ document.querySelectorAll('input[name="mode"]').forEach(radio => {
     resetGame(); // optional: restart the quiz in the new mode
   });
 });
+
+function labelRegion(id, labelText) {
+  if (!svgRoot) return;
+  const el = svgRoot.getElementById(id);
+  if (!el) return;
+
+  // Get bounding box of the region
+  const bbox = el.getBBox();
+
+  // Create or update a <text> label inside the SVG
+  let label = svgRoot.querySelector(`text[data-id="${id}"]`);
+  if (!label) {
+    label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("data-id", id);
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("pointer-events", "none"); // prevent blocking clicks
+    svgRoot.appendChild(label);
+  }
+
+  // Position label in the center of the region
+  label.setAttribute("x", bbox.x + bbox.width / 2);
+  label.setAttribute("y", bbox.y + bbox.height / 2);
+
+  // Styling for visibility
+  label.textContent = labelText;
+  label.style.fill = "black";             // black text
+  label.style.fontSize = "25px";          // bigger size
+  label.style.fontWeight = "bold";
+  label.style.stroke = "white";           // white outline
+  label.style.strokeWidth = "1";
+  label.style.paintOrder = "stroke";
+}
 
 
   init(); // start the game

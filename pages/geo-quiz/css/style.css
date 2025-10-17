@@ -115,3 +115,24 @@
   background-color: #e0e0e0; /* light gray highlight */
   color: #000;
 }
+
+/*  REGION LABELS */
+.region-label {
+  font-size: 10px;
+  fill: #222;
+  font-weight: bold;
+  pointer-events: none;
+  user-select: none;
+}
+
+.correct {
+  fill: #4caf50 !important; /* green */
+}
+
+.wrong {
+  fill: #f44336 !important; /* red (temporary wrong guess) */
+}
+
+.skipped {
+  fill: #f28b82 !important; /* lighter red for skipped */
+}
