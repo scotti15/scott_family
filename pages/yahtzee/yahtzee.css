@@ -301,3 +301,20 @@ body {
 #rolls-left.warning {
   color: #d32f2f; /* red when only 1 roll left */
 }
+
+.upper-neutral {
+  background-color: #b8b5b1; /* same as your default gray */
+  color: #000;
+}
+
+.upper-red {
+  background-color: #f88;
+  color: #000;
+  transition: background-color 0.3s ease;
+}
+
+.upper-green {
+  background-color: #06800a;
+  color: #fff;
+  transition: background-color 0.3s ease;
+}

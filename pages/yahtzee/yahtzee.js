@@ -325,21 +325,43 @@
           const grand = upperSum + bonusNumeric + lowerSum;
           cumulative += grand;
       
-          // Write totals
-          const ut = document.querySelector(`.upper-total[data-game="${g}"]`);
-          if (ut) {
-            ut.innerHTML = String(upperSum);
-            if (pace !== 0) {
-              const span = document.createElement('span');
-              span.classList.add('pace');
-              span.textContent = ` (${Math.abs(pace)})`;
-              span.style.color = pace > 0 ? '#06800a' : 'red';
-              ut.appendChild(span);
-            }
-          }
-      
-          const ub = document.querySelector(`.upper-bonus[data-game="${g}"]`);
-          if (ub) ub.textContent = bonusDisplay;
+// Write totals
+const ut = document.querySelector(`.upper-total[data-game="${g}"]`);
+if (ut) {
+  ut.innerHTML = String(upperSum);
+  ut.classList.remove('upper-red', 'upper-green', 'upper-neutral');
+
+  if (upperSum >= 63) {
+    ut.classList.add('upper-green');
+  } else if (upperFilled === 6) {
+    ut.classList.add('upper-red');
+  } else {
+    ut.classList.add('upper-neutral');
+  }
+
+  if (pace !== 0) {
+    const span = document.createElement('span');
+    span.classList.add('pace');
+    span.textContent = ` (${Math.abs(pace)})`;
+    span.style.color = pace > 0 ? '#06800a' : 'red';
+    ut.appendChild(span);
+  }
+}
+
+const ub = document.querySelector(`.upper-bonus[data-game="${g}"]`);
+if (ub) {
+  ub.textContent = bonusDisplay;
+  ub.classList.remove('upper-red', 'upper-green', 'upper-neutral');
+
+  if (upperSum >= 63) {
+    ub.classList.add('upper-green');
+  } else if (upperFilled === 6) {
+    ub.classList.add('upper-red');
+  } else {
+    ub.classList.add('upper-neutral');
+  }
+}
+
       
           const lt = document.querySelector(`.lower-total[data-game="${g}"]`);
           if (lt) lt.textContent = String(lowerSum);
@@ -721,58 +743,69 @@ function updateLowerCellColor(cat, game, value) {
     if (['three_kind','four_kind','chance'].includes(cat)) {
         if (numVal >= 20) {
             target.classList.add('green'); // green background, white text
-        } else {
-            target.classList.add('yellow'); // yellow background, default text
+        } else if (numVal >= 14) {
+          target.classList.add('yellow'); // yellow background, white text
+      } else{
+            target.classList.add('red'); // red background, default text
         }
     } else {
         // Default behavior for other categories
         target.classList.add('green');
     }
 }
-
-
- function saveGame() {
+function saveGame() {
   const scores = {};
+
   for (let g = 1; g <= 6; g++) {
     scores[g] = {};
 
-    // Upper categories
+    // Upper categories (always include the key; blank if not present)
     upperCats.forEach(cat => {
       const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${g}"]`);
       scores[g][cat] = td ? td.textContent.trim() : '';
     });
 
-    // Lower categories
+    // Lower categories (always include the key; blank if not present)
     lowerCats.forEach(cat => {
       const sel = document.querySelector(`select.inline[data-category="${cat}"][data-game="${g}"]`);
       const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${g}"]`);
-      if (sel) scores[g][cat] = sel.value;
-      else if (td) scores[g][cat] = td.textContent.trim();
+      if (sel) {
+        // explicit value even if blank
+        scores[g][cat] = sel.value !== undefined ? String(sel.value).trim() : '';
+      } else if (td) {
+        scores[g][cat] = td.textContent.trim();
+      } else {
+        scores[g][cat] = ''; // explicitly include the key as blank
+      }
     });
   }
 
-  // Always start a new session for now
-  const payload = {
-    scores,
-    session_id: 0 // <-- this signals PHP to create a new session
-  };
+  // Debug: inspect payload before sending
+  console.log('Saving payload:', scores);
+
+  // require a current session on client (you already set this server-side via session)
+  const payload = { scores };
 
   fetch('save_yahtzee.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   })
-    .then(res => res.json())
-    .then(data => {
-      console.log('Save result:', data);
-      if (data.status === 'ok') {
-        alert(`Game saved! (Session ${data.session_id})`);
-      } else {
-        alert('Save failed: ' + (data.error || 'unknown error'));
-      }
-    })
-    .catch(err => console.error('Save error:', err));
+  .then(res => res.json())
+  .then(data => {
+    console.log('Save response:', data);
+    if (data.status === 'ok') {
+      alert(`Saved to session ${data.session_id}`);
+    } else {
+      alert('Save failed: ' + (data.error || 'unknown'));
+    }
+  })
+  .catch(err => {
+    console.error('Save error:', err);
+    alert('Error saving game');
+  });
 }
+
 
 
   function loadGame() {
