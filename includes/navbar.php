@@ -59,6 +59,32 @@ function renderMenu($parent_id, $menu_tree, $isSubmenu = false) {
     }
 }
 
+function renderFlatMenu($parent_id, $menu_tree, $level = 0) {
+    if (!isset($menu_tree[$parent_id])) return;
+
+    foreach ($menu_tree[$parent_id] as $item) {
+        // Determine the link
+        if (!$item['link'] || $item['link'] === '#') {
+            $link = '#';
+        } elseif (preg_match('/^https?:\/\//', $item['link'])) {
+            $link = $item['link'];
+        } else {
+            $link = rtrim(BASE_URL, '/') . '/' . ltrim($item['link'], '/');
+        }
+
+        // Indentation level
+        $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level);
+
+        echo '<li>';
+        echo $indent . '<a href="' . htmlspecialchars($link) . '" class="text-white text-decoration-none d-block py-1">'
+            . htmlspecialchars($item['title']) . '</a>';
+        echo '</li>';
+
+        // Recurse for children
+        renderFlatMenu($item['id'], $menu_tree, $level + 1);
+    }
+}
+
 ?>
 
 <!-- Navbar HTML -->
@@ -100,6 +126,41 @@ function renderMenu($parent_id, $menu_tree, $isSubmenu = false) {
         </div>
     </div>
 </nav>
+
+<!-- Mobile Flat Menu -->
+<nav class="mobile-menu d-lg-none">
+  <div class="container-fluid py-3">
+    <ul class="list-unstyled m-0">
+      <?php renderFlatMenu(null, $menu_tree); ?>
+
+      <?php if (isset($_SESSION['username'])): ?>
+        <li>
+          <span class="text-white d-block py-1">
+            Hello, <?= htmlspecialchars($_SESSION['username']) ?>
+          </span>
+        </li>
+        <li>
+          <a href="<?= BASE_URL ?>auth/logout.php" class="text-white d-block py-1">Logout</a>
+        </li>
+      <?php else: ?>
+        <li>
+          <a href="<?= BASE_URL ?>auth/login.php" class="text-white d-block py-1">Login</a>
+        </li>
+        <li>
+          <a href="<?= BASE_URL ?>auth/signup.php" class="text-white d-block py-1">Sign Up</a>
+        </li>
+      <?php endif; ?>
+
+      <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+        <li>
+          <a href="<?= BASE_URL ?>admin/dashboard.php" class="text-white d-block py-1">Admin Dashboard</a>
+        </li>
+      <?php endif; ?>
+    </ul>
+  </div>
+</nav>
+
+
 
 <!-- Styles -->
 <style>
@@ -182,6 +243,61 @@ function renderMenu($parent_id, $menu_tree, $isSubmenu = false) {
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
 }
+@media (max-width: 992px) {
+  /* Make submenu visible when .show is added */
+  .dropdown-submenu > .dropdown-menu {
+    position: static !important;
+    display: none !important;
+    margin-left: 1rem;
+    margin-top: 0.5rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid #ddd;
+  }
+  .dropdown-submenu > .dropdown-menu.show {
+    display: block !important;
+  }
+}
+
+/* Mobile flat menu */
+.mobile-menu {
+  background: linear-gradient(90deg, #4e73df, #1cc88a);
+  color: white;
+}
+
+.mobile-menu ul {
+  padding-left: 0;
+  margin: 0;
+}
+
+.mobile-menu a {
+  color: #e0f7fa;
+  font-weight: 500;
+  display: block;
+  padding: 0.35rem 1rem;
+  transition: color 0.2s, background 0.2s;
+}
+
+.mobile-menu a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0.25rem;
+}
+
+/* Optional visual indentation for deeper levels */
+.mobile-menu li {
+  margin-left: 0.5rem;
+}
+.mobile-menu li:nth-child(n) a {
+  padding-left: calc(1rem + var(--indent, 0px));
+}
+
+/* Hide on desktop */
+@media (min-width: 992px) {
+  .mobile-menu {
+    display: none;
+  }
+}
+
 </style>
 
 <!-- Bootstrap JS -->
@@ -225,5 +341,25 @@ document.addEventListener("DOMContentLoaded", function(){
             });
         });
     }
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  if (window.innerWidth <= 992) {
+    document.querySelectorAll('.dropdown-submenu > a.dropdown-toggle').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const submenu = this.nextElementSibling;
+        if (!submenu) return;
+
+        console.log("Toggling submenu:", submenu); // ← test line
+
+        submenu.classList.toggle('show');
+      });
+    });
+  }
 });
 </script>

@@ -1,0 +1,8 @@
+<?php
+require_once '../config/db.php';
+header('Content-Type: application/json');
+
+$id = (int)($_POST['id'] ?? 0);
+if($id<1){ echo json_encode(['status'=>'error','message'=>'Invalid id']); exit; }
+$ok = $pdo->prepare("DELETE FROM items WHERE id = ?")->execute([$id]);
+echo json_encode(['status'=>$ok ? 'success':'error','message'=>$ok ? 'Deleted':'DB error']);
