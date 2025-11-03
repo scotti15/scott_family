@@ -104,6 +104,14 @@
     td.textContent = '0';
     trUT.appendChild(td);
   }
+  // Attach keypad click handlers for lower manual-entry cells
+    document.querySelectorAll('.keypad').forEach(td => {
+      td.onclick = () => {
+        const allowX = td.dataset.allowX === 'true';
+        openKeypad(td, allowX);
+      };
+    });
+
   tbody.appendChild(trUT);
 
   // Bonus row
@@ -120,62 +128,38 @@
     trB.appendChild(td);
   }
   tbody.appendChild(trB);
+// Build lower rows
+lowerCats.forEach(cat => {
+  const tr = document.createElement('tr');
+  const tdLabel = document.createElement('td');
+  tdLabel.className = 'category-col';
+  tdLabel.textContent = cat.label;
+  tdLabel.dataset.category = cat.key;
+  tr.appendChild(tdLabel);
 
-  // Build lower rows
-  lowerCats.forEach(cat => {
-    const tr = document.createElement('tr');
-    const tdLabel = document.createElement('td');
-    tdLabel.className = 'category-col';
-    tdLabel.textContent = cat.label;
-    tdLabel.dataset.category = cat.key;
-    tr.appendChild(tdLabel);
+  for (let g = 1; g <= 6; g++) {
+    const td = document.createElement('td');
+    td.dataset.category = cat.key;
+    td.dataset.game = g;
+    td.tabIndex = 0;
 
-    for (let g = 1; g <= 6; g++) {
-      const td = document.createElement('td');
-
-      // Manual-entry categories with dropdown
-      const manualCats = ['three_kind', 'four_kind', 'chance'];
-      if (manualCats.includes(cat.key)) {
-        const sel = document.createElement('select');
-        sel.className = 'inline';
-        sel.dataset.category = cat.key;
-        sel.dataset.game = g;
-
-        // Blank
-        const optBlank = document.createElement('option');
-        optBlank.value = '';
-        optBlank.textContent = '';
-        sel.appendChild(optBlank);
-
-        // Scratch (except for Chance)
-        if (cat.key !== 'chance') {
-          const optX = document.createElement('option');
-          optX.value = 'X';
-          optX.textContent = 'X';
-          sel.appendChild(optX);
-        }
-
-        // Numbers 5-30
-        for (let n = 5; n <= 30; n++) {
-          const opt = document.createElement('option');
-          opt.value = n;
-          opt.textContent = n;
-          sel.appendChild(opt);
-        }
-
-        td.appendChild(sel);
-      } else {
-        td.className = 'scorecell';
-        td.tabIndex = 0;
-        td.dataset.category = cat.key;
-        td.dataset.game = g;
-      }
-
-      tr.appendChild(td);
+    // Manual-entry categories with keypad
+    const manualCats = ['three_kind', 'four_kind', 'chance'];
+    if (manualCats.includes(cat.key)) {
+      td.className = 'scorecell keypad';
+      td.textContent = ''; // empty; will trigger keypad on click
+      // Optionally store allowed entries for later
+      td.dataset.allowX = (cat.key !== 'chance'); 
+    } else {
+      td.className = 'scorecell';
     }
 
-    tbody.appendChild(tr);
-  });
+    tr.appendChild(td);
+  }
+
+  tbody.appendChild(tr);
+});
+
 }
 
       
@@ -259,27 +243,25 @@
    }
    
    function getCellValue(cat, game) {
-     if (manualCategories.includes(cat)) {
-       const sel = document.querySelector(`select.inline[data-category="${cat}"][data-game="${game}"]`);
-       if (!sel) return { num:0, raw:'' };
-       const raw = sel.value;
-       if (!raw || raw === '') return { num:0, raw:'' };
-       if (raw === 'X') return { num:0, raw:'X' };
-       return { num: Number(raw), raw };
-     } else {
-       const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${game}"]`);
-       if (!td) return { num:0, raw:'' };
-       const raw = td.textContent.trim();
-       if (!raw) return { num:0, raw:'' };
-       if (raw === 'X') return { num:0, raw:'X' };
-       return { num: Number(raw), raw };
-     }
-   }
+    const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${game}"]`);
+    if (!td) return { num: 0, raw: '' };
+  
+    const raw = td.textContent.trim();
+    if (!raw) return { num: 0, raw: '' };
+    if (raw === 'X') return { num: 0, raw: 'X' };
+  
+    const num = Number(raw);
+    return { num: isNaN(num) ? 0 : num, raw };
+  }
+  
+   
    
    /* =========================
       Totals and Bonus
       ========================= */
       function updateTotals() {
+        console.log("updateTotals running...");
+
         let cumulative = 0;
       
         for (let g = 1; g <= 6; g++) {
@@ -325,41 +307,41 @@
           const grand = upperSum + bonusNumeric + lowerSum;
           cumulative += grand;
       
-// Write totals
-const ut = document.querySelector(`.upper-total[data-game="${g}"]`);
-if (ut) {
-  ut.innerHTML = String(upperSum);
-  ut.classList.remove('upper-red', 'upper-green', 'upper-neutral');
+        // Write totals
+        const ut = document.querySelector(`.upper-total[data-game="${g}"]`);
+        if (ut) {
+          ut.innerHTML = String(upperSum);
+          ut.classList.remove('upper-red', 'upper-green', 'upper-neutral');
 
-  if (upperSum >= 63) {
-    ut.classList.add('upper-green');
-  } else if (upperFilled === 6) {
-    ut.classList.add('upper-red');
-  } else {
-    ut.classList.add('upper-neutral');
-  }
+          if (upperSum >= 63) {
+            ut.classList.add('upper-green');
+          } else if (upperFilled === 6) {
+            ut.classList.add('upper-red');
+          } else {
+            ut.classList.add('upper-neutral');
+          }
 
-  if (pace !== 0) {
-    const span = document.createElement('span');
-    span.classList.add('pace');
-    span.textContent = ` (${Math.abs(pace)})`;
-    span.style.color = pace > 0 ? '#06800a' : 'red';
-    ut.appendChild(span);
-  }
-}
+        if (pace !== 0) {
+          const span = document.createElement('span');
+          span.classList.add('pace');
+          span.textContent = ` (${Math.abs(pace)})`;
+          span.style.color = pace > 0 ? '#06800a' : 'red';
+          ut.appendChild(span);
+        }
+      }
 
-const ub = document.querySelector(`.upper-bonus[data-game="${g}"]`);
-if (ub) {
-  ub.textContent = bonusDisplay;
-  ub.classList.remove('upper-red', 'upper-green', 'upper-neutral');
+          const ub = document.querySelector(`.upper-bonus[data-game="${g}"]`);
+          if (ub) {
+            ub.textContent = bonusDisplay;
+            ub.classList.remove('upper-red', 'upper-green', 'upper-neutral');
 
-  if (upperSum >= 63) {
-    ub.classList.add('upper-green');
-  } else if (upperFilled === 6) {
-    ub.classList.add('upper-red');
-  } else {
-    ub.classList.add('upper-neutral');
-  }
+            if (upperSum >= 63) {
+              ub.classList.add('upper-green');
+            } else if (upperFilled === 6) {
+              ub.classList.add('upper-red');
+            } else {
+              ub.classList.add('upper-neutral');
+            }
 }
 
       
@@ -378,23 +360,30 @@ if (ub) {
    /* =========================
       Locking helpers
       ========================= */
-   function lockOtherNonBlankInColumn(game, exceptEl=null) {
-     // cycle cells
-     document.querySelectorAll(`.scorecell[data-game="${game}"], select.inline[data-game="${game}"]`)
-     .forEach(el => {
-         if (el === exceptEl) return;
-         const value = el.value ?? el.textContent.trim();
-         if (value !== '') el.classList.add('locked');
-         else el.classList.remove('locked');
-     });
-   
-     // manual selects
-     document.querySelectorAll(`select.inline[data-game="${game}"]`).forEach(sel => {
-       if (sel === exceptEl) return;
-       if (sel.value !== '') { sel.disabled = true; sel.classList.add('locked'); }
-       else { sel.disabled = false; sel.classList.remove('locked'); }
-     });
-   }
+      function lockOtherNonBlankInColumn(game, exceptEl = null) {
+        document.querySelectorAll(`[data-game="${game}"]`).forEach(el => {
+          if (el === exceptEl) return;
+      
+          let value = '';
+          if (el.tagName === 'SELECT') {
+            value = el.value.trim();
+          } else {
+            value = el.textContent.trim();
+          }
+      
+          if (value !== '') {
+            el.classList.add('locked');
+            if (el.classList.contains('keypad')) el.dataset.locked = 'true'; // track keypad state
+            if (el.tagName === 'SELECT') el.disabled = true;
+          } else {
+            el.classList.remove('locked');
+            if (el.classList.contains('keypad')) el.dataset.locked = 'false';
+            if (el.tagName === 'SELECT') el.disabled = false;
+          }
+        });
+      }
+      
+      
 
    function lockOtherNonBlank(exceptEl = null) {
     document.querySelectorAll('.scorecell').forEach(td => {
@@ -406,20 +395,25 @@ if (ub) {
   }
   
    
-   function unlockColumn(game) {
+  function unlockColumn(game) {
     const header = document.querySelector(`.column-header[data-game="${game}"]`);
     if (header) header.classList.add('inverted');
-
-     document.querySelectorAll(`[data-game="${game}"]`).forEach(el => {
-       if (el.classList) el.classList.remove('locked');
-       if (el.tagName === 'SELECT') {
-         el.disabled = false;
-         el.classList.remove('locked');
-       }
-     });
-     activeByGame[game] = null;
-   }
-   
+  
+    document.querySelectorAll(`[data-game="${game}"]`).forEach(el => {
+      el.classList.remove('locked');
+  
+      if (el.tagName === 'SELECT') {
+        el.disabled = false; // re-enable dropdowns
+      }
+  
+      if (el.classList.contains('keypad')) {
+        el.dataset.locked = 'false'; // unlock keypad cell
+      }
+    });
+  
+    activeByGame[game] = null;
+  }
+  
    function lockFullColumn(game) {
      // lock all non-blank cells; if full, lock everything regardless
      document.querySelectorAll(`.scorecell[data-game="${game}"]`).forEach(td => {
@@ -720,39 +714,41 @@ td.addEventListener('click', (e) => {
     }
   }
   
-function updateLowerCellColor(cat, game, value) {
-    let target;
-    if (manualCategories.includes(cat)) {
-        target = document.querySelector(`select.inline[data-category="${cat}"][data-game="${game}"]`);
-    } else {
-        target = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${game}"]`);
-    }
+
+  // Update Colour
+  function updateLowerCellColor(cat, game, value) {
+    // Always target the TD now (since dropdowns are gone)
+    const target = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${game}"]`);
     if (!target) return;
-
-    // Remove all color classes
+  
+    // Remove previous color classes
     target.classList.remove('red', 'yellow', 'green', 'neutral');
-
-    if (value === '' || value === null) return; // blank: no color
+  
+    if (value === '' || value === null) return; // blank → no color
     if (value === 'X') {
-        target.classList.add('red'); // scratch
-        return;
+      target.classList.add('red'); // scratch
+      return;
     }
-
+  
     const numVal = Number(value);
-
-    if (['three_kind','four_kind','chance'].includes(cat)) {
-        if (numVal >= 20) {
-            target.classList.add('green'); // green background, white text
-        } else if (numVal >= 14) {
-          target.classList.add('yellow'); // yellow background, white text
-      } else{
-            target.classList.add('red'); // red background, default text
-        }
-    } else {
-        // Default behavior for other categories
+  
+    // Apply your thresholds for lower categories
+    if (['three_kind', 'four_kind', 'chance'].includes(cat)) {
+      if (numVal >= 20) {
         target.classList.add('green');
+      } else if (numVal >= 14) {
+        target.classList.add('yellow');
+      } else {
+        target.classList.add('red');
+      }
+    } else {
+      // Other lower categories (straights, etc.)
+      target.classList.add('green');
     }
-}
+  }
+  
+  
+  
 function saveGame() {
   const scores = {};
 
@@ -1092,7 +1088,262 @@ function updateRollsLeft(game) {
   }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+  const keypad = document.getElementById('floatingKeypad');
+  let currentCell = null;
 
+  const keys = ['1','2','3','4','5','6','7','8','9','0','X','←','Enter'];
+
+  function buildKeypad(forChance=false) {
+      keypad.innerHTML = '';
+      keys.forEach(k => {
+          if(forChance && k==='X') return; // No X for chance
+          const btn = document.createElement('button');
+          btn.textContent = k;
+          btn.style.margin = '3px';
+          btn.style.padding = '10px 14px';
+          btn.style.fontSize = '1em';
+          btn.style.borderRadius = '4px';
+          btn.style.border='1px solid #999';
+          btn.style.background='#f9f9f9';
+          btn.style.cursor='pointer';
+          btn.addEventListener('click', () => handleKeyPress(k));
+          keypad.appendChild(btn);
+      });
+  }
+
+  function handleKeyPress(k) {
+      if(!currentCell) return;
+      if(k==='Enter') {
+          if(currentCell.dataset.value) {
+              currentCell.textContent = currentCell.dataset.value;
+              currentCell.classList.add('filled');
+              if(typeof updateTotals === 'function') updateTotals();
+          }
+          updateTotals();
+          hideKeypad();
+      } else if(k==='←') {
+          if(currentCell.dataset.value)
+              currentCell.dataset.value = currentCell.dataset.value.slice(0,-1);
+      } else {
+          currentCell.dataset.value = (currentCell.dataset.value||'') + k;
+      }
+      
+  }
+
+  //SHOW, HIDE KEYPAD BEGIN
+  
+  function showKeypad(cell) {
+    if (cell.dataset.locked === 'true') return;
+    lockOtherNonBlankInColumn(cell.dataset.game, cell);
+  
+    // Remove existing keypad if any
+    const oldKeypad = document.getElementById('keypad');
+    if (oldKeypad) oldKeypad.remove();
+  
+    // Create keypad container
+    const keypad = document.createElement('div');
+    keypad.id = 'keypad';
+    keypad.style.position = 'absolute';
+    keypad.style.zIndex = 1000;
+    keypad.style.background = '#fff';
+    keypad.style.border = '1px solid #ccc';
+    keypad.style.padding = '10px';
+    keypad.style.borderRadius = '8px';
+    keypad.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+    keypad.style.display = 'grid';
+    keypad.style.gridTemplateColumns = 'repeat(3, 50px)';
+    keypad.style.gridGap = '5px';
+    keypad.style.justifyContent = 'center';
+    keypad.style.touchAction = 'manipulation';
+  
+    // Close button (small, floating)
+    const closeBtn = document.createElement('div');
+    closeBtn.textContent = 'X';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '17px';
+    closeBtn.style.right = '16px';
+    closeBtn.style.fontSize = '18px';
+    closeBtn.style.fontWeight = 'bold';
+    closeBtn.style.color = '#888';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.userSelect = 'none';
+    closeBtn.style.lineHeight = '1';
+    ['click', 'touchend'].forEach(evt => {
+      closeBtn.addEventListener(evt, () => keypad.remove());
+    });
+    closeBtn.addEventListener('mouseenter', () => closeBtn.style.color = '#000');
+    closeBtn.addEventListener('mouseleave', () => closeBtn.style.color = '#888');
+    keypad.appendChild(closeBtn);
+  
+    // Display for typed value (optional)
+    const display = document.createElement('div');
+    display.style.gridColumn = '1 / 4';
+    display.style.height = '30px';
+    display.style.lineHeight = '30px';
+    display.style.textAlign = 'center';
+    display.style.marginBottom = '5px';
+    display.style.fontSize = '16px';
+    display.style.fontWeight = 'bold';
+    display.style.border = '1px solid #ccc';
+    display.style.borderRadius = '4px';
+    display.style.background = '#f0f0f0';
+    keypad.appendChild(display);
+  
+    let inputValue = cell.dataset.value || '';
+    display.textContent = inputValue;
+  
+    // Button layout
+    const buttonLayout = [
+      '1','2','3','4','5','6','7','8','9','0','X','␣'
+    ];
+  
+    buttonLayout.forEach(val => {
+      const btn = document.createElement('button');
+      btn.textContent = val;
+      btn.style.height = '40px';
+      btn.style.fontSize = '16px';
+      btn.style.cursor = 'pointer';
+      ['click','touchend'].forEach(evt => {
+        btn.addEventListener(evt, e => {
+          e.preventDefault();
+          if (val === '␣') inputValue = '';
+          else if (val === 'X' && cell.dataset.category !== 'chance') inputValue = 'X';
+          else if (!isNaN(val)) inputValue += val;
+          display.textContent = inputValue;
+        });
+      });
+      keypad.appendChild(btn);
+    });
+  
+    // Enter button (spans 2 columns)
+    const enterBtn = document.createElement('button');
+    enterBtn.textContent = 'Enter';
+    enterBtn.style.gridColumn = '1 / 3';
+    enterBtn.style.height = '40px';
+    enterBtn.style.fontSize = '16px';
+    enterBtn.style.background = '#4CAF50';
+    enterBtn.style.color = '#fff';
+    enterBtn.style.cursor = 'pointer';
+    enterBtn.style.borderRadius = '4px';
+    ['click','touchend'].forEach(evt => {
+      enterBtn.addEventListener(evt, e => {
+        e.preventDefault();
+        if (inputValue === '' || inputValue === 'X' || (Number(inputValue) >= 5 && Number(inputValue) <= 30)) {
+          processManualEntry(cell, inputValue);
+          lockOtherNonBlankInColumn(cell.dataset.game, cell);
+          keypad.remove();
+        } else {
+          alert('Please enter a number between 5 and 30, X, or leave blank.');
+          inputValue = '';
+          display.textContent = '';
+        }
+      });
+    });
+    keypad.appendChild(enterBtn);
+  
+    // Backspace button
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '←';
+    backBtn.style.height = '40px';
+    backBtn.style.fontSize = '16px';
+    ['click','touchend'].forEach(evt => {
+      backBtn.addEventListener(evt, e => {
+        e.preventDefault();
+        inputValue = inputValue.slice(0, -1);
+        display.textContent = inputValue;
+      });
+    });
+    keypad.appendChild(backBtn);
+  
+    document.body.appendChild(keypad);
+  
+    // Close keypad when clicking outside
+    document.addEventListener('click', function handleOutsideClick(e) {
+      if (!keypad.contains(e.target) && e.target !== cell) {
+        keypad.remove();
+        document.removeEventListener('click', handleOutsideClick);
+      }
+    });
+  
+    // Position keypad
+    const rect = cell.getBoundingClientRect();
+    let top = rect.bottom + window.scrollY + 5;
+    let left = rect.right + window.scrollX + 5;
+  
+    if (window.innerWidth < 600) { // mobile: center
+      keypad.style.left = '50%';
+      keypad.style.top = '50%';
+      keypad.style.transform = 'translate(-50%, -50%)';
+    } else { // desktop: below/right of cell
+      if (left + keypad.offsetWidth > window.innerWidth - 10) left = window.innerWidth - keypad.offsetWidth - 10;
+      if (top + keypad.offsetHeight > window.innerHeight - 10) top = rect.top + window.scrollY - keypad.offsetHeight - 5;
+      keypad.style.top = top + 'px';
+      keypad.style.left = left + 'px';
+    }
+  }
+  
+  
+
+
+
+  //SHOW, HIDE KEYPAD END
+
+  // Click on relevant cells
+  document.querySelectorAll('td[data-category="three_kind"], td[data-category="four_kind"], td[data-category="chance"]')
+  .forEach(td => {
+    td.addEventListener('click', () => {
+      if (td.dataset.locked === 'true') return; // skip locked cells
+      showKeypad(td);
+    });
+    
+      td.addEventListener('click', e => {
+          const isChance = td.dataset.category==='chance';
+          showKeypad(td, isChance);
+      });
+  });
+
+  // Click outside keypad hides it
+  function attachKeypadListeners() {
+    document.querySelectorAll('td.keypad').forEach(td => {
+      td.addEventListener('click', e => {
+        showKeypad(e.currentTarget); // Your existing keypad function
+      });
+    });
+  }
+  
+  function processManualEntry(td, value) {
+    console.log('processManualEntry called for', td.dataset.category, 'value:', value);
+  
+    // Update visible and stored value
+    td.textContent = value;
+    td.dataset.value = value;
+  
+    // Locked state: non-blank values are locked
+    td.dataset.locked = (value !== '' && value !== null);
+    td.classList.toggle('locked', td.dataset.locked === 'true');
+  
+    const category = td.dataset.category;
+    const game = td.dataset.game;
+  
+    // Update colors (still uses red/yellow/green/neutral)
+    if (window.updateLowerCellColor && typeof window.updateLowerCellColor === 'function') {
+      window.updateLowerCellColor(category, game, value);
+    }
+    if (window.updateUpperCellColor && typeof window.updateUpperCellColor === 'function') {
+      window.updateUpperCellColor(category, game, value);
+    }
+  
+    // Update totals
+    if (window.updateTotals && typeof window.updateTotals === 'function') {
+      window.updateTotals();
+    }
+  }
+  
+  
+  
+  
+});
 
    /* =========================
       Initialization

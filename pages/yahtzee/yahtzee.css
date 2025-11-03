@@ -63,7 +63,7 @@ body {
     cursor: pointer;
     border-radius: 6px;
     transition: all 0.2s;
-    background-color: #d3cfc7; /* uniform yellow */
+    background-color: #d3cfc7; /* uniform gray */
     min-width: 60px;
     text-align: center;
     box-shadow: inset 0 -1px 1px rgba(0,0,0,0.1);
@@ -79,14 +79,14 @@ body {
     box-shadow: 0 0 5px #00cec9;
   }
   
-  .scorecell.locked, select.inline.locked {
+  /* .scorecell.locked, select.inline.locked {
     background-color: #ffeaa7;
     color: #636e72;
     cursor: default;
     box-shadow: inset 0 -1px 1px rgba(0,0,0,0.1);
-  }
+  } */
   
-  .scorecell.scratch, select.inline.locked.scratch {
+  .scorecell.scratch/*, select.inline.locked.scratch*/ {
     color: #d63031;
     font-weight: bold;
   }
@@ -160,14 +160,12 @@ body {
 .scorecell.red { background-color: #f88; color: #000; }
 .scorecell.yellow { background-color: #ffeb3b; color: #000; }
 .scorecell.green { background-color: #06800a; color: #fff; }
-.scorecell.neutral { background-color: #fffbe6; }
 
 /* Manual select dropdowns match score cell colors */
 select.inline.red { background-color: #f88; color: #000; }
 select.inline.yellow { background-color: #ffeb3b; color: #000; }
 select.inline.green { background-color: #06800a; color: #fff; }
 
-select.inline.neutral { background-color: #fffbe6; color: #000; }
 
   
 
@@ -236,9 +234,6 @@ body {
     transform: scale(0.95);
   }
   
-  .upper-neutral {
-    background-color: #e4d278; /* soft yellow neutral */
-  }
   
   .upper-green {
     background-color: #06800a; /* your chosen green */
@@ -262,11 +257,6 @@ body {
   .lower-red {
     background-color: #d32f2f;
     color: #fff;
-    transition: background-color 0.3s ease;
-  }
-  
-  .lower-neutral {
-    background-color: #fffbe6; /* soft neutral yellow */
     transition: background-color 0.3s ease;
   }
   
@@ -318,3 +308,4 @@ body {
   color: #fff;
   transition: background-color 0.3s ease;
 }
+

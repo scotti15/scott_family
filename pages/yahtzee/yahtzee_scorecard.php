@@ -67,6 +67,18 @@ Click to cycle (left-click up, right-click down). For dropdown cells click the c
     <tbody id="body-rows"></tbody>
     <tfoot id="totals-rows"></tfoot>
     </table>
+    
+    <!-- Floating Keypad -->
+        <div id="keypad" style="position:absolute; display:none; z-index:1000; background:#fff; border:1px solid #aaa; padding:5px; border-radius:5px;">
+            <div class="key-row"><button class="key-btn">1</button><button class="key-btn">2</button><button class="key-btn">3</button></div>
+            <div class="key-row"><button class="key-btn">4</button><button class="key-btn">5</button><button class="key-btn">6</button></div>
+            <div class="key-row"><button class="key-btn">7</button><button class="key-btn">8</button><button class="key-btn">9</button></div>
+            <div class="key-row"><button class="key-btn">0</button><button class="key-btn">X</button><button class="key-btn">←</button></div>
+            <div class="key-row"><button class="enter-btn">Enter</button></div>
+     </div>
+
+
+
     <div id="scorecard-buttons">
         <button id="new-session-btn">New Game</button>
         <button id="save-btn">Save Game</button>
