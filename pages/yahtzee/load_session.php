@@ -3,16 +3,15 @@ session_start();
 require_once __DIR__ . '/../../config/db.php';
 header('Content-Type: application/json');
 
-// Check login
-if (!isset($_SESSION['user_id'])) {
+// --- Check login ---
+$userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
+if (!$userId) {
     http_response_code(403);
     echo json_encode(['error' => 'Not logged in']);
     exit;
 }
 
-$userId = $_SESSION['user_id'];
-
-// Get session_id from GET
+// --- Get session_id from GET ---
 $sessionId = isset($_GET['session_id']) ? intval($_GET['session_id']) : null;
 if (!$sessionId) {
     http_response_code(400);
@@ -21,52 +20,49 @@ if (!$sessionId) {
 }
 
 try {
-    // Fetch all games and scores for this session
-    $stmtGames = $pdo->prepare("
-        SELECT id AS game_id, game_number
-        FROM yahtzee_games
+    // --- Fetch all scores for this user + session ---
+    $stmt = $pdo->prepare("
+        SELECT game_number, category, score, is_scratch
+        FROM yahtzee_scores
         WHERE user_id = :user_id AND session_id = :session_id
-        ORDER BY game_number ASC
+        ORDER BY game_number ASC, FIELD(category,
+            'ones','twos','threes','fours','fives','sixes',
+            'three_kind','four_kind','full_house','small_straight',
+            'large_straight','yahtzee','chance'
+        )
     ");
-    $stmtGames->execute([
+    $stmt->execute([
         ':user_id' => $userId,
         ':session_id' => $sessionId
     ]);
-    $games = $stmtGames->fetchAll(PDO::FETCH_ASSOC);
 
     $scoresResult = [];
 
-    foreach ($games as $game) {
-        $gameId = $game['game_id'];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $gameNumber = $row['game_number'];
+        $category   = $row['category'];
+        $value      = $row['is_scratch'] ? 'X' : $row['score'];
 
-        $stmtScores = $pdo->prepare("
-            SELECT category, score, is_scratch
-            FROM yahtzee_scores
-            WHERE game_id = :game_id
-        ");
-        $stmtScores->execute([':game_id' => $gameId]);
-        $scores = $stmtScores->fetchAll(PDO::FETCH_ASSOC);
-
-        // Build associative array: category => value
-        $scoresAssoc = [];
-        foreach ($scores as $s) {
-            $val = $s['is_scratch'] ? 'X' : $s['score'];
-            $scoresAssoc[$s['category']] = $val;
+        if (!isset($scoresResult[$gameNumber])) {
+            $scoresResult[$gameNumber] = [];
         }
 
-        $scoresResult[$game['game_number']] = $scoresAssoc;
+        $scoresResult[$gameNumber][$category] = $value;
     }
 
-        // After fetching the session data successfully:
+    // --- Remember current session for subsequent saves ---
     $_SESSION['yahtzee_session_id'] = $sessionId;
 
     echo json_encode([
         'status' => 'ok',
         'session_id' => $sessionId,
-        'scores' => $scoresResult  // <--- alias as 'scores' for your JS
+        'scores' => $scoresResult
     ]);
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Database error', 'message' => $e->getMessage()]);
+    echo json_encode([
+        'error' => 'Database error',
+        'message' => $e->getMessage()
+    ]);
 }

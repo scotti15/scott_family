@@ -1,67 +1,71 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../config/db.php';
+header('Content-Type: application/json');
 
-if (!isset($_SESSION['user_id'])) {
+// --- Check login ---
+$userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
+if (!$userId) {
     http_response_code(403);
     echo json_encode(['error' => 'Not logged in']);
     exit;
 }
 
-$userId = $_SESSION['user_id'];
+// --- Get session_id (either from GET or current session) ---
+$sessionId = isset($_GET['session_id'])
+    ? intval($_GET['session_id'])
+    : ($_SESSION['yahtzee_session_id'] ?? null);
 
-// Optionally, allow the frontend to specify a session_id to load
-$sessionId = isset($_GET['session_id']) ? intval($_GET['session_id']) : null;
+if (!$sessionId) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing or invalid session_id']);
+    exit;
+}
 
 try {
-    if ($sessionId) {
-        // Load a specific session
-        $stmtGames = $pdo->prepare("
-            SELECT id, game_number 
-            FROM yahtzee_games 
-            WHERE user_id = ? AND session_id = ? 
-            ORDER BY game_number ASC
-        ");
-        $stmtGames->execute([$userId, $sessionId]);
-    } else {
-        // Load the most recent session
-        $stmtGames = $pdo->prepare("
-            SELECT id, game_number 
-            FROM yahtzee_games 
-            WHERE user_id = ? 
-            ORDER BY session_id DESC, game_number ASC 
-            LIMIT 6
-        ");
-        $stmtGames->execute([$userId]);
-    }
-
-    $games = $stmtGames->fetchAll(PDO::FETCH_ASSOC);
-    if (!$games) {
-        echo json_encode(['scores' => []]);
-        exit;
-    }
-
-    $response = ['scores' => [], 'session_id' => $sessionId];
-
-    $stmtScores = $pdo->prepare("
-        SELECT category, score, is_scratch 
-        FROM yahtzee_scores 
-        WHERE game_id = ?
+    // --- Fetch all scores for this user + session ---
+    $stmt = $pdo->prepare("
+        SELECT game_number, category, score, is_scratch
+        FROM yahtzee_scores
+        WHERE user_id = :user_id AND session_id = :session_id
+        ORDER BY game_number ASC, FIELD(category,
+            'ones','twos','threes','fours','fives','sixes',
+            'three_kind','four_kind','full_house','small_straight',
+            'large_straight','yahtzee','chance'
+        )
     ");
+    $stmt->execute([
+        ':user_id' => $userId,
+        ':session_id' => $sessionId
+    ]);
 
-    foreach ($games as $game) {
-        $stmtScores->execute([$game['id']]);
-        $scores = [];
-        while ($row = $stmtScores->fetch(PDO::FETCH_ASSOC)) {
-            if ($row['is_scratch']) $scores[$row['category']] = 'X';
-            else $scores[$row['category']] = $row['score'];
+    $scoresResult = [];
+
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $gameNumber = (int)$row['game_number'];
+        $category   = $row['category'];
+        $value      = $row['is_scratch'] ? 'X' : $row['score'];
+
+        if (!isset($scoresResult[$gameNumber])) {
+            $scoresResult[$gameNumber] = [];
         }
-        $response['scores'][$game['game_number']] = $scores;
+
+        $scoresResult[$gameNumber][$category] = $value;
     }
 
-    echo json_encode($response);
+    // --- Remember current session for subsequent saves ---
+    $_SESSION['yahtzee_session_id'] = $sessionId;
+
+    echo json_encode([
+        'status' => 'ok',
+        'session_id' => $sessionId,
+        'scores' => $scoresResult
+    ]);
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    echo json_encode([
+        'error' => 'Database error',
+        'message' => $e->getMessage()
+    ]);
 }

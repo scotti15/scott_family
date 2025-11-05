@@ -1,6 +1,6 @@
 <?php
 session_set_cookie_params([
-    'path' => '/', // must match login.php
+    'path' => '/', // must match your login/site settings
     'httponly' => true,
     'samesite' => 'Lax'
 ]);
@@ -9,7 +9,7 @@ session_start();
 require_once __DIR__ . '/../../config/db.php';
 header('Content-Type: application/json');
 
-// Accept either user_id or id
+// Auth check
 $userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
 if (!$userId) {
     http_response_code(403);
@@ -17,95 +17,71 @@ if (!$userId) {
     exit;
 }
 
+// Active session id for yahtzee (must have been set by your UI)
+$sessionId = $_SESSION['yahtzee_session_id'] ?? null;
+if (!$sessionId) {
+    http_response_code(400);
+    echo json_encode(['error' => 'No active yahtzee session selected']);
+    exit;
+}
 
+// Read JSON
 $data = json_decode(file_get_contents('php://input'), true);
 if (!$data || !isset($data['scores'])) {
     http_response_code(400);
-    echo json_encode(['error' => 'Invalid data']);
+    echo json_encode(['error' => 'Invalid payload']);
     exit;
 }
-//$requestedSession = isset($data['session_id']) ? (int)$data['session_id'] : null;
-// ✅ Always use the session currently set by the user (via dropdown or New Session button)
-$sessionId = $_SESSION['yahtzee_session_id'] ?? null;
-
-// Safety check — make sure there’s a session
-if (!$sessionId) {
-    echo json_encode(['error' => 'No active session selected']);
-    exit;
-}
-
 
 try {
-    // Determine current session
-    $stmt = $pdo->prepare("
-        SELECT MAX(session_id) AS last_session
-        FROM yahtzee_games
-        WHERE user_id = :user_id
-    ");
-    $stmt->execute([':user_id' => $userId]);
-    $lastSession = (int)$stmt->fetchColumn();
-    
-    // Check if last session is complete
-    $stmt = $pdo->prepare("
-        SELECT COUNT(*) 
-        FROM yahtzee_games 
-        WHERE user_id = :user_id AND session_id = :session_id
-    ");
-    $stmt->execute([':user_id' => $userId, ':session_id' => $lastSession]);
-    $countGames = (int)$stmt->fetchColumn();
-    
+    $pdo->beginTransaction();
 
-    // Loop through games and upsert
+    // Prepare upsert for yahtzee_scores
+    $stmt = $pdo->prepare("
+        INSERT INTO yahtzee_scores
+          (user_id, session_id, game_number, category, score, is_scratch, created_at, updated_at)
+        VALUES
+          (:user_id, :session_id, :game_number, :category, :score, :is_scratch, NOW(), NOW())
+        ON DUPLICATE KEY UPDATE
+          score = VALUES(score),
+          is_scratch = VALUES(is_scratch),
+          updated_at = NOW()
+    ");
+
+    // Iterate games
     foreach ($data['scores'] as $gameNumber => $categories) {
-        // Upsert game
-        $stmtGame = $pdo->prepare("
-            INSERT INTO yahtzee_games (user_id, session_id, game_number)
-            VALUES (:user_id, :session_id, :game_number)
-            ON DUPLICATE KEY UPDATE updated_at = NOW()
-        ");
-        $stmtGame->execute([
-            ':user_id' => $userId,
-            ':session_id' => $sessionId,
-            ':game_number' => $gameNumber
-        ]);
+        $gameNum = intval($gameNumber);
 
-        $gameId = $pdo->lastInsertId();
-        if (!$gameId) {
-            // get existing game_id
-            $stmtGet = $pdo->prepare("
-                SELECT id FROM yahtzee_games
-                WHERE user_id = :user_id AND session_id = :session_id AND game_number = :game_number
-            ");
-            $stmtGet->execute([
+        foreach ($categories as $category => $val) {
+            // Normalize values
+            $isScratch = ($val === 'X') ? 1 : 0;
+            if ($val === '' || $val === null) {
+                $score = null;
+            } elseif ($val === 'X') {
+                $score = null;
+            } else {
+                // numeric string -> int
+                $score = is_numeric($val) ? intval($val) : null;
+            }
+
+            // Bind & execute
+            $stmt->execute([
                 ':user_id' => $userId,
                 ':session_id' => $sessionId,
-                ':game_number' => $gameNumber
-            ]);
-            $gameId = $stmtGet->fetchColumn();
-        }
-
-        // Save scores for this game
-        foreach ($categories as $cat => $val) {
-            $isScratch = ($val === 'X') ? 1 : 0;
-            $numeric = ($val === 'X' || $val === '') ? null : intval($val);
-
-            $stmtScore = $pdo->prepare("
-                INSERT INTO yahtzee_scores (game_id, category, score, is_scratch)
-                VALUES (:game_id, :category, :score, :is_scratch)
-                ON DUPLICATE KEY UPDATE score = :score, is_scratch = :is_scratch, updated_at = NOW()
-            ");
-            $stmtScore->execute([
-                ':game_id' => $gameId,
-                ':category' => $cat,
-                ':score' => $numeric,
+                ':game_number' => $gameNum,
+                ':category' => $category,
+                ':score' => $score,
                 ':is_scratch' => $isScratch
             ]);
         }
     }
 
+    $pdo->commit();
+
     echo json_encode(['status' => 'ok', 'session_id' => $sessionId]);
-    
+
 } catch (Exception $e) {
+    if ($pdo->inTransaction()) $pdo->rollBack();
     http_response_code(500);
     echo json_encode(['error' => 'Database error', 'message' => $e->getMessage()]);
 }
