@@ -810,13 +810,17 @@ async function saveGame() {
 
       // Upper categories
       upperCats.forEach((cat) => {
-        const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${g}"]`);
+        const td = document.querySelector(
+          `.scorecell[data-category="${cat}"][data-game="${g}"]`
+        );
         scores[g][cat] = td ? td.textContent.trim() : "";
       });
 
       // Lower categories
       lowerCats.forEach((cat) => {
-        const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${g}"]`);
+        const td = document.querySelector(
+          `.scorecell[data-category="${cat}"][data-game="${g}"]`
+        );
         if (!td) {
           scores[g][cat] = "";
           return;
@@ -834,12 +838,12 @@ async function saveGame() {
 
     const response = await fetch("save_yahtzee.php", {
       method: "POST",
-      credentials: "include",               // <- IMPORTANT: send session cookie
+      credentials: "include", // <- IMPORTANT: send session cookie
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json"
+        Accept: "application/json",
       },
-      body: JSON.stringify({ scores })
+      body: JSON.stringify({ scores }),
     });
 
     const result = await response.json();
@@ -861,7 +865,6 @@ async function saveGame() {
     alert("Error saving game — check console/network");
   }
 }
-
 
 function loadGame() {
   fetch("load_yahtzee.php")
@@ -886,7 +889,7 @@ function loadGame() {
           else if (td) td.textContent = data.scores[g]?.[cat] || "";
         });
       }
-      updateTotals();  
+      updateTotals();
     });
 }
 
@@ -921,7 +924,6 @@ function clearScorecard() {
   });
 }
 
-
 document.getElementById("save-btn").addEventListener("click", async () => {
   try {
     const scores = {};
@@ -931,21 +933,27 @@ document.getElementById("save-btn").addEventListener("click", async () => {
 
       // --- Upper section ---
       upperCats.forEach((cat) => {
-        const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${g}"]`);
+        const td = document.querySelector(
+          `.scorecell[data-category="${cat}"][data-game="${g}"]`
+        );
         scores[g][cat] = td ? td.textContent.trim() : "";
       });
 
       // --- Lower section ---
       lowerCats.forEach((cat) => {
         // Try to find a <select> (dropdown) first
-        const sel = document.querySelector(`select.inline[data-category="${cat}"][data-game="${g}"]`);
+        const sel = document.querySelector(
+          `select.inline[data-category="${cat}"][data-game="${g}"]`
+        );
         if (sel) {
           scores[g][cat] = sel.value.trim();
           return; // continue to next category
         }
 
         // Otherwise, use <td> (for keypad or text input versions)
-        const td = document.querySelector(`.scorecell[data-category="${cat}"][data-game="${g}"]`);
+        const td = document.querySelector(
+          `.scorecell[data-category="${cat}"][data-game="${g}"]`
+        );
         if (td) {
           scores[g][cat] = td.textContent.trim();
         }
@@ -975,7 +983,6 @@ document.getElementById("save-btn").addEventListener("click", async () => {
   }
 });
 
-
 async function populateSessions() {
   const select = document.getElementById("load-session");
   try {
@@ -1002,121 +1009,121 @@ async function populateSessions() {
     console.error("Failed to load sessions:", err);
   }
 }
-document.getElementById("load-session").addEventListener("change", async (e) => {
-  const sessionId = e.target.value;
-  if (!sessionId) return;
+document
+  .getElementById("load-session")
+  .addEventListener("change", async (e) => {
+    const sessionId = e.target.value;
+    if (!sessionId) return;
 
-  try {
-    const res = await fetch(`load_session.php?session_id=${sessionId}`);
-    const data = await res.json();
-    if (!data.scores) return;
-
-    // Clear and rebuild scorecard
-    buildBody();
-    buildFoot();
-
-    // Populate scores
-    for (let g = 1; g <= 6; g++) {
-      const gameScores = data.scores[g] || {};
-      for (const [cat, val] of Object.entries(gameScores)) {
-        const td = document.querySelector(
-          `.scorecell[data-category="${cat}"][data-game="${g}"]`
-        );
-        if (td) td.textContent = val || "";
-      }
-    }
-
-    updateTotals();
-    attachHandlers(); // reattach click listeners
-
-  } catch (err) {
-    console.error("Failed to load session:", err);
-  }
-});
-
-  document.getElementById("load-btn").addEventListener("click", async () => {
     try {
-      const response = await fetch("load_yahtzee.php"); // path updated
-      if (!response.ok) throw new Error("Failed to load session");
-  
-      const data = await response.json();
-      if (!data.scores || Object.keys(data.scores).length === 0) {
-        alert("No saved session found.");
-        return;
-      }
-  
-      // --- Clear everything first ---
-      document.querySelectorAll(".scorecell").forEach((td) => {
-        td.textContent = "";
-        td.classList.remove("locked", "active", "scratch", "red", "green");
-      });
-  
-      document.querySelectorAll("select.inline").forEach((sel) => {
-        sel.value = "";
-        sel.disabled = false;
-        sel.classList.remove("locked", "red", "green");
-      });
-  
-      document.querySelectorAll("input.keypad-input").forEach((inp) => {
-        inp.value = "";
-        inp.disabled = false;
-        inp.classList.remove("locked", "red", "green");
-      });
-  
-      // --- Fill in loaded values ---
-      for (const [gameStr, categories] of Object.entries(data.scores)) {
-        const game = Number(gameStr);
-  
-        for (const [cat, val] of Object.entries(categories)) {
-          const isScratch = val === "X";
-  
-          // 1️⃣ Try keypad input (new UI)
-          const keypadInput = document.querySelector(
-            `input.keypad-input[data-category="${cat}"][data-game="${game}"]`
-          );
-          if (keypadInput) {
-            keypadInput.value = isScratch ? "" : val;
-            keypadInput.classList.add("locked", isScratch ? "red" : "green");
-            keypadInput.disabled = true;
-            if (isScratch) {
-              // Optional: visually mark scratched categories
-              keypadInput.closest("td")?.classList.add("scratch");
-            }
-            continue; // skip to next category
-          }
-  
-          // 2️⃣ Try dropdown (old UI)
-          const sel = document.querySelector(
-            `select.inline[data-category="${cat}"][data-game="${game}"]`
-          );
-          if (sel) {
-            sel.value = isScratch ? "X" : val;
-            sel.classList.add("locked", isScratch ? "red" : "green");
-            sel.disabled = true;
-            continue;
-          }
-  
-          // 3️⃣ Try direct score cell (for upper section)
+      const res = await fetch(`load_session.php?session_id=${sessionId}`);
+      const data = await res.json();
+      if (!data.scores) return;
+
+      // Clear and rebuild scorecard
+      buildBody();
+      buildFoot();
+
+      // Populate scores
+      for (let g = 1; g <= 6; g++) {
+        const gameScores = data.scores[g] || {};
+        for (const [cat, val] of Object.entries(gameScores)) {
           const td = document.querySelector(
-            `.scorecell[data-category="${cat}"][data-game="${game}"]`
+            `.scorecell[data-category="${cat}"][data-game="${g}"]`
           );
-          if (td) {
-            td.textContent = val;
-            td.classList.add("locked", isScratch ? "red" : "green");
-            if (isScratch) td.classList.add("scratch");
-          }
+          if (td) td.textContent = val || "";
         }
       }
-  
-      // --- Update totals and highlight ---
+
       updateTotals();
-      alert("Session loaded successfully!");
+      attachHandlers(); // reattach click listeners
     } catch (err) {
-      console.error("Load error:", err);
-      alert("Error loading session");
+      console.error("Failed to load session:", err);
     }
   });
-  
+
+document.getElementById("load-btn").addEventListener("click", async () => {
+  try {
+    const response = await fetch("load_yahtzee.php"); // path updated
+    if (!response.ok) throw new Error("Failed to load session");
+
+    const data = await response.json();
+    if (!data.scores || Object.keys(data.scores).length === 0) {
+      alert("No saved session found.");
+      return;
+    }
+
+    // --- Clear everything first ---
+    document.querySelectorAll(".scorecell").forEach((td) => {
+      td.textContent = "";
+      td.classList.remove("locked", "active", "scratch", "red", "green");
+    });
+
+    document.querySelectorAll("select.inline").forEach((sel) => {
+      sel.value = "";
+      sel.disabled = false;
+      sel.classList.remove("locked", "red", "green");
+    });
+
+    document.querySelectorAll("input.keypad-input").forEach((inp) => {
+      inp.value = "";
+      inp.disabled = false;
+      inp.classList.remove("locked", "red", "green");
+    });
+
+    // --- Fill in loaded values ---
+    for (const [gameStr, categories] of Object.entries(data.scores)) {
+      const game = Number(gameStr);
+
+      for (const [cat, val] of Object.entries(categories)) {
+        const isScratch = val === "X";
+
+        // 1️⃣ Try keypad input (new UI)
+        const keypadInput = document.querySelector(
+          `input.keypad-input[data-category="${cat}"][data-game="${game}"]`
+        );
+        if (keypadInput) {
+          keypadInput.value = isScratch ? "" : val;
+          keypadInput.classList.add("locked", isScratch ? "red" : "green");
+          keypadInput.disabled = true;
+          if (isScratch) {
+            // Optional: visually mark scratched categories
+            keypadInput.closest("td")?.classList.add("scratch");
+          }
+          continue; // skip to next category
+        }
+
+        // 2️⃣ Try dropdown (old UI)
+        const sel = document.querySelector(
+          `select.inline[data-category="${cat}"][data-game="${game}"]`
+        );
+        if (sel) {
+          sel.value = isScratch ? "X" : val;
+          sel.classList.add("locked", isScratch ? "red" : "green");
+          sel.disabled = true;
+          continue;
+        }
+
+        // 3️⃣ Try direct score cell (for upper section)
+        const td = document.querySelector(
+          `.scorecell[data-category="${cat}"][data-game="${game}"]`
+        );
+        if (td) {
+          td.textContent = val;
+          td.classList.add("locked", isScratch ? "red" : "green");
+          if (isScratch) td.classList.add("scratch");
+        }
+      }
+    }
+
+    // --- Update totals and highlight ---
+    updateTotals();
+    alert("Session loaded successfully!");
+  } catch (err) {
+    console.error("Load error:", err);
+    alert("Error loading session");
+  }
+});
 
 function updateChanceWarning(game) {
   const warningId = `chance-warning-${game}`;
@@ -1428,8 +1435,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   //SHOW, HIDE KEYPAD END
-  
-window.showKeypad = showKeypad;
+
+  window.showKeypad = showKeypad;
 
   // Click on relevant cells
   document
@@ -1496,20 +1503,18 @@ window.showKeypad = showKeypad;
     }
   }
 });
-document.addEventListener('click', (e) => {
-  const cell = e.target.closest('.scorecell');
+document.addEventListener("click", (e) => {
+  const cell = e.target.closest(".scorecell");
   if (!cell) return; // Not a score cell
-  if (cell.dataset.locked === 'true') return; // Skip locked cells
+  if (cell.dataset.locked === "true") return; // Skip locked cells
 
   // Allow keypad only for manual categories
-  const manualCategories = ['three_kind', 'four_kind', 'chance'];
+  const manualCategories = ["three_kind", "four_kind", "chance"];
   if (!manualCategories.includes(cell.dataset.category)) return;
 
   console.log("Keypad trigger:", cell.dataset.category, cell.dataset.game);
   showKeypad(cell);
 });
-
-
 
 /* =========================
       Initialization

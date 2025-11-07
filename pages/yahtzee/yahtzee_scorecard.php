@@ -46,7 +46,7 @@ require_once '../../includes/navbar.php';
 <h2>Yahtzee Scorecard — 6 Games</h2>
 
 <p>
-Click to cycle (left-click up, right-click down). For dropdown cells click the cell to open choices.  Clicking a column header unlocks that column to correct errors.
+Click cell to cycle (left-click up, right-click down). Clicking a column header unlocks that column to correct errors.  Double-click the Yahtzee star to record bonus yahtzees after scratched.
 </p>
 
 <div id="scorecard-container">

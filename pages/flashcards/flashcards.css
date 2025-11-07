@@ -1,0 +1,123 @@
+#flashcard-container {
+    max-width: 400px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+.flashcard {
+    width: 400px;
+    height: 200px;
+    background-color: #fdfd96;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: "Segoe UI", sans-serif;
+    font-weight: 700;
+    box-sizing: border-box;
+  
+    padding: 16px 12px;           /* more breathing room top & bottom */
+    line-height: 1.15;            /* slightly taller line box */
+  
+    font-size: clamp(1.8rem, 8vw, 6rem);
+  
+    /* allow descenders to show */
+    overflow: visible;             /* <- important! */
+  }
+  
+  .flashcard .front {
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: center;
+    display: block;
+  
+    line-height: 1.1;              /* mild extra spacing for tails */
+    padding-bottom: 4px;           /* bottom buffer */
+  }
+  
+  
+
+input[type="text"] {
+    padding: 6px;
+    font-size: 1em;
+    width: 80%;
+}
+
+button {
+    padding: 6px 12px;
+    margin: 5px;
+}
+#controls-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* center the controls */
+    gap: 10px; /* space between input and buttons */
+    margin-top: 15px; /* space above controls from the card */
+}
+
+#controls-container input[type="text"] {
+    padding: 8px;
+    font-size: 1rem;
+    flex: 1 0 200px; /* allow input to grow but have minimum width */
+}
+
+#controls-container button {
+    padding: 8px 16px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+
+/* ---- Progress bars ---- */
+.progress-bar {
+    position: relative;
+    width: 80px;
+    height: 320px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    border: 2px solid #aaa;
+}
+
+.progress-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, #f44336, #ff9800);
+    height: 100%;
+    border-radius: 0 0 10px 10px;
+    transition: height 0.6s ease, background 0.6s ease;
+}
+
+.progress-label {
+    position: absolute;
+    bottom: 22px;
+    width: 100%;
+    text-align: center;
+    font-weight: 600;
+    color: #333;
+}
+
+.progress-value {
+    position: absolute;
+    bottom: 4px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.9em;
+    color: #444;
+    font-weight: 500;
+}
+
+.progress-percent {
+    position: absolute;
+    top: 8px;
+    width: 100%;
+    text-align: center;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9em;
+}
