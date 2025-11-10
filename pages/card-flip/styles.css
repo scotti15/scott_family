@@ -44,7 +44,7 @@ body {
     background-size: cover;
     background-position: center;
     border: 2px solid #fff;
-    transform: rotateY(0deg);
+    transform: rotateY(180deg);
   }
   
   .card-front {
@@ -57,7 +57,7 @@ body {
     color: #111;
     font-weight: bold;
     backface-visibility: hidden;
-    transform: rotateY(180deg);
+    transform: rotateY(0deg);
     padding: 10px;
     text-align: center;
     font-size: 1px; /* tiny default, JS sets actual size */
@@ -91,22 +91,25 @@ body {
   }
   
 
-  #answer-display {
+ .answer-display {
     margin-bottom: 15px;
     padding: 0;
     font-size: 28px;
     font-weight: bold;
     text-align: center;
+    background-color: #f88; 
     color: #111;
     border-radius: 8px;
     line-height: 1.2;
     transition: all 0.3s ease;
-    opacity: 0;
-    visibility: hidden;
+    opacity: 1;
+    visibility: visible;
     height: 0;
     overflow: hidden;
   }
-  #answer-display.visible {
+  
+  
+  .answer-display.visible {
     opacity: 1;
     visibility: visible;
     height: auto;
@@ -114,5 +117,24 @@ body {
     background-color: #f88; /* red background for wrong answer */
   }
   
+
   
+  #score-panel {
+    display: flex;
+    justify-content: space-around;
+    width: 80%;
+    max-width: 400px;
+    margin-bottom: 20px;
+    padding: 10px 15px;
+    background-color: #f0f0f0;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    font-weight: bold;
+    font-size: 18px;
+  }
+  
+  #score-panel div {
+    text-align: center;
+    flex: 1;
+  }
   
