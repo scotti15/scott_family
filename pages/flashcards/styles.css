@@ -1,0 +1,322 @@
+body {
+  margin: 0;
+  background: #0b6623;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Control bar sits at the top, not centered */
+.control-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Label + dropdown + button */
+.control-bar label {
+  font-weight: bold;
+}
+
+.control-bar select,
+.control-bar button {
+  padding: 6px 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+/* Keep main game centered */
+main.game-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+
+  .card-container {
+    perspective: 1000px;
+    margin-bottom: 40px;
+  }
+  
+  .card {
+    width: 210px;   /* horizontal card */
+    height: 150px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.8s ease-in-out;
+  }
+  
+  .card.flipped {
+    transform: rotateY(180deg);
+  }
+  
+  .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: #111;
+  }
+  
+  .card-back {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/5/54/Card_back_06.svg');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #fff;
+    transform: rotateY(180deg);
+  }
+  
+  .card-front {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    color: #111;
+    font-weight: bold;
+    backface-visibility: hidden;
+    transform: rotateY(0deg);
+    padding: 10px;
+    text-align: center;
+    font-size: 1px; /* tiny default, JS sets actual size */
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  
+  
+  
+  button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  button:hover {
+    background: #ddd;
+  }
+  
+  #card-input {
+    margin-bottom: 15px;   /* space between text box and button */
+    padding: 8px 12px;
+    font-size: 16px;
+    width: 220px;          /* slightly wider than the card */
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  
+
+ .answer-display {
+    margin-bottom: 15px;
+    padding: 0;
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    background-color: #f88; 
+    color: #111;
+    border-radius: 8px;
+    line-height: 1.2;
+    transition: all 0.3s ease;
+    opacity: 1;
+    visibility: visible;
+    height: 0;
+    overflow: hidden;
+  }
+  
+  
+  .answer-display.visible {
+    opacity: 1;
+    visibility: visible;
+    height: auto;
+    padding: 8px 12px;
+    background-color: #f88; /* red background for wrong answer */
+  }
+  
+
+  
+  #score-panel {
+    display: flex;
+    justify-content: space-around;
+    width: 80%;
+    max-width: 400px;
+    margin-bottom: 20px;
+    padding: 10px 15px;
+    background-color: #f0f0f0;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    font-weight: bold;
+    font-size: 18px;
+  }
+  
+  #score-panel div {
+    text-align: center;
+    flex: 1;
+  }
+  
+  #quiz-status {
+    margin-top: 10px;
+    font-weight: 600;
+    color: #333;
+}
+
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  width: 400px;
+  border-radius: 8px;
+}
+
+.close {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Hide the modal by default */
+#newListModal {
+  display: none;
+}
+#restart-btn {
+  margin-left: 10px;
+  background-color: #004aad;       /* deep blue */
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+#restart-btn:hover {
+  background-color: #0066ff;       /* lighter blue on hover */
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
+}
+
+#restart-btn:active {
+  transform: scale(0.97);
+  background-color: #003380;       /* darker when pressed */
+}
+
+#session-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #0a3d62;
+}
+
+#pause-btn {
+  background-color: #1e90ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s ease;
+}
+
+#pause-btn:hover {
+  background-color: #187bcd;
+}
+
+.progress-container {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  align-items: flex-end;
+  justify-content: center;
+  margin-top: 10px;
+}
+.game-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px; /* space between bars and card */
+  margin-top: 20px;
+}
+
+.progress-bar {
+  position: relative;
+  width: 60px;
+  height: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #f0f0f0;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  border: 2px solid #aaa;
+}
+
+.progress-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #ff0000; /* start red, will update via JS */
+  height: 100%;
+  border-radius: 0 0 10px 10px;
+  transition: height 0.6s ease, background-color 0.6s ease;
+}
+
+.progress-label {
+  position: absolute;
+  bottom: 22px;
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+}
+
+.progress-value {
+  position: absolute;
+  bottom: 4px;
+  width: 100%;
+  text-align: center;
+  font-size: 0.9em;
+  color: #444;
+  font-weight: 500;
+}
+
+.progress-percent {
+  position: absolute;
+  top: 8px;
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9em;
+}
