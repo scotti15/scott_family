@@ -1,0 +1,225 @@
+Folder PATH listing
+Volume serial number is 42C2-8B58
+C:.
+|   file_tree.txt
+|   folder_tree.txt
+|   index.php
+|   style.css
+|   
++---auth
+|       check_login.php
+|       forgot_password.php
+|       git.ignore
+|       login.php
+|       logout.php
+|       reset_password.php
+|       signup.php
+|       
++---config
+|       db.php
+|       
++---includes
+|       footer.php
+|       header.php
+|       navbar.php
+|       
+\---pages
+    |   about.php
+    |   add_account.php
+    |   add_category.php
+    |   add_inventory.php
+    |   add_item.php
+    |   add_place.php
+    |   add_unit.php
+    |   admin.php
+    |   admin_delete.php
+    |   admin_fetch.php
+    |   admin_save.php
+    |   ajax_transactions.php
+    |   contact.php
+    |   delete_bill.php
+    |   delete_transaction.php
+    |   edit_bill.php
+    |   edit_transaction.php
+    |   expenses_summary.php
+    |   finalize_bill.php
+    |   funngames.php
+    |   get_accounts.php
+    |   get_account_balances.php
+    |   get_dropdowns.php
+    |   get_expenses.php
+    |   get_expense_details.php
+    |   get_tax_rate.php
+    |   get_transaction.php
+    |   get_transactions.php
+    |   index.php
+    |   transactions.php
+    |   update_transaction.php
+    |   
+    +---flashcards
+    |   |   get_flashcards.php
+    |   |   get_user_lists.php
+    |   |   get_words.php
+    |   |   index.php
+    |   |   script.js
+    |   |   styles.css
+    |   |   upload_flashcards.php
+    |   |   
+    |   \---sounds
+    |           card-flip.wav
+    |           
+    +---flashcards_v1
+    |       flashcards.css
+    |       flashcards.js
+    |       flashcards.php
+    |       flashcards_v1.php
+    |       
+    +---geo-quiz
+    |   |   index.html
+    |   |   
+    |   +---css
+    |   |       style.css
+    |   |       
+    |   +---js
+    |   |       game.js
+    |   |       regions.js
+    |   |       svg-pan-zoom.js
+    |   |       svg-pan-zoom.min.js
+    |   |       ui.js
+    |   |       
+    |   \---maps
+    |           africa.svg
+    |           barbados.svg
+    |           canada.svg
+    |           europe.svg
+    |           south_america.svg
+    |           us.svg
+    |           
+    +---gift_registry
+    |       add_gift.php
+    |       browse_wishlist.php
+    |       claim_gift.php
+    |       claim_gift_ajax.php
+    |       delete_gift.php
+    |       delete_gift_ajax.php
+    |       edit_gift.php
+    |       edit_gift_ajax.php
+    |       index.php
+    |       my_wishlist.php
+    |       unclaim_gift_ajax.php
+    |       
+    +---images
+    |   |   canadian_penny.jpg
+    |   |   
+    |   \---logos
+    |           belair_insurance.png
+    |           bell_canada.png
+    |           chocolats_favoris.png
+    |           cryopak.png
+    |           desjardins_sec_fin.png
+    |           dollarama.png
+    |           familiprix.png
+    |           hydro_qu‚bec.png
+    |           iga.png
+    |           manulife_insurance.png
+    |           maxi.png
+    |           metro.png
+    |           microbytes.png
+    |           pharmaprix.png
+    |           super_c.png
+    |           tim_horton's.png
+    |           uniprix.png
+    |           walmart.png
+    |           wendy's.png
+    |           
+    +---inventory-system
+    |   +---admin
+    |   |       register.php
+    |   |       
+    |   +---config
+    |   |       db.php
+    |   |       
+    |   +---css
+    |   |       style.css
+    |   |       
+    |   +---includes
+    |   |       auth.php
+    |   |       auth_org.php
+    |   |       footer.php
+    |   |       header.php
+    |   |       
+    |   \---public
+    |           add_category.php
+    |           add_inventory.php
+    |           add_inventory2.php
+    |           add_item.php
+    |           add_item2.php
+    |           add_item_org.php
+    |           add_location.php
+    |           add_room.php
+    |           admin_dashboard.php
+    |           ajax_add_category.php
+    |           ajax_category.php
+    |           ajax_inventory.php
+    |           ajax_inventory2.php
+    |           ajax_item.php
+    |           ajax_item2.php
+    |           ajax_item_org.php
+    |           ajax_location.php
+    |           ajax_room.php
+    |           delete_category.php
+    |           delete_inventory.php
+    |           delete_item.php
+    |           delete_location.php
+    |           delete_room.php
+    |           edit_inventory.php
+    |           edit_item.php
+    |           fetch_categories.php
+    |           fetch_dropdown.php
+    |           fetch_inventory.php
+    |           fetch_items.php
+    |           fetch_locations.php
+    |           fetch_rooms.php
+    |           get_inventory.php
+    |           insert_category.php
+    |           insert_inventory.php
+    |           insert_item.php
+    |           insert_location.php
+    |           insert_room.php
+    |           login.php
+    |           logout.php
+    |           temp.php
+    |           update_category.php
+    |           update_inventory.php
+    |           update_item.php
+    |           update_location.php
+    |           update_room.php
+    |           view_items.php
+    |           
+    +---menu_builder
+    |   |   get_foods.php
+    |   |   get_users.php
+    |   |   index.php
+    |   |   load_meals.php
+    |   |   save_meal.php
+    |   |   
+    |   \---js
+    |           menu_builder.js
+    |           
+    \---yahtzee
+            list_sessions.php
+            load_session.php
+            load_yahtzee.php
+            new_yahtzee_session.php
+            save_yahtzee.php
+            yahtzee-bg.jpg
+            yahtzee.css
+            yahtzee.js
+            yahtzee_dd.css
+            yahtzee_dd.js
+            yahtzee_dd.php
+            yahtzee_scorecard.html
+            yahtzee_scorecard.php
+            yahtzee_scorecard_dd.php
+            yahtzee_scorecard_dd1.php
+            

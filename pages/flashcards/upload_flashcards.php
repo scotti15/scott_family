@@ -12,6 +12,8 @@ if (session_status() === PHP_SESSION_NONE) {
 // DB
 // ------------------------
 require_once __DIR__ . '/../../config/db.php';
+include __DIR__ . '/../../includes/header.php';
+
 
 if (!isset($pdo) || !($pdo instanceof PDO)) {
     echo "<p style='color:red;'>Database connection not found (expected \$pdo).</p>";
@@ -127,7 +129,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
   <meta charset="utf-8" />
   <title>Upload Flashcards</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#0b6623; color:#fff; margin:24px; display:flex; gap:20px; }
+    body {
+    font-family: Arial, sans-serif;
+    background:#0b6623;
+    color:#fff;
+    margin:0;
+}
+
+/* New wrapper for the 2 columns */
+.page-container {
+    margin: 24px;
+    display:flex;
+    gap:20px;
+}
+
+/* existing styles remain the same */
+.upload { flex:1; background:#1c7430; padding:18px; border-radius:8px; }
+.lists { width:360px; background:#145a2e; padding:18px; border-radius:8px; overflow:auto; max-height:80vh; }
+
     .upload { flex:1; background:#1c7430; padding:18px; border-radius:8px; }
     .lists { width:360px; background:#145a2e; padding:18px; border-radius:8px; overflow:auto; max-height:80vh; }
     input, textarea, button { width:100%; padding:8px; margin:8px 0; border-radius:6px; border:none; }
@@ -140,42 +159,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
   </style>
 </head>
 <body>
-  <div class="upload">
-    <h2>Upload Flashcard List</h2>
-    <?= $message ?>
-    <form method="post" enctype="multipart/form-data">
-      <label>List name (required)</label>
-      <input type="text" name="list_name" required maxlength="255" />
+  <?php include __DIR__ . '/../../includes/navbar.php'; ?>
 
-      <label>Description (optional)</label>
-      <textarea name="description" rows="2"></textarea>
+  <div class="page-container">
+      <div class="upload">
+        <h2>Upload Flashcard List</h2>
+        <?= $message ?>
+        <form method="post" enctype="multipart/form-data">
+          <label>List name (required)</label>
+          <input type="text" name="list_name" required maxlength="255" />
 
-      <label>CSV file (Question,Answer) — max 50 rows</label>
-      <input type="file" name="csv_file" accept=".csv" required />
+          <label>Description (optional)</label>
+          <textarea name="description" rows="2"></textarea>
 
-      <button type="submit">Upload</button>
-    </form>
-  </div>
+          <label>CSV file (Question,Answer) — max 50 rows</label>
+          <input type="file" name="csv_file" accept=".csv" required />
 
-  <div class="lists">
-    <h3>Your Lists</h3>
-    <?php if (empty($lists)): ?>
-      <p><em>No lists found.</em></p>
-    <?php else: ?>
-      <?php foreach ($lists as $l): ?>
-        <div class="list-item">
-          <h4><?= htmlspecialchars($l['name']) ?></h4>
-          <small><?= htmlspecialchars($l['description'] ?: 'No description') ?></small><br>
-          <small>🗂️ <?= (int)$l['card_count'] ?> cards</small>
+          <button type="submit">Upload</button>
+        </form>
+      </div>
 
-          <!-- DELETE BUTTON -->
-          <form method="post" onsubmit="return confirm('Delete this list and all its cards?');">
-            <input type="hidden" name="delete_list_id" value="<?= (int)$l['id'] ?>" />
-            <button type="submit">Delete</button>
-          </form>
-        </div>
-      <?php endforeach; ?>
-    <?php endif; ?>
+      <div class="lists">
+        <h3>Your Lists</h3>
+        <?php if (empty($lists)): ?>
+          <p><em>No lists found.</em></p>
+        <?php else: ?>
+          <?php foreach ($lists as $l): ?>
+            <div class="list-item">
+              <h4><?= htmlspecialchars($l['name']) ?></h4>
+              <small><?= htmlspecialchars($l['description'] ?: 'No description') ?></small><br>
+              <small>🗂️ <?= (int)$l['card_count'] ?> cards</small>
+
+              <form method="post" onsubmit="return confirm('Delete this list and all its cards?');">
+                <input type="hidden" name="delete_list_id" value="<?= (int)$l['id'] ?>" />
+                <button type="submit">Delete</button>
+              </form>
+            </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </div>
   </div>
 </body>
+
 </html>

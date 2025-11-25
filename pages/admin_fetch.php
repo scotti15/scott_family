@@ -4,6 +4,7 @@ include '../config/db.php';
 $table = $_GET['table'];
 $allowedTables = [
     'accounts'=>'AccountID',
+    'brands'=>'BrandID',
     'categories'=>'CategoryID',
     'items'=>'ItemID',
     'places'=>'PlaceID',

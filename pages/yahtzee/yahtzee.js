@@ -46,7 +46,8 @@ const cycleValues = {
   full_house: [25],
   small_straight: [30],
   large_straight: [40],
-  yahtzee: [50, 150, 250, 350, 450, 550, 650, 750, 850, 950, 1050, 1150],
+  yahtzee: [50, 150, 250, 350, 450, 550, 650, 750, 850, 950, 1050, 1150, 1100, 1000, 900, 800, 700, 600, 500, 400, 300, 200, 100],
+  //TODO remove bonus yahtzee programming - not necessary because I've added those values to the regular yahtzee values
   bonus_yahtzee: [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
 };
 
@@ -517,7 +518,7 @@ function attachHandlers() {
         } else {
           td.dataset.bonusMode = "off";
           cycleValues.yahtzee = [
-            50, 150, 250, 350, 450, 550, 650, 750, 850, 950, 1050, 1150,
+            50, 150, 250, 350, 450, 550, 650, 750, 850, 950, 1050, 1150, 1100, 1000, 900, 800, 700, 600, 500, 400, 300, 200, 100
           ];
         }
 
@@ -555,7 +556,7 @@ function attachHandlers() {
       } else {
         td.dataset.bonusMode = "off";
         cycleValues.yahtzee = [
-          50, 150, 250, 350, 450, 550, 650, 750, 850, 950, 1050, 1150,
+          50, 150, 250, 350, 450, 550, 650, 750, 850, 950, 1050, 1150, 1100, 1000, 900, 800, 700, 600, 500, 400, 300, 200, 100
         ];
       }
 

@@ -17,6 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const timerDisplay = document.getElementById('timer-display');
   const pauseBtn = document.getElementById('pause-btn');
 
+  let correctCount = 0;       // counts correct answers
+  let totalCards = 0;         // total number of words in the current list
+  let currentCycleCount = 0;  // counts how many cycles have been completed
+  let totalAnswers = 0;   // increments on every answer
+
+  let finalTimeSeconds = 0;
+  let finalTimeDisplay = "00:00";
+  
+
+
+
+  
   // Progress bar elements
 const cycleFill = document.getElementById('cycle-fill');
 const overallFill = document.getElementById('overall-fill');
@@ -176,6 +188,7 @@ let cycleStartingValue = 0;   // sum of values for the current cycle when the cy
   }
 
   function showNextWord() {
+    if (gameOver) return;           // <-- stop if finished
     if (passQueue.length === 0) {
       prepareNextPass();
     }
@@ -222,6 +235,7 @@ let cycleStartingValue = 0;   // sum of values for the current cycle when the cy
   
 
   function applyScoring() {
+    totalAnswers++;
     if (!currentWordObj) return;
     const val = cardInput.value.trim().toUpperCase();
     const correct = (currentWordObj.answer || '').toUpperCase();
@@ -229,6 +243,8 @@ let cycleStartingValue = 0;   // sum of values for the current cycle when the cy
     if (val === correct) {
       currentWordObj.value = Math.max(0, currentWordObj.value - 1);
       answerDisplay.textContent = '';
+      correctCount++;
+      
     } else {
       currentWordObj.value += 1;
       answerDisplay.textContent = `Answer: ${currentWordObj.answer}`;
@@ -295,32 +311,79 @@ let cycleStartingValue = 0;   // sum of values for the current cycle when the cy
 
   
   pauseBtn.addEventListener('click', togglePause);
-  
-/* celebration: confetti + sound */
-function celebrate() {
-  // avoid repeating celebration multiple times
-  if (window._celebrated) return;
-  window._celebrated = true;
+  /* celebration: confetti + sound */
+  function celebrate() {
+    // Stop the timer
+    clearInterval(timerInterval);
+    timerStarted = false;
 
-  // confetti
-  if (typeof confetti === 'function') {
-      const duration = 3000;
-      const end = Date.now() + duration;
-      (function frame() {
-          confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
-          confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
-          if (Date.now() < end) requestAnimationFrame(frame);
-      })();
-  }
+    // avoid repeating celebration multiple times
+    if (window._celebrated) return;
+    window._celebrated = true;
 
-  // play tada
-  tadaSound.play().catch(()=>{ /* autoplay may be blocked until user interaction */ });
+    // final time
+    const finalTimeSeconds = totalSeconds;
+    const finalTimeDisplay = timerDisplay.textContent.replace("Time: ", "");
 
-  // message
-  quizStatus.textContent = "🎉 You finished all flashcards!";
-  cardInput.disabled = true;
-  button.disabled = true;
+    // confetti
+    if (typeof confetti === 'function') {
+        const duration = 3000;
+        const end = Date.now() + duration;
+        (function frame() {
+            confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        })();
+    }
+
+    // play tada
+    tadaSound.play().catch(() => { /* autoplay may be blocked until user interaction */ });
+
+    // UI updates
+    quizStatus.textContent = "🎉 You finished all flashcards!";
+    cardInput.disabled = true;
+    button.disabled = true;
+
+    // Show the back of the card
+    cardFront.textContent = "";
+    card.style.transform = 'rotateY(0deg)';   // ensure card is showing the back
+    cardFront.style.backgroundColor = '#eee'; // optional back color
+    cardFront.style.color = '#111';
+
+    // --- Save history ---
+    const data = {
+      user_id: CURRENT_USER_ID,
+      list_id: CURRENT_LIST_ID,
+      completed_at: new Date().toISOString().slice(0,19).replace('T',' '),
+      final_time_seconds: finalTimeSeconds,
+      final_time_display: finalTimeDisplay,
+      correct_total: correctCount,
+      total_questions: totalAnswers    // this matches your table
+    };
+
+    fetch('save_history.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(resp => resp.json())
+    .then(res => {
+        if (res.success) {
+            console.log("History saved successfully");
+            // Show table of completed lists
+            setTimeout(() => {
+              showHistoryModal(CURRENT_LIST_ID, data.completed_at);
+          }, 4000); 
+        } else {
+            console.error("Failed to save history:", res.message);
+        }
+    })
+    .catch(err => console.error("Error saving history:", err));
+
+        // --- Show results in the interface ---
+
 }
+
 
 
 loadListBtn.addEventListener('click', () => {
@@ -358,6 +421,9 @@ async function loadFlashcards(listId) {
       inCycle: false,
       mastered: false
     }));
+
+    totalCards = allWords.length;
+    
     nextBatchIndex = 0;
     currentCycleWords = [];
     passQueue = [];
@@ -465,18 +531,30 @@ function updateTimerDisplay() {
   timerDisplay.textContent = `Time: ${minutes}:${seconds}`;
 }
 
+const pauseOverlay = document.getElementById('pause-overlay');
+
 function togglePause() {
   isPaused = !isPaused;
 
   if (isPaused) {
     pauseBtn.textContent = 'Resume';
     cardInput.disabled = true;
+    pauseOverlay.classList.add('visible');
   } else {
     pauseBtn.textContent = 'Pause';
     cardInput.disabled = false;
+    pauseOverlay.classList.remove('visible');
     cardInput.focus();
   }
 }
+
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    e.preventDefault();   // optional but recommended
+    togglePause();
+  }
+});
 
 function updateProgressBars() {
   // get the DOM elements (guarding in case DOM not ready)
@@ -540,7 +618,223 @@ function getProgressColor(percent) {
   return `rgb(${r},${g},${b})`;
 }
 
+// ---------- History modal helper ----------
+(function () {
+  let lightInterval = null;
+  let lightsEls = [];
+  let lastHighlightedKey = null;
 
+  function positionLights(cardEl, lightsContainer, num) {
+    // place `num` lights around the perimeter evenly
+    const rect = cardEl.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    const pad = 8; // offset from edge
+    lightsContainer.innerHTML = '';
+
+    for (let i = 0; i < num; i++) {
+      const span = document.createElement('span');
+      span.className = 'light';
+      span.style.left = '0px';
+      span.style.top = '0px';
+      lightsContainer.appendChild(span);
+    }
+
+    const lights = lightsContainer.querySelectorAll('.light');
+    lightsEls = Array.from(lights);
+
+    for (let i = 0; i < lightsEls.length; i++) {
+      const ratio = i / lightsEls.length;
+      let x = 0, y = 0;
+      if (ratio < 0.25) { // top edge, left -> right
+        const t = ratio / 0.25;
+        x = pad + t * (w - pad * 2);
+        y = pad;
+      } else if (ratio < 0.5) { // right edge, top->bottom
+        const t = (ratio - 0.25) / 0.25;
+        x = w - pad;
+        y = pad + t * (h - pad * 2);
+      } else if (ratio < 0.75) { // bottom edge, right->left
+        const t = (ratio - 0.5) / 0.25;
+        x = w - pad - t * (w - pad * 2);
+        y = h - pad;
+      } else { // left edge, bottom->top
+        const t = (ratio - 0.75) / 0.25;
+        x = pad;
+        y = h - pad - t * (h - pad * 2);
+      }
+      lightsEls[i].style.left = `${x}px`;
+      lightsEls[i].style.top = `${y}px`;
+
+      // set a color cycling (neon palette)
+      const palette = ['#FF4D4D','#FFD24D','#4DF0FF','#6DFF8A','#B86DFF','#FF6DCB'];
+      lightsEls[i].style.color = palette[i % palette.length];
+      lightsEls[i].style.background = 'rgba(255,255,255,0.06)';
+    }
+  }
+
+function startLightRunner() {
+    if (!lightsEls || lightsEls.length === 0) return;
+    let idx = 0;
+    if (lightInterval) clearInterval(lightInterval);
+
+    lightInterval = setInterval(() => {
+        lightsEls.forEach((el, i) => {
+            if (i === idx) {
+                // dim traveling light
+                el.classList.add('dim');
+            } else {
+                // lit “sun-like” bulbs
+                el.classList.remove('dim');
+            }
+        });
+        idx = (idx + 1) % lightsEls.length;
+    }, 120);
+}
+
+function stopLightRunner() {
+    if (lightInterval) {
+        clearInterval(lightInterval);
+        lightInterval = null;
+    }
+}
+
+  
+
+  // Build table rows and insert into container
+  function buildHistoryTable(historyRows, justFinishedListId) {
+    const cols = [
+      { key: 'list_name', label: 'List' },
+      { key: 'correct_total', label: 'Correct' },
+      { key: 'total_questions', label: 'Total' },
+      { key: 'final_time_display', label: 'Time' },
+      { key: 'completed_at', label: 'Completed' }
+    ];
+
+    let table = document.createElement('table');
+    table.className = 'history-table';
+    let thead = document.createElement('thead');
+    let thr = document.createElement('tr');
+    cols.forEach(c => {
+      let th = document.createElement('th');
+      th.textContent = c.label;
+      thr.appendChild(th);
+    });
+    thead.appendChild(thr);
+    table.appendChild(thead);
+
+    let tbody = document.createElement('tbody');
+
+    // highlight first row matching justFinishedListId (most recent match)
+    let firstMatchFound = false;
+
+    historyRows.forEach(row => {
+      let tr = document.createElement('tr');
+
+      // highlight logic: first row where list_id == justFinishedListId
+      if (!firstMatchFound && String(row.list_id) === String(justFinishedListId)) {
+        tr.classList.add('highlighted');
+        firstMatchFound = true;
+      }
+
+      cols.forEach(c => {
+        const td = document.createElement('td');
+        td.textContent = row[c.key] ?? '';
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    return table;
+  }
+
+  // Show modal & fetch history
+  window.showHistoryModal = function (justFinishedListId) {
+    const modal = document.getElementById('historyModal');
+    const lightsContainer = document.getElementById('historyLights');
+    const card = modal.querySelector('.history-card');
+    const container = document.getElementById('historyTableContainer');
+    const summary = document.getElementById('historySummary');
+
+    // show overlay
+    modal.style.display = 'flex';
+    document.getElementById('historyBackdrop').style.display = 'block';
+    modal.setAttribute('aria-hidden', 'false');
+
+    // clear previous content
+    container.innerHTML = '';
+    summary.textContent = 'Loading your completed sessions…';
+
+    // fetch history for current user
+    fetch('get_history.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: CURRENT_USER_ID })
+    })
+    .then(r => {
+      // check content-type is json-ish first
+      const ct = r.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        return r.text().then(t => { throw new Error('Invalid JSON response: ' + t.slice(0,200)); });
+      }
+      return r.json();
+    })
+    .then(data => {
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to load history');
+      }
+
+      const rows = data.history || [];
+      if (!Array.isArray(rows) || rows.length === 0) {
+        summary.textContent = 'No completed sessions found yet.';
+        return;
+      }
+
+      // show short summary
+      summary.textContent = `Showing ${rows.length} completed sessions (most recent first).`;
+
+      // build table
+      const table = buildHistoryTable(rows, justFinishedListId);
+      container.innerHTML = '';
+      container.appendChild(table);
+
+      // After DOM inserted, position lights around card
+      // Use a small delay so the layout is stable
+      setTimeout(() => {
+        const lightsCount = 36;
+        positionLights(card, lightsContainer, lightsCount);
+        startLightRunner();
+      }, 60);
+    })
+    .catch(err => {
+      summary.textContent = 'Error loading history';
+      console.error('History fetch error:', err);
+      container.innerHTML = `<div style="color:#f88; padding:12px;">${String(err.message).slice(0,200)}</div>`;
+    });
+  };
+
+  // close modal
+  function closeModal() {
+    const modal = document.getElementById('historyModal');
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+    stopLightRunner();
+  }
+
+  // hook close buttons
+  document.addEventListener('click', function (e) {
+    if (e.target && (e.target.id === 'historyCloseBtn' || e.target.id === 'historyOkBtn')) {
+      closeModal();
+    }
+    // clicking outside the card closes (backdrop)
+    if (e.target && e.target.id === 'historyBackdrop') closeModal();
+  });
+
+  // expose close function
+  window.closeHistoryModal = closeModal;
+})();
 
 
 

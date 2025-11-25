@@ -1,0 +1,5 @@
+/* Highlight the edited row */
+.highlighted-row {
+    background-color: #fff3cd !important; /* light yellow */
+    transition: background-color 1s ease-out;
+}

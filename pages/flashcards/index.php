@@ -107,7 +107,7 @@ if (isset($_GET['list_id']) && is_numeric($_GET['list_id'])) {
     <div id="cycle-score">Cycle: 0 / 0</div>
     <div id="overall-score">Overall: 0 / 0</div>
   </div>
-
+  <div id="pause-overlay" class="paused-overlay">PAUSED</div>
   <div id="answer-display" class="answer-display" style="margin-bottom: 10px; font-size: 24px; color: #333; min-height: 30px;"></div>
 
   <!-- NEW FLEX ROW: bars + card -->
@@ -142,8 +142,43 @@ if (isset($_GET['list_id']) && is_numeric($_GET['list_id'])) {
   <button id="test-celebration" hidden>Test Celebration</button>
 </main>
 
+<!-- HISTORY MODAL (flashy) -->
+<div id="historyModal" class="history-modal" aria-hidden="true" style="display:none;">
+  <div class="history-backdrop" id="historyBackdrop"></div>
+
+  <div class="history-card" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+    <button class="history-close" id="historyCloseBtn" aria-label="Close history">&times;</button>
+
+    <div class="history-lights" id="historyLights" aria-hidden="true"></div>
+
+    <div class="history-inner">
+      <h2 id="historyTitle">📘 Completed Sessions</h2>
+      <div id="historySummary" class="history-summary" aria-live="polite"></div>
+
+      <div id="historyTableContainer" class="history-table-wrap">
+        <!-- JS injects table here -->
+      </div>
+
+      <div class="history-actions">
+        <button id="historyOkBtn" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- ... other head or body content ... -->
+
+<!-- Expose PHP variables to JS -->
+<script>
+  const CURRENT_USER_ID = <?= json_encode($_SESSION['user_id']) ?>;
+  const CURRENT_LIST_ID = <?= json_encode($selected_list_id) ?>;
+</script>
+
+<!-- Your main JS file -->
+<script src="flashcards.js"></script>
+
   <script src="script.js"></script>
 </body>
 

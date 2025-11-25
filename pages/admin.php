@@ -23,6 +23,7 @@ include __DIR__ . '/../includes/navbar.php';
       <label for="tableSelect" class="form-label mb-0">Select Table:</label>
       <select id="tableSelect" class="form-select">
         <option value="accounts">Accounts</option>
+        <option value="brands">Brands</option>
         <option value="categories">Categories</option>
         <option value="items">Items</option>
         <option value="places">Places</option>
@@ -94,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const tableColumns = {
     accounts: ['AccountID','AccountName','UserID'],
+    brands: ['BrandID','BrandName'],
     categories: ['CategoryID','CategoryName'],
     items: ['ItemID','ItemName','is_food','food_category'],
     places: ['PlaceID','PlaceName','logoPath','Province'],
@@ -105,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const booleanFields = {
   items: ['is_food'],
   accounts: [],          // add any boolean fields if you have
+  brands: [],
   categories: [],
   places: [],
   units: [],
