@@ -1,22 +1,51 @@
 <?php
 require_once '../../config/db.php';
 
-$listID = $_POST['ListID'] ?? 0;
-$itemID = $_POST['ItemID'] ?? 0;
-$brandID = $_POST['BrandID'] ?? 0;
-$placeID = $_POST['PlaceID'] ?? 0;
-$unitID = $_POST['UnitID'] ?? 0;
-$price = $_POST['Price'] ?? 0;
-$amount = $_POST['Amount'] ?? 0;
+$listID   = $_POST['ListID'] ?? 0;
+$itemID   = $_POST['ItemID'] ?? null;
+$brandID  = ($_POST['BrandID'] === "" ? null : ($_POST['BrandID'] ?? null));
+$placeID  = ($_POST['PlaceID'] === "" ? null : ($_POST['PlaceID'] ?? null));
+$unitID   = ($_POST['UnitID'] === "" ? null : ($_POST['UnitID'] ?? null));
+$price    = ($_POST['Price'] === "" ? null : ($_POST['Price'] ?? null));
+$amount   = ($_POST['Amount'] === "" ? null : ($_POST['Amount'] ?? null));
+$expiry   = $_POST['ExpiryDate'] ?? null;      // ← FIXED KEY NAME
 $comments = $_POST['Comments'] ?? '';
 
-$response = ['success'=>false];
+$response = ['success' => false];
 
-if($listID && $itemID && $brandID && $placeID && $unitID){
-    $stmt = $pdo->prepare("UPDATE shopping_list SET ItemID=?, BrandID=?, PlaceID=?, UnitID=?, Price=?, Amount=?, Comments=? WHERE ListID=?");
-    if($stmt->execute([$itemID,$brandID,$placeID,$unitID,$price,$amount,$comments,$listID])){
+// Require only ListID + ItemID
+if ($listID && $itemID) {
+
+    $stmt = $pdo->prepare("
+        UPDATE shopping_list 
+        SET 
+            ItemID = ?, 
+            BrandID = ?, 
+            PlaceID = ?, 
+            UnitID = ?, 
+            Price = ?, 
+            Amount = ?, 
+            ExpiryDate = ?, 
+            Comments = ?
+        WHERE ListID = ?
+    ");
+
+    $ok = $stmt->execute([
+        $itemID,
+        $brandID,
+        $placeID,
+        $unitID,
+        $price,
+        $amount,
+        $expiry,
+        $comments,
+        $listID
+    ]);
+
+    if ($ok) {
         $response['success'] = true;
     }
 }
 
+header('Content-Type: application/json');
 echo json_encode($response);

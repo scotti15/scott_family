@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAdminItemCheckbox = document.getElementById('isAdminItem');
     const addToCartBtn = document.getElementById('addToCartBtn');
     const shoppingListTableBody = document.querySelector('#shoppingListTable tbody');
+    const bargainCheckbox = document.getElementById('bargainCheckbox');
 
     const fetchJSON = async url => (await fetch(url)).json();
 
@@ -27,12 +28,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loadShoppingList = async () => {
         let data = await fetchJSON('get_shopping_list.php');
+        console.log("data returned:", data);
+
         data.sort((a,b) => a.ItemName.localeCompare(b.ItemName));
         shoppingListTableBody.innerHTML = '';
         data.forEach(row => {
             const tr = document.createElement('tr');
+            if (row.IsBargain == "1") {
+                console.log('Bargain row:', row.ItemName);
+                tr.classList.add('bargain-item');
+            }
+            
             tr.innerHTML = `
-                <td>${row.ItemName}</td>
+                <td>${row.IsBargain == "1" ? "💰 " + row.ItemName : row.ItemName}</td>
                 <td>${row.BrandName}</td>
                 <td>${row.PlaceName}</td>
                 <td>${parseFloat(row.Price).toFixed(2)}</td>
@@ -40,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${row.UnitName}</td>
                 <td>${computeNormalizedPrice(row)}</td>
                 <td>${row.Comments ?? ''}</td>
-                <td>${row.ExpiryDate ? new Date(row.ExpiryDate).toLocaleDateString() : ''}</td> <!-- NEW -->
+                <td>${row.ExpiryDate ?? ''}</td> <!-- NEW -->
                 <td>
                     <button class="btn btn-sm btn-primary edit-btn" data-id="${row.ListID}">Edit</button>
                     <button class="btn btn-sm btn-danger delete-btn" data-id="${row.ListID}">Delete</button>
@@ -84,42 +92,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---------------- Add to Cart ----------------
     addToCartBtn.addEventListener('click', async () => {
+        // Base payload
         const payload = {
             ItemID: itemSelect.value,
-            BrandID: brandSelect.value,
-            PlaceID: placeSelect.value,
-            UnitID: unitSelect.value,
-            Price: priceInput.value,
-            Amount: amountInput.value,
             Comments: commentsInput.value,
-            IsAdminItem: isAdminItemCheckbox ? (isAdminItemCheckbox.checked?1:0):0
+            IsAdminItem: isAdminItemCheckbox?.checked ? 1 : 0,
+            IsBargain: bargainCheckbox?.checked ? 1 : 0
         };
-        if (!payload.ItemID || !payload.BrandID || !payload.PlaceID || !payload.UnitID || !payload.Price || !payload.Amount) {
-            alert('Please fill in all required fields.');
-            return;
-        }
-
-        const res = await fetch('add_to_cart.php', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-        if (result.success) {
-            itemSelect.value = '';
-            brandSelect.value = '';
-            placeSelect.value = '';
-            unitSelect.value = '';
-            priceInput.value = '';
-            amountInput.value = '';
-            commentsInput.value = '';
-            if (isAdminItemCheckbox) isAdminItemCheckbox.checked=false;
-            loadShoppingList();
+    
+        // Include extra fields only if it's a bargain item
+        if (payload.IsBargain) {
+            payload.BrandID = brandSelect.value;
+            payload.PlaceID = placeSelect.value;
+            payload.UnitID = unitSelect.value;
+            payload.Price = priceInput.value;
+            payload.Amount = amountInput.value;
+    
+            // Full validation for bargain items
+            if (!payload.ItemID || !payload.BrandID || !payload.PlaceID || !payload.UnitID || !payload.Price || !payload.Amount) {
+                alert('Please fill in all required fields for a bargain item.');
+                return;
+            }
         } else {
-            alert('Error adding item: '+result.message);
+            // Normal items: only ItemID required
+            if (!payload.ItemID) {
+                alert('Please choose an item.');
+                return;
+            }
+        }
+    
+        console.log("PAYLOAD SENT TO PHP:", JSON.stringify(payload, null, 2));
+    
+        try {
+            const res = await fetch('add_to_cart.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+    
+            const result = await res.json();
+    
+            if (result.success) {
+                // Reset inputs
+                itemSelect.value = '';
+                brandSelect.value = '';
+                placeSelect.value = '';
+                unitSelect.value = '';
+                priceInput.value = '';
+                amountInput.value = '';
+                commentsInput.value = '';
+                if (isAdminItemCheckbox) isAdminItemCheckbox.checked = false;
+                if (bargainCheckbox) bargainCheckbox.checked = false;
+    
+                loadShoppingList(); // refresh table
+            } else {
+                alert('Error adding item: ' + (result.message || 'Unknown error'));
+            }
+    
+        } catch (err) {
+            console.error('Fetch or JSON error:', err);
+            alert('Error communicating with the server.');
         }
     });
-
+    
+    
     // ---------------- Modal Handlers ----------------
     const setupModal = (saveBtnId, modalId, inputs, endpoint, refreshUrl, refreshSelect) => {
         document.getElementById(saveBtnId).addEventListener('click', async () => {
@@ -307,29 +343,31 @@ document.querySelector('#shoppingListTable').addEventListener('click', async (e)
     // Set remaining input fields
     document.getElementById('editPriceInput').value = row.Price;
     document.getElementById('editAmountInput').value = row.Amount;
+    document.getElementById('edit-expiry').value = row.ExpiryDate;
     document.getElementById('editCommentsInput').value = row.Comments ?? '';
 
     // Show modal
     editModal.show();
 });
-
 // Save changes
 document.getElementById('saveEditBtn').addEventListener('click', async () => {
     const payload = {
         ListID: document.getElementById('editListID').value,
-        ItemID: document.getElementById('editItemSelect').value,
-        BrandID: document.getElementById('editBrandSelect').value,
-        PlaceID: document.getElementById('editPlaceSelect').value,
-        UnitID: document.getElementById('editUnitSelect').value,
-        Price: document.getElementById('editPriceInput').value,
-        Amount: document.getElementById('editAmountInput').value,
-        Comments: document.getElementById('editCommentsInput').value
+        ItemID: document.getElementById('editItemSelect').value || null,
+        BrandID: document.getElementById('editBrandSelect').value || null,
+        PlaceID: document.getElementById('editPlaceSelect').value || null,
+        UnitID: document.getElementById('editUnitSelect').value || null,
+        Price: document.getElementById('editPriceInput').value || null,
+        Amount: document.getElementById('editAmountInput').value || null,
+        ExpiryDate: document.getElementById('edit-expiry').value || null, // corrected key
+        Comments: document.getElementById('editCommentsInput').value || ''
     };
 
     const res = await fetch('update_shopping_list_item.php', {
         method: 'POST',
         body: new URLSearchParams(payload)
     });
+
     const result = await res.json();
 
     if (result.success) {
@@ -371,7 +409,8 @@ const loadPriceHistory = async (itemID) => {
             <td>${parseFloat(row.Amount)}</td>
             <td>${row.UnitName}</td>
             <td>${normalizedPrice} ¢ / ${row.UnitType==='solid'?'g':'ml'}</td>
-            <td>${row.ExpiryDate ? new Date(row.ExpiryDate).toLocaleDateString() : ''}</td>
+            <td>${row.ExpiryDate ?? ''}</td>
+
         `;
         priceHistoryTableBody.appendChild(tr);
     });
@@ -382,6 +421,26 @@ const loadPriceHistory = async (itemID) => {
 itemSelect.addEventListener('change', () => {
     loadPriceHistory(itemSelect.value);
 });
+
+// Function to toggle fields based on bargain checkbox
+const toggleFieldsForBargain = () => {
+    const isBargain = bargainCheckbox.checked;
+
+    // Fields to enable/disable
+    const fields = [brandSelect, placeSelect, unitSelect, priceInput, amountInput];
+
+    fields.forEach(field => {
+        field.disabled = !isBargain;
+        // Optionally, clear the field when disabling
+        if (!isBargain) field.value = '';
+    });
+};
+
+// Run initially on page load
+toggleFieldsForBargain();
+
+// Listen for checkbox changes
+bargainCheckbox.addEventListener('change', toggleFieldsForBargain);
 
 
 

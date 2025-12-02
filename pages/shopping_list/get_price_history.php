@@ -13,6 +13,7 @@ if ($itemID) {
         LEFT JOIN places p ON s.PlaceID = p.PlaceID
         LEFT JOIN units u ON s.UnitID = u.UnitID
         WHERE s.ItemID = ?
+          AND s.IsBargain = 1
         ORDER BY (s.Price * 100 / (s.Amount * u.ConversionToBase)) ASC
     ");
     $stmt->execute([$itemID]);

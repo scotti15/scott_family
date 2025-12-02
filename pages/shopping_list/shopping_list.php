@@ -21,6 +21,10 @@ $isAdmin = ($role === 'admin');
     <!-- Row 1: Main inputs -->
     <div class="card p-3 mb-4">
         <div class="row mb-2">
+          <label>
+            <input type="checkbox" id="bargainCheckbox" />
+            Bargain item
+        </label>
             <!-- Item -->
             <div class="col-md-3 mt-2">
                 <button type="button"
@@ -323,6 +327,10 @@ $isAdmin = ($role === 'admin');
               <label for="editAmountInput" class="form-label">Amount</label>
               <input type="number" step="0.000001" class="form-control" id="editAmountInput">
             </div>
+            <div class="mb-3">
+              <label for="edit-expiry" class="form-label">Expiry Date</label>
+              <input type="date" id="edit-expiry" class="form-control">
+          </div>
 
             <div class="col-12">
               <label for="editCommentsInput" class="form-label">Comments</label>
