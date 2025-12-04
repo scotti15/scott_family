@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadShoppingList = async () => {
         let data = await fetchJSON('get_shopping_list.php');
         console.log("data returned:", data);
+        data.sort((a, b) => new Date(b.ExpiryDate) - new Date(a.ExpiryDate));
 
-        data.sort((a,b) => a.ItemName.localeCompare(b.ItemName));
         shoppingListTableBody.innerHTML = '';
         data.forEach(row => {
             const tr = document.createElement('tr');

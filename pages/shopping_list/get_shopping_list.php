@@ -35,7 +35,7 @@ try {
                 LEFT JOIN places p ON sl.PlaceID = p.PlaceID
                 LEFT JOIN units u ON sl.UnitID = u.UnitID
                 WHERE sl.ExpiryDate >= :today
-                ORDER BY i.ItemName ASC;
+                ORDER BY sl.ExpiryDate DESC;
  ";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([':today' => $today]);
@@ -56,7 +56,7 @@ try {
                 LEFT JOIN units u ON sl.UnitID = u.UnitID
                 WHERE sl.IsAdminItem = 0
                 AND sl.ExpiryDate >= :today
-                ORDER BY i.ItemName ASC;
+                ORDER BY sl.ExpiryDate DESC;
  ";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([':today' => $today]);
