@@ -75,35 +75,51 @@ $isAdmin = ($role === 'admin');
                 <?php endforeach; ?>
         </select>
         </div>
-            <div class="col-md-1 mt-2">
-                <label for="priceInput"
-                    class="btn btn-outline-primary w-100 mb-1"
-                    tabindex="-1">Price (¢)</label>
-                <input type="number" step="1" id="priceInput" class="form-control">
-            </div>
-            <div class="col-md-1 mt-2">
-                <label for="amountInput"
-                    class="btn btn-outline-primary w-100 mb-1"
-                    tabindex="-1">Amount</label>
-                <input type="number" step="0.001" id="amountInput" class="form-control">
-            </div>
-            <!-- Unit -->
-            <div class="col-md-1 mt-2">
-                <button type="button"
-                        class="btn btn-outline-primary w-100 mb-1"
-                        data-bs-toggle="modal"
-                        data-bs-target="#addUnitModal"
-                        tabindex="-1">
-                    Unit +
-                </button>
-                <select id="unitSelect" name="unit" class="form-select">
-                    <option value="">--Select Unit--</option>
-                    <?php foreach ($units as $u): ?>
-                    <option value="<?= $u['UnitID'] ?>"><?= htmlspecialchars($u['UnitName']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
+        <div class="col-md-1 mt-2">
+    <label for="priceInput"
+           class="btn btn-outline-primary w-100 mb-1"
+           tabindex="-1">Price (¢)</label>
+    <input type="number" step="1" id="priceInput" class="form-control">
+</div>
+
+<div class="col-md-1 mt-2">
+    <label for="amountInput"
+           class="btn btn-outline-primary w-100 mb-1"
+           tabindex="-1">Amount</label>
+    <input type="number" step="0.001" id="amountInput" class="form-control">
+</div>
+
+<!-- Unit -->
+<div class="col-md-1 mt-2">
+    <button type="button"
+            class="btn btn-outline-primary w-100 mb-1"
+            data-bs-toggle="modal"
+            data-bs-target="#addUnitModal"
+            tabindex="-1">
+        Unit +
+    </button>
+    <select id="unitSelect" name="unit" class="form-select">
+    <option value="">--Select Unit--</option>
+    <?php foreach ($units as $u): ?>
+    <option value="<?= $u['UnitID'] ?>"
+            data-conversion="<?= $u['ConversionToBase'] ?>"
+            data-unittype="<?= $u['UnitType'] ?>">
+        <?= htmlspecialchars($u['UnitName']) ?>
+    </option>
+    <?php endforeach; ?>
+</select>
+
+    
+</div>
+
+<!-- ⭐ Normalized Price Badge -->
+<div class="col-md-2 mt-4">
+    <span id="normalizedPriceBadge"
+          class="badge bg-info text-dark"
+          style="font-size: 1.1rem; display:none;">
+    </span>
+</div>
+
 
         <!-- Row 2: Comments + Admin-only -->
         <div class="row mb-2">

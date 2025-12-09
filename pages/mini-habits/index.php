@@ -18,24 +18,7 @@ $isAdmin = ($role === 'admin');
 require_once 'rollover_daily_stats.php';
 
 ?>
-<script>
-    const loggedInUserId = <?= json_encode($user_id) ?>; // from PHP session
-    const selector = document.getElementById("userSelector");
-    const addBtn = document.getElementById("addHabitBtn");
-    const habitInput = document.getElementById("newHabitName");
 
-    function toggleAddButton() {
-        const selectedUserId = parseInt(selector.value, 10);
-        const isOwner = selectedUserId === loggedInUserId;
-        addBtn.disabled = !isOwner;
-        habitInput.disabled = !isOwner;
-    }
-
-    selector.addEventListener("change", toggleAddButton);
-
-    // initial check on page load
-    toggleAddButton();
-</script>
 <div class="container mt-4">
     <h2>Mini Habits</h2>
 

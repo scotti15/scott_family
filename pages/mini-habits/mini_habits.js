@@ -7,6 +7,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load habits initially
     loadHabits();
 
+    document.addEventListener("DOMContentLoaded", () => {
+        const selector = document.getElementById("userSelector");
+        const addBtn = document.getElementById("addHabitBtn");
+        const habitInput = document.getElementById("newHabitName");
+        const loggedInUserId = window.loggedInUserId; // from PHP
+    
+        if (!selector) return; // safety – prevents the null error
+    
+        function toggleAddButton() {
+            const selectedUserId = parseInt(selector.value, 10);
+            const isOwner = selectedUserId === loggedInUserId;
+    
+            addBtn.disabled = !isOwner;
+            habitInput.disabled = !isOwner;
+        }
+    
+        selector.addEventListener("change", toggleAddButton);
+        toggleAddButton(); // run on first load
+    });
+    
+
     form.addEventListener('submit', (e) => {
         e.preventDefault();
 
@@ -89,10 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span>${h.habit_name} (${h.completed}/${h.daily_target})</span>
                 <div>
                     ${btnHTML('doneBtn btn btn-success btn-sm me-1', 'Done', h.habit_id)}
-                    ${btnHTML('undoBtn btn btn-warning btn-sm me-1', 'Undo', h.habit_id)}
-                    ${btnHTML('editBtn btn btn-secondary btn-sm me-1', 'Edit', h.habit_id)}
+                    ${btnHTML('undoBtn btn btn-secondary btn-sm me-1', 'Undo', h.habit_id)}
+                    ${btnHTML('editBtn btn btn-primary btn-sm me-1', 'Edit', h.habit_id)}
                     ${btnHTML('deleteBtn btn btn-danger btn-sm me-1', 'Delete', h.habit_id)}
-                    ${btnHTML('deactivateBtn btn btn-warning btn-sm', 'Deactivate', h.habit_id)}
+                    ${btnHTML('deactivateBtn btn btn-secondary btn-sm', 'Deactivate', h.habit_id)}
                 </div>
             `;
     
@@ -107,8 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
             li.innerHTML = `
                 <span>${h.habit_name} (${h.completed}/${h.daily_target})</span>
                 <div>
-                    ${btnHTML('undoBtn btn btn-warning btn-sm me-1', 'Undo', h.habit_id)}
-                    ${btnHTML('editBtn btn btn-secondary btn-sm me-1', 'Edit', h.habit_id)}
+                    ${btnHTML('undoBtn btn btn-secondary btn-sm me-1', 'Undo', h.habit_id)}
+                    ${btnHTML('editBtn btn btn-primary btn-sm me-1', 'Edit', h.habit_id)}
                     ${btnHTML('deleteBtn btn btn-danger btn-sm', 'Delete', h.habit_id)}
                 </div>
             `;
@@ -263,8 +284,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch((err) => console.error('Fetch error:', err));
         }
     });
-});
 
+    
 if (showDeactivatedBtn && showDeactivatedModalEl) {
     showDeactivatedBtn.addEventListener('click', () => {
         const userId = document.getElementById('userSelector').value;
@@ -308,14 +329,17 @@ if (showDeactivatedBtn && showDeactivatedModalEl) {
 
     // Fire the rollover script silently on page load
     fetch('rollover_daily_stats.php')
-        .then(res => res.json())
-        .then(data => {
-            console.log("Daily rollover executed:", data);
-        })
-        .catch(err => {
-            console.error("Daily rollover error:", err);
-        });
+    .then(() => {
+        console.log("Daily rollover executed.");
+    })
+    .catch(err => {
+        console.error("Daily rollover error:", err);
+    });
 
-    
 
 }
+
+
+
+});
+

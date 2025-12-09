@@ -1,37 +1,106 @@
 <?php
-// rollover_daily_stats.php
-require_once '../../config/db.php'; // adjust path as needed
+require_once '../../config/db.php';
 if (session_status() == PHP_SESSION_NONE) session_start();
 
-// header('Content-Type: application/json');
 
 try {
-    // Today's date
-    $today = date('Y-m-d');
+    $pdo->beginTransaction();
 
-    // 1. Insert into log table all habits not yet rolled over today
-    $insertStmt = $pdo->prepare("
-        INSERT INTO mini_habit_log (habit_id, user_id, completed_date, completed, target)
-        SELECT habit_id, user_id, :today, completed, daily_target
+    $today = new DateTime();              // today
+    $yesterday = (clone $today)->modify('-1 day');
+
+    // 1) Fetch all habits
+    $habits = $pdo->query("
+        SELECT habit_id, user_id, daily_target, completed, is_active, modified
         FROM mini_habits
-        WHERE modified < :today AND is_active = 1
-    ");
-    $insertStmt->execute([':today' => $today]);
-    $rolledOver = $insertStmt->rowCount();
+    ")->fetchAll(PDO::FETCH_ASSOC);
 
-    // 2. Reset completed to 0 for those habits
-    $updateStmt = $pdo->prepare("
-        UPDATE mini_habits
-        SET completed = 0
-        WHERE modified < :today AND is_active = 1
-    ");
-    $updateStmt->execute([':today' => $today]);
+    $inserted = 0;
+    $reset = 0;
 
-    // echo json_encode([
-    //     'success' => true,
-    //     'rolled_over' => $rolledOver
-    // ]);
+    // 2) Process each habit individually
+    foreach ($habits as $h) {
+
+        $habitId = $h['habit_id'];
+        $userId  = $h['user_id'];
+        $target  = $h['daily_target'];
+        $completed = $h['completed'];
+        $isActive = $h['is_active'];
+        $modifiedDate = new DateTime(substr($h['modified'], 0, 10));
+
+        // 2A) Find last logged date (or use modified date)
+        $stmt = $pdo->prepare("
+            SELECT completed_date 
+            FROM mini_habit_log
+            WHERE habit_id = ? AND user_id = ?
+            ORDER BY completed_date DESC
+            LIMIT 1
+        ");
+        $stmt->execute([$habitId, $userId]);
+        $lastLogRow = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($lastLogRow) {
+            $lastDate = new DateTime($lastLogRow['completed_date']);
+        } else {
+            // No log yet → start from modified date
+            $lastDate = clone $modifiedDate;
+        }
+
+        // 2B) Insert missing days as zeros
+        $nextDay = (clone $lastDate)->modify('+1 day');
+
+        while ($nextDay < $today) {
+
+            $dateStr = $nextDay->format('Y-m-d');
+
+            // Insert zero row
+            $ins = $pdo->prepare("
+                INSERT IGNORE INTO mini_habit_log (habit_id, user_id, completed_date, completed, target)
+                VALUES (?, ?, ?, 0, ?)
+            ");
+            $ins->execute([$habitId, $userId, $dateStr, $target]);
+
+            if ($ins->rowCount()) $inserted++;
+
+            // move forward one day
+            $nextDay->modify('+1 day');
+        }
+
+        // 2C) Now handle the real rollover from yesterday
+        if ($isActive && $modifiedDate < $today) {
+
+            // insert row for DATE(modified) if missing
+            $realDateStr = $modifiedDate->format('Y-m-d');
+
+            $ins2 = $pdo->prepare("
+                INSERT IGNORE INTO mini_habit_log (habit_id, user_id, completed_date, completed, target)
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            $ins2->execute([
+                $habitId, 
+                $userId, 
+                $realDateStr,
+                $completed,
+                $target
+            ]);
+
+            if ($ins2->rowCount()) $inserted++;
+
+            // reset the habit to 0
+            $upd = $pdo->prepare("
+                UPDATE mini_habits
+                SET completed = 0
+                WHERE habit_id = ?
+            ");
+            $upd->execute([$habitId]);
+            $reset++;
+        }
+    }
+
+    $pdo->commit();
+
 } catch (Exception $e) {
+    if ($pdo->inTransaction()) $pdo->rollBack();
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage()

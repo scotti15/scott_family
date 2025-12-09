@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addToCartBtn = document.getElementById('addToCartBtn');
     const shoppingListTableBody = document.querySelector('#shoppingListTable tbody');
     const bargainCheckbox = document.getElementById('bargainCheckbox');
+    const normalizedPriceBadge = document.getElementById('normalizedPriceBadge');
 
     const fetchJSON = async url => (await fetch(url)).json();
 
@@ -25,6 +26,17 @@ document.addEventListener('DOMContentLoaded', () => {
             selectEl.appendChild(option);
         });
     };
+
+    let units = [];
+
+    // Fetch units via get_units.php and store them in the array
+    fetch('get_units.php')
+        .then(res => res.json())
+        .then(data => {
+            units = data; // now units is an array of {UnitID, UnitName, UnitType, ConversionToBase}
+            console.log('Units array loaded:', units);
+        })
+        .catch(err => console.error('Failed to load units:', err));
 
     const loadShoppingList = async () => {
         let data = await fetchJSON('get_shopping_list.php');
@@ -59,6 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
     };
 
+
+
     const computeNormalizedPrice = row => {
         const price = parseFloat(row.Price);      // already in cents
         const amount = parseFloat(row.Amount);
@@ -66,17 +80,24 @@ document.addEventListener('DOMContentLoaded', () => {
     
         if (isNaN(price) || isNaN(amount) || amount <= 0) return '';
     
-        if (row.UnitType === 'each') {
-            // cents per each, formatted to 4 decimals
-            return `${(price).toFixed(4)} ¢ / each`;
+        if (row.UnitName.toLowerCase() === 'each') {
+            // cents per item
+            const formatted = parseFloat(price.toFixed(4)).toString();
+            return `${formatted} ¢ / each`;
         } else {
             // convert amount to base unit (g or ml)
             const amountBase = amount * conv;
             if (amountBase <= 0) return '';
             const perUnit = price / amountBase;   // cents per g or ml
-            return `${perUnit.toFixed(4)} ¢ / ${row.UnitType === 'solid' ? 'g' : 'ml'}`;
+    
+            // determine base unit type
+            const baseUnit = row.UnitType === 'solid' ? 'g' : 'ml';
+            const formatted = parseFloat(perUnit.toFixed(4)).toString();
+            return `${formatted} ¢ / ${baseUnit}`;
         }
     };
+    
+    
     
     const refreshDropdown = async (url, selectEl) => {
         let data = await fetchJSON(url);
@@ -442,6 +463,45 @@ toggleFieldsForBargain();
 // Listen for checkbox changes
 bargainCheckbox.addEventListener('change', toggleFieldsForBargain);
 
+// Show or hide the badge when IsBargain changes
+bargainCheckbox.addEventListener('change', () => {
+    normalizedPriceBadge.style.display = bargainCheckbox.checked ? 'inline-block' : 'none';
+    normalizedPriceBadge.textContent = "Click to calculate normalized price";
+});
+
+// Click badge to calculate
+normalizedPriceBadge.addEventListener('click', () => {
+    const priceRaw = parseFloat(priceInput.value);
+    const amountRaw = parseFloat(amountInput.value);
+    const selectedUnitID = parseInt(unitSelect.value, 10);
+
+    if (isNaN(priceRaw) || isNaN(amountRaw) || !selectedUnitID) {
+        normalizedPriceBadge.textContent = "Invalid input";
+        return;
+    }
+
+    const unit = units.find(u => parseInt(u.UnitID, 10) === selectedUnitID);
+    if (!unit) {
+        normalizedPriceBadge.textContent = "Unit not found";
+        return;
+    }
+
+    const row = {
+        Price: priceRaw,
+        Amount: amountRaw,
+        ConversionToBase: parseFloat(unit.ConversionToBase),
+        UnitType: unit.UnitType,
+        UnitName: unit.UnitName   // now included
+    };
+
+    let np = computeNormalizedPrice(row) || "—";
+
+    // remove trailing zeros
+    np = np.replace(/(\.\d*?[1-9])0+(\s*¢)/, "$1$2"); 
+    np = np.replace(/\.0+(\s*¢)/, "$1"); 
+
+    normalizedPriceBadge.textContent = np;
+});
 
 
 
