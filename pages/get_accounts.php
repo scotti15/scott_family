@@ -3,6 +3,8 @@ require_once __DIR__ . '/../config/db.php';
 header('Content-Type: application/json');
 
 $userId = isset($_GET['userId']) ? intval($_GET['userId']) : 0;
+error_log("get_accounts.php: userId = $userId");
+
 error_log("userId received in get_accounts.php: $userId"); // logs to PHP error log
 
 if ($userId > 0) {

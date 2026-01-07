@@ -1,0 +1,16 @@
+#musicTable {
+    font-size: 0.9rem;
+}
+
+#musicTable tbody tr:hover {
+    background: #fff3cd !important; /* subtle yellow hover */
+}
+
+.card {
+    border-radius: 10px;
+}
+
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}

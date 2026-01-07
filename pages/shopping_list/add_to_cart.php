@@ -53,10 +53,15 @@ if ($isBargain) {
 $comments = $data['Comments'] ?? '';
 $isAdminItem = ($isAdmin && !empty($data['IsAdminItem'])) ? 1 : 0;
 
-// ExpiryDate = next Wednesday
-$daysUntilWednesday = (3 - date('N') + 7) % 7; // 1=Mon..7=Sun
-$daysUntilWednesday = $daysUntilWednesday === 0 ? 7 : $daysUntilWednesday;
-$expiryDate = date('Y-m-d', strtotime("+$daysUntilWednesday days"));
+// ExpiryDate = next week's Wednesday
+$todayN = date('N'); // 1=Mon..7=Sun
+$wednesdayN = 3;     // Wednesday
+
+$daysUntilThisWednesday = $wednesdayN - $todayN;
+$daysAhead = $daysUntilThisWednesday + 7;
+
+$expiryDate = date('Y-m-d', strtotime("+$daysAhead days"));
+
 
 // Insert into shopping_list
 $stmt = $pdo->prepare("

@@ -14,7 +14,7 @@ if ($itemID) {
         LEFT JOIN units u ON s.UnitID = u.UnitID
         WHERE s.ItemID = ?
           AND s.IsBargain = 1
-        ORDER BY (s.Price * 100 / (s.Amount * u.ConversionToBase)) ASC
+        ORDER BY (s.Price  / (s.Amount * u.ConversionToBase)) ASC, s.ExpiryDate DESC
     ");
     $stmt->execute([$itemID]);
     $response = $stmt->fetchAll(PDO::FETCH_ASSOC);

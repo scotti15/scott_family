@@ -1,8 +1,10 @@
 <?php
 require_once '../config/db.php';
+ include '../../../includes/inventory_navbar.php';
 include '../../../includes/header.php';
-include '../includes/header.php';
 
+// echo $pdo->query("SELECT DATABASE()")->fetchColumn();
+// exit;
 // Fetch items & rooms for dropdowns
 $items = $pdo->query("SELECT  id, item_name FROM items ORDER BY item_name")->fetchAll(PDO::FETCH_ASSOC);
 $rooms = $pdo->query("SELECT id, name FROM rooms ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);

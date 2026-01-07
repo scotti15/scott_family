@@ -11,8 +11,9 @@ $provinces  = $pdo->query("SELECT ProvinceID, ProvinceCode FROM Provinces ORDER 
 $categories = $pdo->query("SELECT CategoryID, CategoryName FROM Categories ORDER BY CategoryName")->fetchAll(PDO::FETCH_ASSOC);
 $items      = $pdo->query("SELECT ItemID, ItemName FROM Items ORDER BY ItemName")->fetchAll(PDO::FETCH_ASSOC);
 $units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName")->fetchAll(PDO::FETCH_ASSOC);
-?>
 
+
+?>
 <div class="container-fluid mt-4">
   <div class="row">
     <!-- Sidebar: Account Balances -->
@@ -194,7 +195,14 @@ $units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName"
         <button id="toggleTransactions" class="btn btn-secondary">
           Show Transactions
         </button>
+        <button
+          id="openTransferModal"
+          class="btn btn-secondary">
+          🔄 Transfer Funds
+        </button>
+
       </div>
+
 
       
       <!-- Current Bill -->
@@ -363,6 +371,10 @@ $units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName"
 <!-- AJAX Handlers -->
 <!-- ============================ -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<!-- INSERT NEW SCRIPT HERE BELOW-->
+
 <script>
 let currentBill = []; // array to hold bill items
     document.addEventListener("DOMContentLoaded", function () {
@@ -377,26 +389,25 @@ let headerData = {};
 // Show detail section on Add Items click
 if (headerNextBtn) {
     headerNextBtn.addEventListener('click', function () {
-    // Save header values
-    const formData = new FormData(headerForm);
-    formData.forEach((value, key) => { headerData[key] = value; });
+      // Save header values
+      const formData = new FormData(headerForm);
+      formData.forEach((value, key) => { headerData[key] = value; });
 
-    // Show detail form
-    detailForm.style.display = 'flex';
+      // Show detail form
+      detailForm.style.display = 'flex';
 
-    // Disable header inputs to prevent changes
-    headerForm.querySelectorAll('input, select, button').forEach(el => el.disabled = true);
+      // Disable header inputs to prevent changes
+      headerForm.querySelectorAll('input, select, button').forEach(el => el.disabled = true);
 
-    // pre-fill detail Category from header ---
-    const detailCategorySelect = document.getElementById('detailCategory');
-    if (detailCategorySelect && headerData.category) {
-        detailCategorySelect.value = headerData.category;
-    }
-        // set focus on Item dropdown ---
-        const itemSelect = detailForm.querySelector('select[name="item"]');
-    if (itemSelect) itemSelect.focus();
-});
-
+      // pre-fill detail Category from header ---
+      const detailCategorySelect = document.getElementById('detailCategory');
+      if (detailCategorySelect && headerData.category) {
+          detailCategorySelect.value = headerData.category;
+      }
+          // set focus on Item dropdown ---
+          const itemSelect = detailForm.querySelector('select[name="item"]');
+      if (itemSelect) itemSelect.focus();
+  });
 }
 
 // ---------- Populate Accounts based on User ----------
@@ -706,12 +717,10 @@ function getSelectText(selectName, form) {
 }
 
 });
-document.addEventListener("DOMContentLoaded", function() {
     const userDropdown = document.getElementById('userDropdown');
     if (userDropdown) {
         userDropdown.focus();
     }
-});
 // begin JS for EDIT MODAL
 // Preload dropdown options
 // Store dropdown data globally
@@ -931,7 +940,6 @@ function loadAccountBalances(userId) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
 
     const billTableBody = document.querySelector('#billTable tbody');
     const billTotalEl = document.getElementById('billTotal');
@@ -1037,12 +1045,11 @@ billTableBody.addEventListener('click', function (e) {
   // Focus the first field in the form (item select)
   const firstField = form.querySelector('select[name="item"], input[name="item"], input, select');
   if (firstField) firstField.focus();
-});
+  });
 
-let headerTaxRate = 0; // default
+  let headerTaxRate = 0; // default
 
-});
-document.addEventListener("DOMContentLoaded", function () {
+  
     // ... your existing dropdown/insert transaction JS ...
 
 
@@ -1074,7 +1081,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // later in your Insert Transaction logic:
     // const taxAmount = isTaxed ? price * quantity * headerTaxRate : 0;
-});
 
 // Initialize
 $(document).ready(function() {
@@ -1201,6 +1207,10 @@ for (let i = 0; i < cents; i++) {
 
 
 
+
+<!-- INSERT NEW SCRIPT HERE ABOVE -->
+
+
 <!-- Place Modal -->
 <div class="modal fade" id="placeModal" tabindex="-1" aria-labelledby="placeModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -1302,5 +1312,42 @@ for (let i = 0; i < cents; i++) {
   </div>
 </div>
 
+<!-- TRANSFER FUNDS MODAL -->
+<div class="modal fade" id="transferModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Transfer Funds</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-3">
+          <label>From Account</label>
+          <select id="transferFrom" class="form-select"></select>
+        </div>
+
+        <div class="mb-3">
+          <label>To Account</label>
+          <select id="transferTo" class="form-select"></select>
+        </div>
+
+        <div class="mb-3">
+          <label>Amount</label>
+          <input id="transferAmount" type="number" step="0.01" class="form-control">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="submitTransferBtn" class="btn btn-primary">Submit</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="transactions.js"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
