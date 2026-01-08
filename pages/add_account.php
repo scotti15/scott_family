@@ -5,7 +5,7 @@ $accountName = trim($_POST['account_name'] ?? '');
 $response = ['success' => false];
 
 if($accountName){
-    $stmt = $pdo->prepare("INSERT INTO Accounts (AccountName) VALUES (?)");
+    $stmt = $pdo->prepare("INSERT INTO accounts (AccountName) VALUES (?)");
     if($stmt->execute([$accountName])){
         $response['success'] = true;
         $response['id'] = $pdo->lastInsertId();

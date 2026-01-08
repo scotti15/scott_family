@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 $id = intval($_POST['id'] ?? 0);
 
 if ($id > 0) {
-    $stmt = $pdo->prepare("DELETE FROM Transactions WHERE IDFinancialTransaction = ?");
+    $stmt = $pdo->prepare("DELETE FROM transactions WHERE IDFinancialTransaction = ?");
     if ($stmt->execute([$id])) {
         echo json_encode(['success' => true]);
     } else {

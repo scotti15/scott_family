@@ -5,7 +5,7 @@ $provinceId = $_GET['provinceId'] ?? null;
 $response = ['success' => false, 'taxRate' => null];
 
 if ($provinceId) {
-    $stmt = $pdo->prepare("SELECT TaxRate FROM Provinces WHERE ProvinceID = :id");
+    $stmt = $pdo->prepare("SELECT TaxRate FROM provinces WHERE ProvinceID = :id");
     $stmt->execute([':id' => $provinceId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 

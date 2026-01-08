@@ -12,7 +12,7 @@ if ($id <= 0) {
 $stmt = $pdo->prepare("
 SELECT IDFinancialTransaction, Date, PlaceID, AccountID, TypeID,
 ProvinceID, CategoryID, ItemID, UnitID, Tax, Quantity, Price, Comment
-FROM Transactions
+FROM transactions
 WHERE IDFinancialTransaction = ?
 ");
 $stmt->execute([$id]);

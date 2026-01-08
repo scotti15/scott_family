@@ -5,7 +5,7 @@ $itemName = $_POST['item_name'] ?? '';
 $response = ['success' => false];
 
 if($itemName){
-    $stmt = $pdo->prepare("INSERT INTO Items (ItemName) VALUES (?)");
+    $stmt = $pdo->prepare("INSERT INTO items (ItemName) VALUES (?)");
     if($stmt->execute([$itemName])){
         $response['success'] = true;
         $response['id'] = $pdo->lastInsertId();

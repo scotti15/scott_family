@@ -4,13 +4,13 @@ include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
 
 // Fetch dropdown data
-$users      = $pdo->query("SELECT ID, username FROM Users ORDER BY username")->fetchAll(PDO::FETCH_ASSOC);
-$places     = $pdo->query("SELECT PlaceID, PlaceName FROM Places ORDER BY PlaceName")->fetchAll(PDO::FETCH_ASSOC);
-$types      = $pdo->query("SELECT TypeID, TypeName FROM TransactionTypes ORDER BY TypeName")->fetchAll(PDO::FETCH_ASSOC);
-$provinces  = $pdo->query("SELECT ProvinceID, ProvinceCode FROM Provinces ORDER BY ProvinceCode")->fetchAll(PDO::FETCH_ASSOC);
-$categories = $pdo->query("SELECT CategoryID, CategoryName FROM Categories ORDER BY CategoryName")->fetchAll(PDO::FETCH_ASSOC);
-$items      = $pdo->query("SELECT ItemID, ItemName FROM Items ORDER BY ItemName")->fetchAll(PDO::FETCH_ASSOC);
-$units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName")->fetchAll(PDO::FETCH_ASSOC);
+$users      = $pdo->query("SELECT ID, username FROM users ORDER BY username")->fetchAll(PDO::FETCH_ASSOC);
+$places     = $pdo->query("SELECT PlaceID, PlaceName FROM places ORDER BY PlaceName")->fetchAll(PDO::FETCH_ASSOC);
+$types      = $pdo->query("SELECT TypeID, TypeName FROM transactiontypes ORDER BY TypeName")->fetchAll(PDO::FETCH_ASSOC);
+$provinces  = $pdo->query("SELECT ProvinceID, ProvinceCode FROM provinces ORDER BY ProvinceCode")->fetchAll(PDO::FETCH_ASSOC);
+$categories = $pdo->query("SELECT CategoryID, CategoryName FROM categories ORDER BY CategoryName")->fetchAll(PDO::FETCH_ASSOC);
+$items      = $pdo->query("SELECT ItemID, ItemName FROM items ORDER BY ItemName")->fetchAll(PDO::FETCH_ASSOC);
+$units      = $pdo->query("SELECT UnitID, UnitName FROM units ORDER BY UnitName")->fetchAll(PDO::FETCH_ASSOC);
 
 
 ?>
@@ -372,6 +372,7 @@ $units      = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName"
 <!-- ============================ -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+<script src="transactions.js"></script>
 
 <!-- INSERT NEW SCRIPT HERE BELOW-->
 
@@ -766,7 +767,7 @@ function fillDropdown(selector, data, valueField, textField) {
 }
 
 // Load transactions
-function loadTransactions(userId) {
+function loadTransactionsForUserBalance(userId) {
     currentUserId = userId;
 
     $.getJSON('get_transactions.php', { userId: userId }, function(data) {
@@ -907,7 +908,7 @@ $('#userDropdown').change(function() {
     currentUserId = userId;
 
     // Load transactions table
-    loadTransactions(userId);
+    loadTransactionsForUserBalance(userId);
 
     // Load account balances for sidebar
     loadAccountBalances(userId);
@@ -1083,14 +1084,14 @@ billTableBody.addEventListener('click', function (e) {
     // const taxAmount = isTaxed ? price * quantity * headerTaxRate : 0;
 
 // Initialize
-$(document).ready(function() {
-    loadDropdowns(); // preload dropdowns
-    loadTransactions(currentUserId);
+// $(document).ready(function() {
+//     loadDropdowns(); // preload dropdowns
+//     loadTransactions(currentUserId);
 
-    $('#userSelect').change(function() {
-        loadTransactions($(this).val());
-    });
-});
+//     $('#userSelect').change(function() {
+//         loadTransactions($(this).val());
+//     });
+// });
 // END JS for EDIT MODAL
 
 </script>
@@ -1348,6 +1349,5 @@ for (let i = 0; i < cents; i++) {
   </div>
 </div>
 
-<script src="transactions.js"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -7,7 +7,7 @@ $data = [];
 
 if ($userId > 0) {
     $stmt = $pdo->prepare("SELECT a.AccountName, Cast(SUM(Price*Quantity + Tax)as decimal(10,2)) AS Balance
-    FROM Transactions t
+    FROM transactions t
     Join accounts a on t.AccountID = a.AccountID
     and t.UserID = a.UserID
     WHERE Date <= NOW()

@@ -22,7 +22,7 @@ if ($userId > 0) {
     u.UnitName AS unit,
     t.Comment AS comment,
     (t.Quantity * t.Price + t.Tax) AS total
-  FROM Transactions t  
+  FROM transactions t  
     ");
     $stmt->execute([$userId]);
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -8,7 +8,7 @@ error_log("get_accounts.php: userId = $userId");
 error_log("userId received in get_accounts.php: $userId"); // logs to PHP error log
 
 if ($userId > 0) {
-    $stmt = $pdo->prepare("SELECT AccountID, AccountName FROM Accounts WHERE UserID = ? ORDER BY AccountName");
+    $stmt = $pdo->prepare("SELECT AccountID, AccountName FROM accounts WHERE UserID = ? ORDER BY AccountName");
     $stmt->execute([$userId]);
     $accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } else {

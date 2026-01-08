@@ -15,7 +15,7 @@ if (!$data || !is_array($data)) {
 
 // Prepare your insert statement
 $stmt = $pdo->prepare("
-    INSERT INTO Transactions 
+    INSERT INTO transactions 
     (UserID, Date, PlaceID, AccountID, TypeID, ProvinceID, CategoryID, ItemID, Tax, Quantity, Price, UnitID, Comment)
     VALUES
     (:user, :date, :place, :account, :type, :province, :category, :item, :tax, :quantity, :price, :unit, :comment)

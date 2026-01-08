@@ -102,48 +102,42 @@ document.addEventListener("DOMContentLoaded", () => {
   // SUBMIT TRANSFER
   // -----------------------------
   submitBtn.addEventListener("click", async () => {
-    const selectedUserId = parseInt(userDropdown.value); // <--- use dropdown value
     const payload = {
-        user_id: selectedUserId,
-        from_account: parseInt(fromSelect.value),
-        to_account: parseInt(toSelect.value),
-        amount: parseFloat(amountInput.value),
-        comment: '', // optional
-        date: new Date().toISOString().slice(0, 10)
+      from_account: fromSelect.value,
+      to_account: toSelect.value,
+      amount: parseFloat(amountInput.value)
     };
 
-    if (!payload.user_id || !payload.from_account || !payload.to_account || payload.amount <= 0) {
-        alert("Please complete all fields.");
-        return;
+
+
+
+    if (!payload.from_account || !payload.to_account || payload.amount <= 0) {
+      alert("Please complete all fields.");
+      return;
     }
 
     if (payload.from_account === payload.to_account) {
-        alert("Accounts must be different.");
-        return;
+      alert("Accounts must be different.");
+      return;
     }
 
     try {
-        const result = await fetch("transfer_funds.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
+      const result = await fetchJSON("transfer_funds.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-        const data = await result.json();
-        console.log("TRANSFER RESULT:", data); // debug info
-
-        if (data.success) {
-            transferModal.hide();
-            alert("Transfer completed successfully.");
-            if (typeof loadTransactions === "function") loadTransactions();
-        } else {
-            alert(data.message || "Transfer failed.");
-        }
+      if (result.success) {
+        transferModal.hide();
+        alert("Transfer completed successfully.");
+        if (typeof loadTransactions === "function") loadTransactions();
+      } else {
+        alert(result.error || "Transfer failed.");
+      }
     } catch (err) {
-        console.error("Transfer fetch error:", err);
-        alert("Server error processing transfer.");
+      console.error(err);
+      alert("Server error processing transfer.");
     }
-});
-
-
+  });
 });

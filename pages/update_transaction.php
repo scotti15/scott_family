@@ -40,14 +40,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            pr.ProvinceCode AS Province, c.CategoryName AS Category,
                            i.ItemName AS Item, t.Tax, t.Quantity, t.Price,
                            u.UnitName AS Unit, t.Comment
-                    FROM Transactions t
-                    LEFT JOIN Places p ON t.PlaceID = p.PlaceID
-                    LEFT JOIN Accounts a ON t.AccountID = a.AccountID
-                    LEFT JOIN TransactionTypes tt ON t.TypeID = tt.TypeID
-                    LEFT JOIN Provinces pr ON t.ProvinceID = pr.ProvinceID
-                    LEFT JOIN Categories c ON t.CategoryID = c.CategoryID
-                    LEFT JOIN Items i ON t.ItemID = i.ItemID
-                    LEFT JOIN Units u ON t.UnitID = u.UnitID
+                    FROM transactions t
+                    LEFT JOIN places p ON t.PlaceID = p.PlaceID
+                    LEFT JOIN accounts a ON t.AccountID = a.AccountID
+                    LEFT JOIN transactiontypes tt ON t.TypeID = tt.TypeID
+                    LEFT JOIN provinces pr ON t.ProvinceID = pr.ProvinceID
+                    LEFT JOIN categories c ON t.CategoryID = c.CategoryID
+                    LEFT JOIN items i ON t.ItemID = i.ItemID
+                    LEFT JOIN units u ON t.UnitID = u.UnitID
                     WHERE t.IDFinancialTransaction = ?
                     LIMIT 1
                 ");

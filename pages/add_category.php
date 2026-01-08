@@ -5,7 +5,7 @@ $categoryName = trim($_POST['category_name'] ?? '');
 $response = ['success' => false];
 
 if($categoryName){
-    $stmt = $pdo->prepare("INSERT INTO Categories (CategoryName) VALUES (?)");
+    $stmt = $pdo->prepare("INSERT INTO categories (CategoryName) VALUES (?)");
     if($stmt->execute([$categoryName])){
         $response['success'] = true;
         $response['id'] = $pdo->lastInsertId();

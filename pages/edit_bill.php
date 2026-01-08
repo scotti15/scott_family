@@ -6,15 +6,15 @@ $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id <= 0) die("Invalid bill ID");
 
 // Fetch existing bill
-$stmt = $pdo->prepare("SELECT * FROM CurrentBill WHERE IDBill = ?");
+$stmt = $pdo->prepare("SELECT * FROM currentBill WHERE IDBill = ?");
 $stmt->execute([$id]);
 $bill = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$bill) die("Bill not found");
 
 // Fetch dropdown options
-$categories = $pdo->query("SELECT CategoryID, CategoryName FROM Categories ORDER BY CategoryName")->fetchAll(PDO::FETCH_ASSOC);
-$items = $pdo->query("SELECT ItemID, ItemName FROM Items ORDER BY ItemName")->fetchAll(PDO::FETCH_ASSOC);
-$units = $pdo->query("SELECT UnitID, UnitName FROM Units ORDER BY UnitName")->fetchAll(PDO::FETCH_ASSOC);
+$categories = $pdo->query("SELECT CategoryID, CategoryName FROM categories ORDER BY CategoryName")->fetchAll(PDO::FETCH_ASSOC);
+$items = $pdo->query("SELECT ItemID, ItemName FROM items ORDER BY ItemName")->fetchAll(PDO::FETCH_ASSOC);
+$units = $pdo->query("SELECT UnitID, UnitName FROM units ORDER BY UnitName")->fetchAll(PDO::FETCH_ASSOC);
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

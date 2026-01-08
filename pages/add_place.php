@@ -5,7 +5,7 @@ $placeName = trim($_POST['place_name'] ?? '');
 $response = ['success' => false];
 
 if($placeName){
-    $stmt = $pdo->prepare("INSERT INTO Places (PlaceName) VALUES (?)");
+    $stmt = $pdo->prepare("INSERT INTO places (PlaceName) VALUES (?)");
     if($stmt->execute([$placeName])){
         $response['success'] = true;
         $response['id'] = $pdo->lastInsertId();
