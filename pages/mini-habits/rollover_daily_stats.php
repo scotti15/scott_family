@@ -6,7 +6,8 @@ if (session_status() == PHP_SESSION_NONE) session_start();
 try {
     $pdo->beginTransaction();
 
-    $today = new DateTime();              // today
+    $today = new DateTime(date('Y-m-d')); // today at 00:00
+
     $yesterday = (clone $today)->modify('-1 day');
 
     // 1) Fetch all habits
@@ -66,35 +67,39 @@ try {
             $nextDay->modify('+1 day');
         }
 
-        // 2C) Now handle the real rollover from yesterday
-        if ($isActive && $modifiedDate < $today) {
+// 2C) Log the final real day (only if it's before today)
+if ($isActive && $modifiedDate < $today) {
 
-            // insert row for DATE(modified) if missing
-            $realDateStr = $modifiedDate->format('Y-m-d');
+    $realDateStr = $modifiedDate->format('Y-m-d');
 
-            $ins2 = $pdo->prepare("
-                INSERT IGNORE INTO mini_habit_log (habit_id, user_id, completed_date, completed, target)
-                VALUES (?, ?, ?, ?, ?)
-            ");
-            $ins2->execute([
-                $habitId, 
-                $userId, 
-                $realDateStr,
-                $completed,
-                $target
-            ]);
+    // Only insert if it doesn't already exist
+    $ins2 = $pdo->prepare("
+        INSERT IGNORE INTO mini_habit_log
+        (habit_id, user_id, completed_date, completed, target)
+        VALUES (?, ?, ?, ?, ?)
+    ");
+    $ins2->execute([
+        $habitId,
+        $userId,
+        $realDateStr,
+        $completed,
+        $target
+    ]);
 
-            if ($ins2->rowCount()) $inserted++;
+    if ($ins2->rowCount()) {
+        $inserted++;
+    }
 
-            // reset the habit to 0
-            $upd = $pdo->prepare("
-                UPDATE mini_habits
-                SET completed = 0
-                WHERE habit_id = ?
-            ");
-            $upd->execute([$habitId]);
-            $reset++;
-        }
+    // Reset ONLY after logging
+    $upd = $pdo->prepare("
+        UPDATE mini_habits
+        SET completed = 0
+        WHERE habit_id = ?
+    ");
+    $upd->execute([$habitId]);
+    $reset++;
+}
+
     }
 
     $pdo->commit();

@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return res.json();
   };
 
+  
   const populateAccountsWithExclusion = (select, accounts, excludeId = null) => {
     const currentValue = select.value; // preserve current selection
     select.innerHTML = `<option value="">Select account</option>`;
@@ -140,4 +141,10 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Server error processing transfer.");
     }
   });
+
+
+
+
+//INSERT NEW CODE HERE
+
 });

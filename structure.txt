@@ -1,0 +1,285 @@
+Folder PATH listing
+Volume serial number is 42C2-8B58
+C:.
+³   file_tree.txt
+³   folder_tree.txt
+³   index.php
+³   structure.txt
+³   style.css
+³   
+ÃÄÄÄauth
+³       check_login.php
+³       forgot_password.php
+³       git.ignore
+³       login.php
+³       logout.php
+³       reset_password.php
+³       signup.php
+³       
+ÃÄÄÄconfig
+³       db.php
+³       
+ÃÄÄÄincludes
+³       footer.php
+³       header.php
+³       inventory_navbar.php
+³       navbar.php
+³       
+ÀÄÄÄpages
+    ³   about.php
+    ³   add_account.php
+    ³   add_category.php
+    ³   add_inventory.php
+    ³   add_item.php
+    ³   add_place.php
+    ³   add_unit.php
+    ³   admin.php
+    ³   admin_delete.php
+    ³   admin_fetch.php
+    ³   admin_save.php
+    ³   ajax_transactions.php
+    ³   contact.php
+    ³   delete_bill.php
+    ³   delete_transaction.php
+    ³   edit_bill.php
+    ³   edit_transaction.php
+    ³   expenses_summary.php
+    ³   finalize_bill.php
+    ³   funngames.php
+    ³   get_accounts.php
+    ³   get_account_balances.php
+    ³   get_dropdowns.php
+    ³   get_expenses.php
+    ³   get_expense_details.php
+    ³   get_tax_rate.php
+    ³   get_transaction.php
+    ³   get_transactions.php
+    ³   index.php
+    ³   transactions.js
+    ³   transactions.php
+    ³   transfer_funds.php
+    ³   update_transaction.php
+    ³   
+    ÃÄÄÄflashcards
+    ³   ³   get_flashcards.php
+    ³   ³   get_history.php
+    ³   ³   get_user_lists.php
+    ³   ³   get_words.php
+    ³   ³   index.php
+    ³   ³   save_history.php
+    ³   ³   script.js
+    ³   ³   styles.css
+    ³   ³   upload_flashcards.php
+    ³   ³   
+    ³   ÀÄÄÄsounds
+    ³           card-flip.wav
+    ³           
+    ÃÄÄÄflashcards_v1
+    ³       flashcards.css
+    ³       flashcards.js
+    ³       flashcards.php
+    ³       flashcards_v1.php
+    ³       
+    ÃÄÄÄgeo-quiz
+    ³   ³   index.html
+    ³   ³   
+    ³   ÃÄÄÄcss
+    ³   ³       style.css
+    ³   ³       
+    ³   ÃÄÄÄjs
+    ³   ³       game.js
+    ³   ³       regions.js
+    ³   ³       svg-pan-zoom.js
+    ³   ³       svg-pan-zoom.min.js
+    ³   ³       ui.js
+    ³   ³       
+    ³   ÀÄÄÄmaps
+    ³           africa.svg
+    ³           barbados.svg
+    ³           canada.svg
+    ³           europe.svg
+    ³           south_america.svg
+    ³           us.svg
+    ³           
+    ÃÄÄÄgift_registry
+    ³       add_gift.php
+    ³       browse_wishlist.php
+    ³       claim_gift.php
+    ³       claim_gift_ajax.php
+    ³       delete_gift.php
+    ³       delete_gift_ajax.php
+    ³       edit_gift.php
+    ³       edit_gift_ajax.php
+    ³       index.php
+    ³       my_wishlist.php
+    ³       unclaim_gift_ajax.php
+    ³       
+    ÃÄÄÄimages
+    ³   ³   canadian_penny.jpg
+    ³   ³   
+    ³   ÀÄÄÄlogos
+    ³           belair_insurance.png
+    ³           bell_canada.png
+    ³           Bureau_en_Gros.png
+    ³           canadian_tire.png
+    ³           chocolats_favoris.png
+    ³           co-op_taxi.png
+    ³           cordonnerie_tony_&_tony.png
+    ³           cryopak.png
+    ³           desjardins_sec_fin.png
+    ³           dollarama.png
+    ³           familiprix.png
+    ³           hydro_qu‚bec.png
+    ³           iga.png
+    ³           manulife_insurance.png
+    ³           maxi.png
+    ³           metro.png
+    ³           microbytes.png
+    ³           M_+_M_Meat_Shops.png
+    ³           pharmaprix.png
+    ³           provigo.png
+    ³           super_c.png
+    ³           tim_horton's.png
+    ³           uniprix.png
+    ³           Via_Rail.png
+    ³           walmart.png
+    ³           wendy's.png
+    ³           
+    ÃÄÄÄinventory-system
+    ³   ÃÄÄÄadmin
+    ³   ³       register.php
+    ³   ³       
+    ³   ÃÄÄÄconfig
+    ³   ³       db.php
+    ³   ³       
+    ³   ÃÄÄÄcss
+    ³   ³       style.css
+    ³   ³       
+    ³   ÃÄÄÄincludes
+    ³   ³       auth.php
+    ³   ³       auth_org.php
+    ³   ³       footer.php
+    ³   ³       header.php
+    ³   ³       
+    ³   ÀÄÄÄpublic
+    ³           add_category.php
+    ³           add_inventory.php
+    ³           add_inventory2.php
+    ³           add_item.php
+    ³           add_item2.php
+    ³           add_item_org.php
+    ³           add_location.php
+    ³           add_room.php
+    ³           admin_dashboard.php
+    ³           ajax_add_category.php
+    ³           ajax_category.php
+    ³           ajax_inventory.php
+    ³           ajax_inventory2.php
+    ³           ajax_item.php
+    ³           ajax_item2.php
+    ³           ajax_item_org.php
+    ³           ajax_location.php
+    ³           ajax_room.php
+    ³           delete_category.php
+    ³           delete_inventory.php
+    ³           delete_item.php
+    ³           delete_location.php
+    ³           delete_room.php
+    ³           edit_inventory.php
+    ³           edit_item.php
+    ³           fetch_categories.php
+    ³           fetch_dropdown.php
+    ³           fetch_inventory.php
+    ³           fetch_items.php
+    ³           fetch_locations.php
+    ³           fetch_rooms.php
+    ³           get_inventory.php
+    ³           insert_category.php
+    ³           insert_inventory.php
+    ³           insert_item.php
+    ³           insert_location.php
+    ³           insert_room.php
+    ³           login.php
+    ³           logout.php
+    ³           temp.php
+    ³           update_category.php
+    ³           update_inventory.php
+    ³           update_item.php
+    ³           update_location.php
+    ³           update_room.php
+    ³           view_items.php
+    ³           
+    ÃÄÄÄmenu_builder
+    ³   ³   get_foods.php
+    ³   ³   get_users.php
+    ³   ³   index.php
+    ³   ³   load_meals.php
+    ³   ³   save_meal.php
+    ³   ³   
+    ³   ÀÄÄÄjs
+    ³           menu_builder.js
+    ³           
+    ÃÄÄÄmini-habits
+    ³   ³   .prettierrc
+    ³   ³   index.php
+    ³   ³   log.php
+    ³   ³   mini_habits.js
+    ³   ³   mini_habits_log.js
+    ³   ³   rollover_daily_stats.php
+    ³   ³   
+    ³   ÃÄÄÄajax
+    ³   ³       add_habit.php
+    ³   ³       deactivate_habit.php
+    ³   ³       delete_habit.php
+    ³   ³       edit_habit.php
+    ³   ³       get_deactivated.php
+    ³   ³       get_habits.php
+    ³   ³       get_habit_log.php
+    ³   ³       mark_done.php
+    ³   ³       reactivate_habit.php
+    ³   ³       undo_done.php
+    ³   ³       
+    ³   ÀÄÄÄcron
+    ³           log_daily_habits.php
+    ³           
+    ÃÄÄÄmusicography
+    ³       index.php
+    ³       music.css
+    ³       music.js
+    ³       
+    ÃÄÄÄshopping_list
+    ³       add_brand.php
+    ³       add_item.php
+    ³       add_place.php
+    ³       add_to_cart.php
+    ³       add_unit.php
+    ³       delete_shopping_list.php
+    ³       get_brands.php
+    ³       get_items.php
+    ³       get_places.php
+    ³       get_price_history.php
+    ³       get_shopping_list.php
+    ³       get_shopping_list_item.php
+    ³       get_units.php
+    ³       shopping_list.css
+    ³       shopping_list.js
+    ³       shopping_list.php
+    ³       update_shopping_list_item.php
+    ³       
+    ÀÄÄÄyahtzee
+            list_sessions.php
+            load_session.php
+            load_yahtzee.php
+            new_yahtzee_session.php
+            save_yahtzee.php
+            yahtzee-bg.jpg
+            yahtzee.css
+            yahtzee.js
+            yahtzee_dd.css
+            yahtzee_dd.js
+            yahtzee_dd.php
+            yahtzee_scorecard.html
+            yahtzee_scorecard.php
+            yahtzee_scorecard_dd.php
+            yahtzee_scorecard_dd1.php
+            

@@ -23,22 +23,37 @@ $stmt = $pdo->prepare("
 
 try {
     foreach ($data as $line) {
+
+        $typeId = (int)($line['type'] ?? 0);
+        $price  = (float)($line['price'] ?? 0);
+        $tax    = (float)($line['tax'] ?? 0);
+    
+        // Replace DB triggers
+        if ($typeId === 1) {
+            $price = -abs($price);
+            $tax   = -abs($tax);
+        } else {
+            $price = abs($price);
+            $tax   = abs($tax);
+        }
+    
         $stmt->execute([
             ':user'     => $line['user'] ?? null,
             ':date'     => $line['date'] ?? null,
             ':place'    => $line['place'] ?? null,
             ':account'  => $line['account'] ?? null,
-            ':type'     => $line['type'] ?? null,
+            ':type'     => $typeId,
             ':province' => $line['province'] ?? null,
             ':category' => $line['detailCategory'] ?? null,
             ':item'     => $line['item'] ?? null,
-            ':tax'      => $line['tax'] ?? 0,
+            ':tax'      => $tax,
             ':quantity' => $line['quantity'] ?? 0,
-            ':price'    => $line['price'] ?? 0,
+            ':price'    => $price,
             ':unit'     => $line['unit'] ?? null,
             ':comment'  => $line['comment'] ?? ''
         ]);
     }
+    
     echo json_encode(['success' => true, 'message' => 'Bill saved successfully!']);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);

@@ -1,0 +1,33 @@
+.heatmap {
+    overflow-x: auto;
+}
+
+.heatmap-grid {
+    display: grid;
+    gap: 4px;
+    font-size: 12px;
+}
+
+.heatmap-header {
+    font-weight: bold;
+    text-align: center;
+}
+
+.heatmap-habit {
+    white-space: nowrap;
+    font-weight: bold;
+}
+
+.heatmap-cell {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    background: #eee;
+}
+
+/* intensity levels */
+.hm-0   { background: #f0f0f0; }
+.hm-25  { background: #c6e48b; }
+.hm-50  { background: #7bc96f; }
+.hm-75  { background: #239a3b; }
+.hm-100 { background: #196127; }
