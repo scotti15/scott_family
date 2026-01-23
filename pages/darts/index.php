@@ -2,27 +2,27 @@
 // ---------------------------------
 // Standard includes
 // ---------------------------------
-require_once '../../config/db.php';
+require_once "../../config/db.php";
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-include '../../includes/header.php';
-include '../../includes/navbar.php';
+include "../../includes/header.php";
+include "../../includes/navbar.php";
 
 // ---------------------------------
 // User info
 // ---------------------------------
-$user_id = $_SESSION['user_id'] ?? 0;
-$role    = $_SESSION['role'] ?? 'user';
-$isAdmin = ($role === 'admin');
+$user_id = $_SESSION["user_id"] ?? 0;
+$role = $_SESSION["role"] ?? "user";
+$isAdmin = $role === "admin";
 
 // (Optional) Basic access guard
 if (!$user_id) {
     echo "<p>Please log in to use the darts tracker.</p>";
-    include '../../includes/footer.php';
-    exit;
+    include "../../includes/footer.php";
+    exit();
 }
 ?>
 
@@ -42,17 +42,17 @@ if (!$user_id) {
             <!-- Future dartboard / visuals go here -->
 
             <svg
-  id="dartboard"
-  viewBox="-200 -200 400 400"
-  width="400"
-  height="400"
-  style="cursor: crosshair;"
->
-  <!-- Constants -->
-  <!-- Outer radius: 170 units -->
-  <!-- Double ring: 162–170 -->
-  <!-- Triple ring: 99–107 -->
-  <!-- Bull: outer 15.9, inner 6.35 -->
+            id="dartboard"
+            viewBox="-200 -200 400 400"
+            width="400"
+            height="400"
+            style="cursor: crosshair;"
+            >
+          <!-- Constants -->
+          <!-- Outer radius: 170 units -->
+          <!-- Double ring: 162–170 -->
+          <!-- Triple ring: 99–107 -->
+          <!-- Bull: outer 15.9, inner 6.35 -->
 
   <!-- Base wedge definition -->
   <defs>
@@ -168,7 +168,7 @@ if (!$user_id) {
   <text x="-144" y="-105" transform="rotate(306 -144 -105)">9</text>
   <text x="-105" y="-144" transform="rotate(324 -105 -144)">12</text>
   <text x="-55" y="-171" transform="rotate(342 -55 -171)">5</text>
-</g>>
+</g>
 
 
 <!-- Outer Bull (25) -->
@@ -186,27 +186,7 @@ if (!$user_id) {
   data-value="25"
   data-multiplier="2"
 />
-
-<script>
-const board = document.getElementById('dartboard');
-const marker = document.getElementById('hit-marker');
-
-board.addEventListener('click', (e) => {
-    const rect = board.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 400 - 200;
-    const y = ((e.clientY - rect.top) / rect.height) * 400 - 200;
-
-    marker.setAttribute('cx', x);
-    marker.setAttribute('cy', y);
-    marker.setAttribute('visibility', 'visible');
-
-    const distance = Math.sqrt(x*x + y*y);
-    let angle = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360; // 0° at right horizontal
-    console.log({x: x.toFixed(1), y: y.toFixed(1), distance: distance.toFixed(1), angle: angle.toFixed(1)});
-});
-</script>
-
-
+</svg>
         </div>
 
         <div class="darts-sidebar">
@@ -257,16 +237,21 @@ board.addEventListener('click', (e) => {
 
             <button id="confirmTurn">Confirm</button>
 
-                <div class="target">
-                    Suggested target:
-                    <strong id="suggested-target">T20</strong>
-                </div>
+            <div class="target">
+              Target:
+              <strong id="target-text">T20</strong>
+            </div>
 
-                <div class="controls">
-                    <button id="btn-new-game">New Game</button>
-                    <button id="undo-btn">Undo Dart</button>
-                    <button id="btn-loss">End Game (Loss)</button>
-                </div>
+
+                <div class="dartboardcontrols">
+                  <button id="btn-new-game">New Game</button>
+                  <button id="undo-btn">Undo Dart</button>
+                  <button id="btn-ricochet">Ricochet</button>
+                  <button id="btn-loss">End Game (Loss)</button>
+                  <button id="btn-set-target">Set Target</button>
+
+              </div>
+
             </div>
         </div>
 
@@ -275,4 +260,6 @@ board.addEventListener('click', (e) => {
 
 <script src="darts.js"></script>
 
-<?php include '../../includes/footer.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<?php include "../../includes/footer.php"; ?>

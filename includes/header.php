@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="/scott_family/style.css">
 <head>
     <meta charset="UTF-8">
     <title>Scott Family</title>
