@@ -54,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("gameStatsModal");
     modal.style.display = "none";
   });
+  
 
   const gameStatsBtn = document.getElementById("btn-show-stats");
 
@@ -172,26 +173,28 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // 3️⃣ Ricochet mode
+    // 3️⃣ Ricochet mode (marker + flags only)
+    let isRicochet = false;
+
     if (ricochetMode) {
-      placeRicochetMarker(cursor.x, cursor.y);
+      placeMarker(cursor.x, cursor.y, turnNumber);
       score = 0;
       segment = "R";
+      isRicochet = true;
+
       ricochetMode = false;
       ricochetBtn.classList.remove("active");
-      // 4️⃣ Record dart
-      darts.push({
-        dart: dartIndex + 1,
-        x: cursor.x,
-        y: cursor.y,
-        score,
-        segment,
-      });
     } else {
-      placeMarker(cursor.x, cursor.y);
+      placeMarker(cursor.x, cursor.y, turnNumber);
     }
 
-    dartCells[dartIndex].textContent = score;
+    if (segment === "R") {
+      dartCells[dartIndex].textContent = "R";
+      dartCells[dartIndex].classList.add("ricochet");
+    } else {
+      dartCells[dartIndex].textContent = score;
+    }
+
     turnTotal += score;
     totalCell.textContent = turnTotal;
 
@@ -205,6 +208,43 @@ document.addEventListener("DOMContentLoaded", () => {
       value = Number(el.dataset.value);
       multiplier = Number(el.dataset.multiplier) || 1;
     }
+// ----------------------
+// Store dart ALWAYS (normal OR ricochet)
+// ----------------------
+const dartData = {
+  dart: dartIndex + 1,
+
+  value: isRicochet ? 0 : value,
+  multiplier: isRicochet ? 0 : multiplier,
+  ring: isRicochet
+    ? "R"
+    : multiplier === 3
+    ? "T"
+    : multiplier === 2
+    ? "D"
+    : "S",
+
+  score,
+  segment: isRicochet ? "R" : `${multiplier}x${value}`,
+
+  aimedRing: currentTarget
+    ? currentTarget.multiplier === 3
+      ? "T"
+      : currentTarget.multiplier === 2
+      ? "D"
+      : "S"
+    : null,
+
+  aimedValue: currentTarget?.score ?? null,
+
+  hitTarget: false, // may be updated below
+  throw_type: isRicochet ? "ricochet" : "normal",
+  classes: isRicochet ? ["ricochet"] : [],
+  x: cursor.x,
+  y: cursor.y,
+};
+
+darts.push(dartData);
 
     // --------------------
     // Step 1: Hit target check
@@ -228,33 +268,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // ----------------------
       // Store the dart for live table and history later
       // ----------------------
-      darts.push({
-        dart: dartIndex + 1,
-
-        // HIT info
-        value,
-        multiplier,
-        ring: multiplier === 3 ? "T" : multiplier === 2 ? "D" : "S",
-        score,
-        segment: `${multiplier}x${value}`,
-
-        // AIMED info (safe)
-        aimedRing: currentTarget
-          ? currentTarget.multiplier === 3
-            ? "T"
-            : currentTarget.multiplier === 2
-            ? "D"
-            : "S"
-          : null,
-
-        aimedValue: currentTarget?.score ?? null,
-
-        hitTarget,
-
-        classes: dartClasses,
-        x: cursor.x,
-        y: cursor.y,
-      });
+      dartData.hitTarget = hitTarget;
+      dartData.classes = dartClasses;
+      
 
       // ----------------------
       // Apply classes to live table
@@ -374,14 +390,28 @@ document.addEventListener("DOMContentLoaded", () => {
   // ================================
   // MARKER
   // ================================
-  function placeMarker(x, y) {
-    saveTurnToDb;
+
+  function placeMarker(x, y, turnId) {
+    let marker;
+  
     if (ricochetMode) {
-      placeRicochetMarker(x, y, turnNumber);
+      marker = createRicochetMarker(x, y);
     } else {
-      placeNormalMarker(x, y, turnNumber);
+      marker = createNormalMarker(x, y);
     }
+  
+    svg.appendChild(marker);
+  
+    markers.push(marker);
+  
+    if (!markersByTurn[turnNumber]) {
+      markersByTurn[turnNumber] = [];
+    }
+    markersByTurn[turnNumber].push(marker);
   }
+  
+
+  
   // ================================
   // CONFIRM TURN
   // ================================
@@ -496,9 +526,22 @@ document.addEventListener("DOMContentLoaded", () => {
     turnNumber++;
 
     console.log("markersByTurn:", markersByTurn);
-
   });
 
+  // confirmBtn.addEventListener("click", () => {
+  //   console.log("CONFIRM button clicked")
+  //   // Step 1: Determine the current turn number
+  //   // const turnNumber = currentTurnNumber; // whatever your global variable is
+
+  //   // Step 2: Transfer live turn → history table
+  //   transferLiveTurnToHistory(turnNumber);
+
+  //   // Step 3: Reset live turn for next throw
+  //   resetTurn();
+
+  //   // Step 4 (optional for now): increment turn counter
+  //   turnNumber++;
+  // });
   // REPLACED BY BELOW
   // function clearMarkers() {
   //   document.querySelectorAll(".dart-marker").forEach((m) => m.remove());
@@ -509,7 +552,6 @@ document.addEventListener("DOMContentLoaded", () => {
       m.style.display = "none";
     });
   }
-  
 
   function resetTurn() {
     dartIndex = 0;
@@ -524,33 +566,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("undo-btn").addEventListener("click", () => {
     if (darts.length === 0) return;
-
-    // 1️⃣ Remove last dart data
+  
     const lastDart = darts.pop();
-
-    // 2️⃣ Remove marker
+  
     const lastMarker = markers.pop();
     if (lastMarker) lastMarker.remove();
-
-    // 3️⃣ Restore remaining score
+  
+    markersByTurn[turnNumber]?.pop();
+  
     remainingScore += lastDart.score;
     document.getElementById("remaining-score").textContent = remainingScore;
-
-    // Calculate new target
-    const calculated = getTarget(remainingScore);
-    highlightTarget(calculated.score, calculated.multiplier);
-    prepareNextTarget();
-
-    // 4️⃣ Update scoreboard
+  
     dartIndex--;
-    dartCells[dartIndex].textContent = "";
-
+    if (dartIndex >= 0) dartCells[dartIndex].textContent = "";
+  
     turnTotal -= lastDart.score;
     totalCell.textContent = turnTotal;
-
-    // 5️⃣ Unlock board if needed
+  
     boardLocked = false;
   });
+  
+  
+  
 
   function addLiveTurnRow(darts, turnTotal, remainingScore, turnNumber) {
     const tbody = document.getElementById("scoreboard-body");
@@ -567,8 +604,8 @@ document.addEventListener("DOMContentLoaded", () => {
     checkbox.classList.add("turn-toggle");
     checkbox.dataset.turnId = turnNumber;
 
-//    checkbox.dataset.turnNumber = turnNumber;  REPLACED BY ABOVE
-    checkbox.checked = true; // optional default
+    //    checkbox.dataset.turnNumber = turnNumber;  REPLACED BY ABOVE
+    // checkbox.checked = true; // optional default
 
     tdCheck.appendChild(checkbox);
     tr.appendChild(tdCheck);
@@ -632,11 +669,12 @@ document.addEventListener("DOMContentLoaded", () => {
       el.classList.remove("target-suggest");
     });
   }
+
   function getTarget(remainingScore) {
     const preferredFinishes = [40, 32, 20, 16, 10, 8, 4, 2];
 
     // 1️⃣ High score → triple 20
-    if (remainingScore > 60) {
+    if (remainingScore > 61) {
       return { score: 20, multiplier: 3 };
     }
 
@@ -675,66 +713,68 @@ document.addEventListener("DOMContentLoaded", () => {
     el.textContent = label;
   }
 
-  function placeNormalMarker(x, y, turnId) {
-    const marker = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle"
-    );
+  // function placeNormalMarker(x, y, turnId) {
+  //   const marker = document.createElementNS(
+  //     "http://www.w3.org/2000/svg",
+  //     "circle"
+  //   );
 
-    marker.setAttribute("cx", x);
-    marker.setAttribute("cy", y);
-    marker.setAttribute("r", 2);
-    marker.setAttribute("fill", MARKER_COLOR);
-    marker.classList.add("dart-marker");
+  //   marker.setAttribute("cx", x);
+  //   marker.setAttribute("cy", y);
+  //   marker.setAttribute("r", 2);
+  //   marker.setAttribute("fill", MARKER_COLOR);
+  //   marker.classList.add("dart-marker");
 
-  // 🔒 CRITICAL: marker never blocks clicks
-  marker.style.pointerEvents = "none";
+  //   // 🔒 CRITICAL: marker never blocks clicks
+  //   marker.style.pointerEvents = "none";
 
-    // start hidden by default (important)
-    // marker.style.display = "none";
+  //   // start hidden by default (important)
+  //   // marker.style.display = "none";
 
-    svg.appendChild(marker);
+  //   svg.appendChild(marker);
 
-    // register marker by turn
-    if (!markersByTurn[turnId]) {
-      markersByTurn[turnId] = [];
-    }
-    markersByTurn[turnId].push(marker);
+  //   // register marker by turn
+  //   if (!markersByTurn[turnId]) {
+  //     markersByTurn[turnId] = [];
+  //   }
+  //   markersByTurn[turnId].push(marker);
 
-    console.log(turnId, markersByTurn);
+  //   console.log(turnId, markersByTurn);
+  // }
 
-  }
-
-  function placeRicochetMarker(x, y) {
-    const size = 4;
-
-    const line1 = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "line"
-    );
-    const line2 = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "line"
-    );
-
-    line1.setAttribute("x1", x - size);
-    line1.setAttribute("y1", y - size);
-    line1.setAttribute("x2", x + size);
-    line1.setAttribute("y2", y + size);
-
-    line2.setAttribute("x1", x - size);
-    line2.setAttribute("y1", y + size);
-    line2.setAttribute("x2", x + size);
-    line2.setAttribute("y2", y - size);
-
-    [line1, line2].forEach((line) => {
-      line.setAttribute("stroke", MARKER_COLOR);
-      line.setAttribute("stroke-width", "1.5");
-      line.classList.add("dart-marker", "ricochet-marker");
-      svg.appendChild(line);
-      markers.push(line);
-    });
-  }
+  // function placeRicochetMarker(x, y, turnNumber) {
+  //   const size = 6; // radius of star
+  
+  //   // calculate points for 5-point star
+  //   const points = [];
+  //   const outerRadius = size;
+  //   const innerRadius = size / 2.5;
+  //   for (let i = 0; i < 5; i++) {
+  //     const outerX = x + outerRadius * Math.cos((Math.PI / 2 + (i * 2 * Math.PI) / 5));
+  //     const outerY = y - outerRadius * Math.sin((Math.PI / 2 + (i * 2 * Math.PI) / 5));
+  //     points.push(`${outerX},${outerY}`);
+  
+  //     const innerX = x + innerRadius * Math.cos((Math.PI / 2 + ((i * 2 + 1) * Math.PI) / 5));
+  //     const innerY = y - innerRadius * Math.sin((Math.PI / 2 + ((i * 2 + 1) * Math.PI) / 5));
+  //     points.push(`${innerX},${innerY}`);
+  //   }
+  
+  //   const star = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+  //   star.setAttribute("points", points.join(" "));
+  //   star.setAttribute("fill", MARKER_COLOR);
+  //   star.classList.add("dart-marker", "ricochet-marker");
+  //   star.style.pointerEvents = "none";
+  
+  //   svg.appendChild(star);
+  
+  //   // push to markersByTurn using the SAME turnNumber as normal markers
+  //   if (!markersByTurn[turnNumber]) {
+  //     markersByTurn[turnNumber] = [];
+  //   }
+  //   markersByTurn[turnNumber].push(star);
+  // }
+  
+  
 
   function updateTargetText(target) {
     const el = document.getElementById("target-text");
@@ -1051,8 +1091,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const tr = document.createElement("tr");
 
     /* =========================
-       NEW: Checkbox column
-    ========================= */
+     NEW: Checkbox column
+  ========================= */
     const tdToggle = document.createElement("td");
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
@@ -1062,15 +1102,15 @@ document.addEventListener("DOMContentLoaded", () => {
     tr.appendChild(tdToggle);
 
     /* =========================
-       Turn #
-    ========================= */
+     Turn #
+  ========================= */
     const tdTurn = document.createElement("td");
     tdTurn.textContent = turn.turn_number;
     tr.appendChild(tdTurn);
 
     /* =========================
-       Dart 1–3
-    ========================= */
+     Dart 1–3
+  ========================= */
     let turnTotal = 0;
 
     for (let i = 0; i < 3; i++) {
@@ -1078,34 +1118,38 @@ document.addEventListener("DOMContentLoaded", () => {
       const dart = turn.darts?.[i];
 
       if (dart) {
-        const dartValue = dart.score * (dart.segment || 1);
-        td.textContent = dartValue;
-        turnTotal += dartValue;
+        // 🎯 Ricochet handling
+        if (dart.ring === "R" || dart.throw_type === "ricochet") {
+          td.textContent = "R";
+          td.classList.add("ricochet");
+        } else {
+          const dartValue = dart.score;
+          td.textContent = dartValue;
+          turnTotal += dartValue;
 
-        if (dart.hit_target) {
-          td.classList.add("hit-target");
+          if (dart.hit_target) {
+            td.classList.add("hit-target");
 
-          if (dart.ring === "T") td.classList.add("triple");
-          else if (dart.ring === "D") td.classList.add("double");
-          else td.classList.add("single");
+            if (dart.ring === "T") td.classList.add("triple");
+            else if (dart.ring === "D") td.classList.add("double");
+            else td.classList.add("single");
+          }
         }
-      } else {
-        td.textContent = "-";
       }
 
       tr.appendChild(td);
     }
 
     /* =========================
-       Turn total
-    ========================= */
+     Turn total
+  ========================= */
     const tdTotal = document.createElement("td");
     tdTotal.textContent = turnTotal;
     tr.appendChild(tdTotal);
 
     /* =========================
-       Remaining score
-    ========================= */
+     Remaining score
+  ========================= */
     const tdScore = document.createElement("td");
     tdScore.textContent = turn.end_score;
     tr.appendChild(tdScore);
@@ -1155,8 +1199,6 @@ document.addEventListener("DOMContentLoaded", () => {
         currentTurns = data.turns || [];
         console.log(currentTurns[0].darts);
         console.log("Turns data from server:", data.turns);
-
-
 
         // Rebuild history
         currentTurns.forEach((turn) => addHistoryRow(turn));
@@ -1309,7 +1351,12 @@ document.addEventListener("DOMContentLoaded", () => {
       /* =========================
        Flatten turns → darts
     ========================= */
-      const darts = data.turns.flatMap((t) => t.darts || []);
+      const darts = data.turns.flatMap((t) =>
+        (t.darts || []).map((d) => ({
+          ...d,
+          turn_end_score: t.end_score,
+        }))
+      );
 
       /* =========================
        Counters
@@ -1326,6 +1373,9 @@ document.addEventListener("DOMContentLoaded", () => {
       let totalDarts = 0;
       let gameFinished = false;
 
+      let throwsToFinish = 0;
+      let inFinishRange = false;
+
       /* =========================
        Iterate darts
     ========================= */
@@ -1339,22 +1389,42 @@ document.addEventListener("DOMContentLoaded", () => {
         const hitRing = d.ring;
         const hitScore = d.hit_score;
 
+        /* ----- Enter finish range (<161) ----- */
+        if (!inFinishRange && d.turn_end_score < 161) {
+          inFinishRange = true;
+          throwsToFinish = 1; // count THIS dart
+        } else if (inFinishRange) {
+          throwsToFinish++;
+        }
+
         if (aimedRing === "D") {
           console.log("Double counted:", d);
         }
 
-        /* ----- Aimed counts ----- */
-        if (aimedRing === "T") aimedT++;
-        else if (aimedRing === "D") aimedD++;
-        else if (aimedRing === "S") aimedS++;
-
-        /* ----- Hit counts (only if aimed target hit) ----- */
-        if (d.hit_target === 1) {
-          if (aimedRing === "T") hitT++;
-          else if (aimedRing === "D") hitD++;
-          else if (aimedRing === "S") hitS++;
+        /* ----- Aimed vs Hit (exact match only) ----- */
+        if (aimedRing === "S") {
+          aimedS++;
+          if (d.hit_target === 1) hitS++;
         }
 
+        if (aimedRing === "D") {
+          aimedD++;
+          if (d.hit_target === 1) hitD++;
+        }
+
+        if (aimedRing === "T") {
+          aimedT++;
+          if (d.hit_target === 1) hitT++;
+        }
+        if (d.hit_target === 1) {
+          console.log(
+            "HIT:",
+            "aimed:",
+            d.aimed_ring + d.aimed_value,
+            "hit:",
+            d.ring + d.segment
+          );
+        }
         /* ----- S20 when T20 aimed ----- */
         if (aimedRing === "T" && aimedValue === 20 && d.hit_target != 1) {
           t20Aimed++;
@@ -1396,7 +1466,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       document.getElementById("statTotalDarts").textContent = totalDarts;
 
-      document.getElementById("statThrowsToFinish").textContent = "—"; // placeholder for now
+      document.getElementById("statThrowsToFinish").textContent =
+        throwsToFinish > 0 ? throwsToFinish : "—";
     } catch (err) {
       console.error("Error loading game stats", err);
     }
@@ -1570,27 +1641,103 @@ document.addEventListener("DOMContentLoaded", () => {
   // NEW VERSION
   // function toggleTurnMarkers(turnId, show) {
   //   if (!markersByTurn[turnId]) return;
-  
+
   //   markersByTurn[turnId].forEach((marker) => {
   //     marker.style.display = show ? "block" : "none";
   //   });
   // }
-  
+
   function rebuildMarkersFromThrows(turns) {
     turns.forEach((turn) => {
       const turnId = turn.turn_id;
-  
+
       turn.darts.forEach((dart) => {
         if (dart.x != null && dart.y != null) {
           placeNormalMarker(dart.x, dart.y, turnId); // <-- adds marker to markersByTurn
           // hide marker initially
-          const lastMarker = markersByTurn[turnId][markersByTurn[turnId].length - 1];
+          const lastMarker =
+            markersByTurn[turnId][markersByTurn[turnId].length - 1];
           lastMarker.style.display = "none";
         }
       });
     });
   }
+
+  /**
+   * Transfer the current live turn to the history table
+   * Copies all dart cells including formatting (classes) and values
+   */
+  function transferLiveTurnToHistory(turnNumber) {
+    const liveRow = document.getElementById(`live-turn-${turnNumber}`);
+    if (!liveRow) return;
+
+    const historyTbody = document.getElementById("scoreboard-body");
+    if (!historyTbody) return;
+
+    const tr = document.createElement("tr");
+
+    // 1️⃣ Checkbox column
+    const tdCheck = document.createElement("td");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.classList.add("turn-toggle");
+    checkbox.dataset.turnId = turnNumber;
+    checkbox.checked = true;
+    tdCheck.appendChild(checkbox);
+    tr.appendChild(tdCheck);
+
+    // 2️⃣ Turn number
+    const tdTurn = document.createElement("td");
+    tdTurn.textContent = turnNumber;
+    tr.appendChild(tdTurn);
+
+    // 3️⃣ Dart cells: copy from live row
+    const liveDarts = liveRow.querySelectorAll(".dart-cell");
+    liveDarts.forEach((liveCell) => {
+      const td = document.createElement("td");
+      td.textContent = liveCell.textContent;
+
+      // Copy all classes (hit-target, single/double/triple, bust, etc.)
+      liveCell.classList.forEach((cls) => td.classList.add(cls));
+
+      tr.appendChild(td);
+    });
+
+    // 4️⃣ Turn total
+    const tdTotal = document.createElement("td");
+    const totalCell = liveRow.querySelector(".turn-total");
+    tdTotal.textContent = totalCell ? totalCell.textContent : "";
+    tr.appendChild(tdTotal);
+
+    // 5️⃣ Remaining score
+    const tdRemaining = document.createElement("td");
+    const remainingCell = liveRow.querySelector(".remaining-score");
+    tdRemaining.textContent = remainingCell ? remainingCell.textContent : "";
+    tr.appendChild(tdRemaining);
+
+    // ✅ Append to history table
+    historyTbody.appendChild(tr);
+  }
+
+  function createNormalMarker(x, y) {
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", x);
+    circle.setAttribute("cy", y);
+    circle.setAttribute("r", 8);
+    circle.setAttribute("fill", "#8fce00");   // normal = blue
+    circle.classList.add("dart-marker");
+    return circle;
+  }
   
+  function createRicochetMarker(x, y) {
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", x);
+    circle.setAttribute("cy", y);
+    circle.setAttribute("r", 8);
+    circle.classList.add("dart-marker");
+    circle.setAttribute("fill", "#f08080");    // ricochet = red
+    return circle;
+  }
   
   
   

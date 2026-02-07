@@ -375,6 +375,41 @@
   background: rgba(255, 204, 0, 0.1);
 }
 
+/* =========================================
+   Dart markers
+   ========================================= */
+
+   .dart-marker {
+    r: 2;
+    /* fill: #66ccff; */
+    opacity: 0.8;
+    pointer-events: none;
+  }
+  
+/* Hit target overrides — live + history */
+
+.darts-page #scoreTable td.hit-target-s,
+.darts-page #scoreboard td.hit-target-s {
+  background-color: pink !important;
+  color: black !important;
+}
+
+.darts-page #scoreTable td.hit-target-d,
+.darts-page #scoreboard td.hit-target-d {
+  background-color: red !important;
+  color: yellow !important;
+  font-weight: bold !important;
+}
+
+.darts-page #scoreTable td.hit-target-t,
+.darts-page #scoreboard td.hit-target-t {
+  background-color: lightcoral !important;
+  color: black !important;
+  font-weight: bold !important;
+}
+
+
+
 
 
 /* ========================= */

@@ -27,6 +27,11 @@ if (!$user_id) {
 ?>
 
 <link rel="stylesheet" href="darts.css">
+<style>
+#scoreTable td.hit-target-s { background-color: pink; }
+#scoreTable td.hit-target-d { background-color: red; color: yellow; font-weight: bold; }
+#scoreTable td.hit-target-t { background-color: darkpink; }
+</style>
 
 <div class="container darts-page">
 

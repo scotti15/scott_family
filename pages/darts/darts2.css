@@ -1,0 +1,23 @@
+/* darts2.css */
+
+/* Live table hit-target styling */
+#scoreTable td.hit-target-s {
+    background-color: pink;
+  }
+  
+  #scoreTable td.hit-target-d {
+    background-color: red;
+    color: yellow;
+    font-weight: bold;
+  }
+  
+  #scoreTable td.hit-target-t {
+    background-color: #FF69B4; /* hot pink / dark pink */
+  }
+  
+  /* Optional: marker styles if needed */
+  .dart-marker {
+    fill: lightblue;
+    r: 6;
+  }
+  
