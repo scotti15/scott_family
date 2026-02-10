@@ -341,15 +341,35 @@ if (!$user_id) {
         </tbody>
       </table>
     </div>
-
     <div class="summary-section">
-      <h2>📊 Key Stats</h2>
-      <ul class="summary-stats">
-        <li><strong>S20 when T20 was target:</strong> <span id="statS20vsT20">0</span></li>
-        <li><strong>Darts to finish range (&lt;161):</strong> <span id="statThrowsToFinish">0</span></li>
-        <li><strong>Total darts thrown:</strong> <span id="statTotalDarts">0</span></li>
-      </ul>
-    </div>
+  <h2>📊 Key Stats</h2>
+  <ul class="summary-stats">
+    <li>
+      <strong>20s hit while targeting T20:</strong>
+      <span id="statS20vsT20">0 / 0</span>
+    </li>
+
+    <li>
+      <strong>Darts to finish range (&lt;161):</strong>
+      <span id="statThrowsToFinish">0</span>
+    </li>
+
+    <li>
+      <strong>Total darts thrown:</strong>
+      <span id="statTotalDarts">0</span>
+    </li>
+
+    <li>
+      <strong>3-Dart Average (overall):</strong>
+      <span id="stat3DAOverall">0.00</span>
+    </li>
+
+    <li>
+      <strong>3-Dart Average (before finish range):</strong>
+      <span id="stat3DAPreFinish">0.00</span>
+    </li>
+  </ul>
+</div>
 
     <div class="summary-actions">
       <button class="btn-secondary" onclick="replayGame()">Replay Game</button>
