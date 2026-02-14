@@ -35,8 +35,16 @@ if (!$user_id) {
 
 <div class="container darts-page">
 
-  <h1>Darts Scoring with stats</h1>
-  <p class="muted">Darts tracking and statistics (work in progress)</p>
+<header class="page-header">
+  <div class="header-left">
+    <h1>Darts Scoring with Stats</h1>
+    <p class="muted">Darts tracking and statistics (work in progress)</p>
+  </div>
+
+  <button id="infoBtn" class="info-button" title="About this site">
+    ⓘ
+  </button>
+</header>
 
   <!-- ===================== -->
   <!-- 3-COLUMN LAYOUT -->
@@ -76,6 +84,11 @@ if (!$user_id) {
       <div id="remaining-container">
           Score: <span id="remaining-score">501</span>
         </div>
+
+      <div class="target">
+        Target: <strong id="target-text">T20</strong>
+      </div>
+
         
       <div id="scoreboard-container">
         <table id="scoreboard">
@@ -96,11 +109,6 @@ if (!$user_id) {
         </table>
 
       </div>
-
-      <div class="target">
-        Target: <strong id="target-text">T20</strong>
-      </div>
-
       <div class="dartboardcontrols">
         <button id="btn-new-game">New Game</button>
         <button id="undo-btn">Undo Dart</button>
@@ -378,6 +386,56 @@ if (!$user_id) {
 
   </div>
 </div>
+
+<!-- Info / Help Modal -->
+<div id="infoModal" class="modal-overlay" style="display:none;">
+  <div class="modal info-modal">
+    <div class="modal-header">
+      <h2>ℹ️ How to Use This Board</h2>
+      <button class="modal-close" onclick="closeInfoModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <section>
+        <h3>🎯 Targets</h3>
+        <ul>
+          <li>Highlighted segment shows the current target</li>
+          <li>Manual target overrides automatic calculation</li>
+          <li>Targets are recorded per dart for stats</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>📍 Markers</h3>
+        <ul>
+          <li><span class="legend normal"></span> Normal throw</li>
+          <li><span class="legend ricochet"></span> Ricochet (R)</li>
+          <li><span class="legend bust"></span> Bust throw</li>
+          <li>Use turn checkboxes to replay markers</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>📊 Stats</h3>
+        <ul>
+          <li>Target accuracy compares aimed vs hit</li>
+          <li>Heat maps show actual impact points</li>
+          <li>Key stats are calculated per game</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>🏁 Scoring</h3>
+        <ul>
+          <li>Bust resets the turn score</li>
+          <li>Double required to finish</li>
+          <li>All darts count toward total darts thrown</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+
 <script src="darts.js"></script>
 
 

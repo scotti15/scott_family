@@ -178,9 +178,20 @@
   }
 }
 
-.bust-dart {
-  text-decoration: line-through;
-  opacity: 0.5;
+/* ========================= */
+/* BUST STYLE */
+/* ========================= */
+
+.darts-page .bust-dart {
+  background-color: #cfcfcf;
+  color: #000;
+  font-weight: bold;
+}
+
+.darts-page .bust-total {
+  background-color: #a9a9a9;
+  color: #000;
+  font-weight: bold;
 }
 
 /* ========================= */
@@ -270,6 +281,40 @@
     0 0 60px rgba(255, 204, 0, 0.15);
   animation: fadeInScale 0.35s ease-out;
 }
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-left h1 {
+  margin: 0;
+}
+
+.header-left .muted {
+  margin: 2px 0 0 0;
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.info-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.info-button:hover {
+  background: rgba(0,0,0,0.08);
+}
+
+
+
 
 @keyframes fadeInScale {
   from {
