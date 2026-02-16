@@ -73,63 +73,61 @@ try {
 
     $turnId = $pdo->lastInsertId();
 
-    /* -----------------------------
-       3️⃣ Insert dart throws
-    ----------------------------- */
-    if (!empty($darts)) {
-        $stmt = $pdo->prepare("
-            INSERT INTO dart_throws
-            (
-              turn_id,
-              throw_number,
-              hit_score,
-              ring,
-              segment,
-              x,
-              y,
-              hit_target,
-              is_implied,
+/* -----------------------------
+   3️⃣ Insert dart throws (updated for ricochet)
+----------------------------- */
+if (!empty($darts)) {
+    $stmt = $pdo->prepare("
+        INSERT INTO dart_throws
+        (
+          turn_id,
+          throw_number,
+          hit_score,
+          ring,
+          segment,
+          x,
+          y,
+          hit_target,
+          is_implied,
+          aimed_ring,
+          aimed_value,
+          throw_type
+        )
+        VALUES
+        (
+          :turn_id,
+          :throw_number,
+          :hit_score,
+          :ring,
+          :segment,
+          :x,
+          :y,
+          :hit_target,
+          :is_implied,
+          :aimed_ring,
+          :aimed_value,
+          :throw_type
+        )
+    ");
 
-              -- ✅ NEW
-              aimed_ring,
-              aimed_value
-            )
-            VALUES
-            (
-              :turn_id,
-              :throw_number,
-              :hit_score,
-              :ring,
-              :segment,
-              :x,
-              :y,
-              :hit_target,
-              :is_implied,
-
-              -- ✅ NEW
-              :aimed_ring,
-              :aimed_value
-            )
-        ");
-
-        foreach ($darts as $dart) {
-            $stmt->execute([
-                ':turn_id'      => $turnId,
-                ':throw_number' => (int)$dart['throw_number'],
-                ':hit_score'    => (int)$dart['hit_score'],
-                ':ring'         => $dart['ring'],
-                ':segment'      => $dart['segment'],
-                ':x'            => $dart['x'],
-                ':y'            => $dart['y'],
-                ':hit_target'   => !empty($dart['hit_target']) ? 1 : 0,
-                ':is_implied'   => !empty($dart['is_implied']) ? 1 : 0,
-
-                // ✅ NEW (pass through, no guessing)
-                ':aimed_ring'   => $dart['aimed_ring'] ?? null,
-                ':aimed_value'  => $dart['aimed_value'] ?? null
-            ]);
-        }
+    foreach ($darts as $dart) {
+        $stmt->execute([
+            ':turn_id'      => $turnId,
+            ':throw_number' => (int)$dart['throw_number'],
+            ':hit_score'    => (int)$dart['hit_score'],
+            ':ring'         => $dart['ring'],
+            ':segment'      => $dart['segment'],      // must be VARCHAR to handle "R"
+            ':x'            => $dart['x'],
+            ':y'            => $dart['y'],
+            ':hit_target'   => !empty($dart['hit_target']) ? 1 : 0,
+            ':is_implied'   => !empty($dart['is_implied']) ? 1 : 0,
+            ':aimed_ring'   => $dart['aimed_ring'] ?? null,
+            ':aimed_value'  => $dart['aimed_value'] ?? null,
+            ':throw_type'   => $dart['throw_type'] ?? 'normal'
+        ]);
     }
+}
+
 
     $pdo->commit();
 

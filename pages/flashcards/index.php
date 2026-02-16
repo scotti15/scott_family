@@ -95,6 +95,8 @@ if (isset($_GET['list_id']) && is_numeric($_GET['list_id'])) {
         <?php endforeach; ?>
     </select>
     <button id="loadListBtn">Load List</button>
+    <button id="reviewModeBtn">Review Mode</button>
+
 </div>
 <main class="game-area">
 
@@ -177,7 +179,7 @@ if (isset($_GET['list_id']) && is_numeric($_GET['list_id'])) {
 </script>
 
 <!-- Your main JS file -->
-<script src="flashcards.js"></script>
+<!-- <script src="flashcards.js"></script> -->
 
   <script src="script.js"></script>
 </body>

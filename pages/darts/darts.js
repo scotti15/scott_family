@@ -55,11 +55,20 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.style.display = "none";
   });
 
+  const closeInfoBtn = document.getElementById("closeInfoBtn");
+  const infoModal = document.getElementById("infoModal");
+
+  closeInfoBtn.addEventListener("click", function () {
+    infoModal.style.display = "none";
+  });
+
+
   document.getElementById("infoBtn").addEventListener("click", () => {
+    console.log("Info icon clicked");
     const modal = document.getElementById("infoModal");
     modal.style.display = "flex";
   });
-  
+
   const gameStatsBtn = document.getElementById("btn-show-stats");
 
   if (gameStatsBtn) {
@@ -133,179 +142,194 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("Dartboard elements missing from DOM");
     return;
   }
-// ================================
-// BOARD CLICK (DEBUG VERSION)
-// ================================
-svg.addEventListener("click", (e) => {
-  const pt = svg.createSVGPoint();
-  pt.x = e.clientX;
-  pt.y = e.clientY;
-  const cursor = pt.matrixTransform(svg.getScreenCTM().inverse());
+  // ================================
+  // BOARD CLICK (RICHOCHET SHOW SCORE)
+  // ================================
+  svg.addEventListener("click", (e) => {
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const cursor = pt.matrixTransform(svg.getScreenCTM().inverse());
 
-  const el = e.target;
+    const el = e.target;
 
-  // ============================
-  // 1️⃣ Manual Target Mode
-  // ============================
-  if (setTargetMode && el && el.classList.contains("scoring-segment")) {
-    const score = Number(el.dataset.value);
-    const multiplier = Number(el.dataset.multiplier) || 1;
+    // ============================
+    // 1️⃣ Manual Target Mode
+    // ============================
+    if (setTargetMode && el && el.classList.contains("scoring-segment")) {
+      const score = Number(el.dataset.value);
+      const multiplier = Number(el.dataset.multiplier) || 1;
 
-    currentTarget = { score, multiplier };
-    highlightTarget(score, multiplier);
-    updateTargetText(currentTarget);
+      currentTarget = { score, multiplier };
+      highlightTarget(score, multiplier);
+      updateTargetText(currentTarget);
 
-    setTargetMode = false;
-    setTargetBtn.classList.remove("active");
-    return;
-  }
-
-  // ============================
-  // 2️⃣ Normal Dart Throw Mode
-  // ============================
-  if (boardLocked || dartIndex >= 3) return;
-
-  let value = 0;
-  let multiplier = 1;
-  let score = 0;
-  let segment = "MISS";
-
-  if (
-    el &&
-    (el.tagName === "path" || el.tagName === "use" || el.tagName === "circle")
-  ) {
-    value = Number(el.dataset.value);
-    multiplier = Number(el.dataset.multiplier) || 1;
-    if (!isNaN(value) && !isNaN(multiplier)) {
-      score = value * multiplier;
-      segment = `${multiplier}x${value}`;
+      setTargetMode = false;
+      setTargetBtn.classList.remove("active");
+      return;
     }
-  }
 
-  // ============================
-  // 3️⃣ Ricochet Handling
-  // ============================
-  let isRicochet = false;
+    // ============================
+    // 2️⃣ Normal Dart Throw Mode
+    // ============================
+    if (boardLocked || dartIndex >= 3) return;
 
-  if (ricochetMode) {
-    placeMarker(cursor.x, cursor.y, turnNumber);
-    score = 0;
-    segment = "R";
-    isRicochet = true;
+    let value = 0;
+    let multiplier = 1;
+    let score = 0;
+    let segment = "MISS";
 
-    ricochetMode = false;
-    ricochetBtn.classList.remove("active");
-  } else {
-    placeMarker(cursor.x, cursor.y, turnNumber);
-  }
-
-  // ============================
-  // 4️⃣ Snapshot target IMMEDIATELY
-  // ============================
-  const aimedRing = currentTarget
-    ? currentTarget.multiplier === 3
-      ? "T"
-      : currentTarget.multiplier === 2
-      ? "D"
-      : "S"
-    : null;
-  const aimedValue = currentTarget?.score ?? null;
-
-  // ============================
-  // 5️⃣ Build Dart Object (IMMUTABLE TARGET)
-  // ============================
-  const dartData = {
-    dart: dartIndex + 1,
-    value: isRicochet ? 0 : value,
-    multiplier: isRicochet ? 0 : multiplier,
-    ring: isRicochet
-      ? "R"
-      : multiplier === 3
-      ? "T"
-      : multiplier === 2
-      ? "D"
-      : "S",
-    score,
-    segment: isRicochet ? "R" : `${multiplier}x${value}`,
-    aimed_ring: aimedRing,
-    aimed_value: aimedValue,
-    hitTarget: false,
-    throw_type: isRicochet ? "ricochet" : "normal",
-    classes: [],
-    x: cursor.x,
-    y: cursor.y,
-  };
-
-  darts.push(dartData);
-
-  // ============================
-  // 6️⃣ Live Table Update
-  // ============================
-  dartCells[dartIndex].textContent = segment === "R" ? "R" : score;
-  if (segment === "R") dartCells[dartIndex].classList.add("ricochet");
-
-  // ============================
-  // 7️⃣ Hit Target Evaluation
-  // ============================
-  if (aimedRing && score > 0) {
-    const expectedMultiplier =
-      aimedRing === "T" ? 3 : aimedRing === "D" ? 2 : 1;
-    const hitTarget = value === aimedValue && multiplier === expectedMultiplier;
-
-    if (hitTarget) {
-      dartData.hitTarget = true;
-      dartData.classes.push("hit-target");
-      if (aimedRing === "T") dartData.classes.push("triple");
-      else if (aimedRing === "D") dartData.classes.push("double");
-      else dartData.classes.push("single");
-
-      dartData.classes.forEach((cls) =>
-        dartCells[dartIndex].classList.add(cls)
-      );
+    if (
+      el &&
+      (el.tagName === "path" || el.tagName === "use" || el.tagName === "circle")
+    ) {
+      value = Number(el.dataset.value);
+      multiplier = Number(el.dataset.multiplier) || 1;
+      if (!isNaN(value) && !isNaN(multiplier)) {
+        score = value * multiplier;
+        segment = `${multiplier}x${value}`;
+      }
     }
+
+    // ============================
+    // 3️⃣ Ricochet Handling
+    // ============================
+    let isRicochet = false;
+    placeMarker(cursor.x, cursor.y, turnNumber);
+
+    if (ricochetMode) {
+      isRicochet = true;
+      ricochetMode = false;
+      ricochetBtn.classList.remove("active");
+    }
+
+    // ============================
+    // 4️⃣ Snapshot Target
+    // ============================
+    const aimedRing = currentTarget
+      ? currentTarget.multiplier === 3
+        ? "T"
+        : currentTarget.multiplier === 2
+        ? "D"
+        : "S"
+      : null;
+    const aimedValue = currentTarget?.score ?? null;
+
+    // ============================
+    // 5️⃣ Build Dart Object
+    // ============================
+    const dartData = {
+      dart: dartIndex + 1,
+      value, // hit value
+      multiplier, // hit multiplier
+      ring: multiplier === 3 ? "T" : multiplier === 2 ? "D" : "S", // valid enum
+      score: isRicochet ? 0 : score, // turn score = 0 for ricochet
+      segment: `${multiplier}x${value}`,
+      aimed_ring: aimedRing,
+      aimed_value: aimedValue,
+      throw_type: isRicochet ? "ricochet" : "normal",
+      classes: isRicochet ? ["ricochet"] : [],
+      x: cursor.x,
+      y: cursor.y,
+      hitTarget: false,
+    };
+
+    darts.push(dartData);
+
+    // ============================
+    // 6️⃣ Live Table Update
+    // ============================
+    dartCells[dartIndex].textContent = value * multiplier; // always show the actual hit score
+    dartData.classes.forEach((cls) => dartCells[dartIndex].classList.add(cls));
+
+    // ============================
+    // 7️⃣ Hit Target Evaluation
+    // ============================
+    if (!isRicochet && aimedRing && score > 0) {
+      const expectedMultiplier =
+        aimedRing === "T" ? 3 : aimedRing === "D" ? 2 : 1;
+      const hitTarget =
+        value === aimedValue && multiplier === expectedMultiplier;
+
+      if (hitTarget) {
+        dartData.hitTarget = true;
+        dartData.classes.push("hit-target");
+        if (aimedRing === "T") dartData.classes.push("triple");
+        else if (aimedRing === "D") dartData.classes.push("double");
+        else dartData.classes.push("single");
+
+        dartData.classes.forEach((cls) =>
+          dartCells[dartIndex].classList.add(cls)
+        );
+      }
+    }
+
+    // ============================
+    // 8️⃣ Commit score to live turn
+    // ============================
+    turnTotal += dartData.score; // 0 for ricochet
+    totalCell.textContent = turnTotal;
+
+    remainingScore -= dartData.score; // 0 for ricochet
+    remainingSpan.textContent = remainingScore;
+
+// ============================
+// 9️⃣ Bust Detection
+// ============================
+const isDoubleFinish = multiplier === 2;
+const isBust =
+  remainingScore < 0 ||
+  remainingScore === 1 ||
+  (remainingScore === 0 && !isDoubleFinish);
+
+if (isBust) {
+  dartCells[dartIndex].classList.add("bust-dart");
+  darts[dartIndex].busted = true;
+  bustThisTurn = true;
+  boardLocked = true; // stop further clicks until Confirm
+
+  // 🔹 AUTO-FILL REMAINING DARTS
+  for (let i = dartIndex + 1; i < 3; i++) {
+    darts[i] = {
+      dart: i + 1,
+      value: 0,
+      multiplier: 0,
+      ring: "S",
+      score: 0,
+      segment: "0",
+      aimed_ring: null,
+      aimed_value: null,
+      hitTarget: false,
+      classes: [],
+      x: null,
+      y: null,
+      busted: false,
+    };
+
+    // Update live table
+    dartCells[i].textContent = 0;
+    dartCells[i].className = ""; // remove any prior styling
   }
-
-  // ============================
-  // 8️⃣ Commit score to live turn
-  // ============================
-  turnTotal += score;
-  totalCell.textContent = turnTotal;
-
-  remainingScore -= score;
-  remainingSpan.textContent = remainingScore;
-
-  // ============================
-  // 9️⃣ Bust Detection
-  // ============================
-  const isDoubleFinish = multiplier === 2;
-  const isBust =
-    remainingScore < 0 ||
-    remainingScore === 1 ||
-    (remainingScore === 0 && !isDoubleFinish);
-
-  if (isBust) {
-    dartCells[dartIndex].classList.add("bust-dart");
-    bustThisTurn = true;
-    boardLocked = true; // stop further clicks until Confirm
-  }
-
-  // ============================
-  // 🔟 Move to next dart
-  // ============================
-  dartIndex++;
-  if (dartIndex === 3) boardLocked = true;
-
-  // ============================
-  // 1️⃣1️⃣ Recalculate next target
-  // ============================
-  if (!setTargetMode && !boardLocked) {
-    currentTarget = getTarget(remainingScore);
-    highlightTarget(currentTarget.score, currentTarget.multiplier);
-    updateTargetText(currentTarget);
-  }
-});
-
   
+dartIndex = 2;
+}
+
+
+    // ============================
+    // 🔟 Move to next dart
+    // ============================
+    dartIndex++;
+    if (dartIndex === 3) boardLocked = true;
+
+    // ============================
+    // 1️⃣1️⃣ Recalculate next target
+    // ============================
+    if (!setTargetMode && !boardLocked) {
+      currentTarget = getTarget(remainingScore);
+      highlightTarget(currentTarget.score, currentTarget.multiplier);
+      updateTargetText(currentTarget);
+    }
+  });
 
   // ================================
   // MARKER
@@ -313,115 +337,123 @@ svg.addEventListener("click", (e) => {
 
   function placeMarker(x, y, turnId) {
     const key = String(turnId); // 🔑 normalize here
-  
+
     let marker;
-  
+
     if (ricochetMode) {
       marker = createRicochetMarker(x, y);
     } else {
       marker = createNormalMarker(x, y);
     }
-  
+
     svg.appendChild(marker);
     markers.push(marker);
-  
+
     if (!markersByTurn[key]) {
       markersByTurn[key] = [];
     }
-  
+
     markersByTurn[key].push(marker);
   }
-  
-// ================================
-// CONFIRM TURN
-// ================================
-confirmBtn.addEventListener("click", () => {
-  console.group("CONFIRM TURN DEBUG");
-  console.log("darts array:", darts);
-  console.log("turnTotal:", turnTotal);
-  console.log("remainingScore BEFORE:", remainingScore);
 
-  if (darts.length === 0) return; // skip if no darts thrown
+  // ================================
+  // CONFIRM TURN
+  // ================================
+  confirmBtn.addEventListener("click", () => {
+    console.group("CONFIRM TURN DEBUG");
+    console.log("darts array:", darts);
+    console.log("turnTotal:", turnTotal);
+    console.log("remainingScore BEFORE:", remainingScore);
 
-  // 1️⃣ Restore remaining score for busts
-  if (bustThisTurn) {
-    remainingScore = turnStartRemaining;
+    if (darts.length > 0) {
+      darts.forEach((d, i) => {});
+    }
+
+    console.groupEnd();
+    if (darts.length === 0) return;
+
+    // 🛑 Handle bust
+    const lastDart = darts[darts.length - 1];
+
+    const turnWasBust =
+      remainingScore < 0 ||
+      remainingScore === 1 ||
+      (remainingScore === 0 && lastDart?.multiplier !== 2);
+
+    if (turnWasBust) {
+      remainingScore = turnStartRemaining;
+      turnTotal = 0;
+    }
+
+    // 1️⃣ Commit the turn (remaining score already updated live)
     remainingSpan.textContent = remainingScore;
 
-    turnTotal = 0;
-    totalCell.textContent = turnTotal;
-  }
+    // 2️⃣ Build classes array for each dart if not already done
+    darts.forEach((dart, i) => {
+      if (!dart.classes) {
+        const hitTarget =
+          currentTarget &&
+          dart.value === currentTarget.score &&
+          dart.multiplier === currentTarget.multiplier;
 
-  // 2️⃣ Build classes array for each dart if not already done
-  darts.forEach((dart, i) => {
-    if (!dart.classes) {
-      const hitTarget =
-        currentTarget &&
-        dart.value === currentTarget.score &&
-        dart.multiplier === currentTarget.multiplier;
+        const dartClasses = [];
+        if (hitTarget) {
+          dartClasses.push("hit-target");
+          if (currentTarget.multiplier === 3) dartClasses.push("triple");
+          else if (currentTarget.multiplier === 2) dartClasses.push("double");
+          else dartClasses.push("single");
+        }
 
-      const dartClasses = [];
-      if (hitTarget) {
-        dartClasses.push("hit-target");
-        if (currentTarget.multiplier === 3) dartClasses.push("triple");
-        else if (currentTarget.multiplier === 2) dartClasses.push("double");
-        else dartClasses.push("single");
+        dart.classes = dartClasses; // store for history
+        dart.hitTarget = hitTarget; // optional
+        dart.dart = i + 1; // 1-based index for table cells
       }
+    });
 
-      dart.classes = dartClasses; // store for history
-      dart.hitTarget = hitTarget; // optional
-      dart.dart = i + 1; // 1-based index for table cells
+    const winningDart = darts.find(
+      (d) => remainingScore === 0 && d.multiplier === 2
+    );
+
+    // 4️⃣ Add row to history table
+    addLiveTurnRow(darts, turnTotal, remainingScore, turnNumber);
+
+    // 5️⃣ Save turn to DB BEFORE clearing/resetting
+    if (currentSessionId && currentGameId) {
+      const payload = buildTurnPayload();
+      console.log("Saving turn payload:", payload);
+      console.log("Payload JSON:", JSON.stringify(payload, null, 2));
+
+      saveTurnToDb(payload);
+      // ✅ Add to in-memory turns so stats work immediately
+      currentTurns.push(payload);
+    } else {
+      console.log("No active session/game — skipping DB save");
     }
+
+    if (winningDart) {
+      console.log("✅ winningDart detected:", winningDart);
+      finishGame("double_out"); // updates DB
+      return;
+    }
+
+    // 6️⃣ Clear live turn highlights
+    dartCells.forEach((cell) => {
+      cell.className = "dart-cell";
+      cell.textContent = "";
+    });
+
+    // 7️⃣ Clear markers and reset live turn
+    clearMarkers();
+    resetTurn();
+
+    // 8️⃣ Prepare next target (if automated)
+    prepareNextTarget();
+
+    // 9️⃣ Increment turn number
+    turnNumber++;
+
+    console.log("markersByTurn:", markersByTurn);
   });
-
-  // 3️⃣ Check for winning dart
-  const winningDart = darts.find(
-    (d) => remainingScore === 0 && d.multiplier === 2
-  );
-
-  // 4️⃣ Add row to history table
-  addLiveTurnRow(darts, turnTotal, remainingScore, turnNumber);
-
-  // 5️⃣ Save turn to DB
-  if (currentSessionId && currentGameId) {
-    const payload = buildTurnPayload();
-    console.log("Saving turn payload:", payload);
-    saveTurnToDb(payload);
-    currentTurns.push(payload); // update in-memory turns for stats
-  } else {
-    console.log("No active session/game — skipping DB save");
-  }
-
-  if (winningDart) {
-    console.log("✅ winningDart detected:", winningDart);
-    finishGame("double_out");
-    return;
-  }
-
-  // 6️⃣ Clear live turn highlights
-  dartCells.forEach((cell) => {
-    cell.className = ""; // removes all styling
-    cell.textContent = ""; // clears live dart score
-  });
-  totalCell.className = "";
-  totalCell.textContent = "0";
-
-  // 7️⃣ Clear markers and reset live turn state
-  clearMarkers();
-  resetTurn();
-
-  // 8️⃣ Prepare next target if automated
-  prepareNextTarget();
-
-  // 9️⃣ Increment turn number
-  turnNumber++;
-
-  // 10️⃣ Reset bust flag for next turn
-  bustThisTurn = false;
-
-  console.groupEnd();
-});
-
 
   // confirmBtn.addEventListener("click", () => {
   //   console.log("CONFIRM button clicked")
@@ -461,25 +493,25 @@ confirmBtn.addEventListener("click", () => {
 
   document.getElementById("undo-btn").addEventListener("click", () => {
     if (darts.length === 0) return;
-  
+
     // 1️⃣ Pop the last dart
     const lastDart = darts.pop();
-  
+
     // 2️⃣ Remove the corresponding marker
     const lastMarker = markers.pop();
     if (lastMarker) lastMarker.remove();
-  
+
     // 3️⃣ Remove from markersByTurn array
     markersByTurn[turnNumber]?.pop();
-  
+
     // 4️⃣ Restore remaining score
     remainingScore += lastDart.score;
     remainingSpan.textContent = remainingScore;
-  
+
     // 5️⃣ Update turn total
     turnTotal -= lastDart.score;
     totalCell.textContent = turnTotal;
-  
+
     // 6️⃣ Clear the dart cell content and styling
     dartIndex--;
     if (dartIndex >= 0) {
@@ -487,15 +519,15 @@ confirmBtn.addEventListener("click", () => {
       cell.textContent = "";
       cell.className = "";
     }
-  
+
     // 7️⃣ Unlock board for next throw
     boardLocked = false;
-  
+
     // 8️⃣ Reset bust flag if undoing a bust
     if (lastDart.classes.includes("bust-dart")) {
       bustThisTurn = false;
     }
-  
+
     // 9️⃣ Recalculate next target if needed
     if (!setTargetMode && !boardLocked) {
       currentTarget = getTarget(remainingScore);
@@ -503,9 +535,6 @@ confirmBtn.addEventListener("click", () => {
       updateTargetText(currentTarget);
     }
   });
-  
-  
-  
 
   function addLiveTurnRow(darts, turnTotal, remainingScore, turnNumber) {
     const tbody = document.getElementById("scoreboard-body");
@@ -521,10 +550,6 @@ confirmBtn.addEventListener("click", () => {
     checkbox.type = "checkbox";
     checkbox.classList.add("turn-toggle");
     checkbox.dataset.turnId = turnNumber;
-
-    //    checkbox.dataset.turnNumber = turnNumber;  REPLACED BY ABOVE
-    // checkbox.checked = true; // optional default
-
     tdCheck.appendChild(checkbox);
     tr.appendChild(tdCheck);
 
@@ -543,8 +568,25 @@ confirmBtn.addEventListener("click", () => {
 
       if (darts[i]) {
         const d = darts[i];
-        const dartScore = d.value * d.multiplier;
-        td.textContent = dartScore;
+
+        // ✅ Display value
+        if (d.throw_type === "ricochet") {
+          td.textContent = "R"; // show a striking R for ricochet
+          td.classList.add("ricochet"); // add ricochet class for styling
+        } else {
+          const dartScore = d.value * d.multiplier;
+          td.textContent = dartScore;
+        }
+
+        // ✅ Transfer all other styling from live dart
+        if (d.classes && Array.isArray(d.classes)) {
+          d.classes.forEach((cls) => td.classList.add(cls));
+        }
+
+        // ✅ Bust styling
+        if (d.busted) {
+          td.classList.add("bust-dart");
+        }
       } else {
         td.textContent = "-";
       }
@@ -790,6 +832,7 @@ confirmBtn.addEventListener("click", () => {
            Other flags
         ====================== */
         is_implied: d.isImplied ? 1 : 0,
+        throw_type: d.throw_type ?? "normal",  
       })),
     };
   }
@@ -877,9 +920,8 @@ confirmBtn.addEventListener("click", () => {
         if (data.turns && data.turns.length > 0) {
           populateHistoryTable(data.turns);
           // 🔁 Rebuild markers for replay
-          Object.keys(markersByTurn).forEach(k => delete markersByTurn[k]);
+          Object.keys(markersByTurn).forEach((k) => delete markersByTurn[k]);
           rebuildMarkersFromThrows(data.turns);
-
         } else {
           // Fresh game
           turnNumber = 1;
@@ -981,6 +1023,8 @@ confirmBtn.addEventListener("click", () => {
   }
 
   function populateHistoryTable(turns) {
+    
+  console.log("populateHistoryTable called with turns:", turns);
     clearHistoryTable();
 
     if (!turns || turns.length === 0) return;
@@ -1005,6 +1049,11 @@ confirmBtn.addEventListener("click", () => {
   }
 
   function addHistoryRow(turn) {
+    console.group("ADD HISTORY ROW");
+    console.log("Full turn object:", turn);
+    console.log("Turn darts array:", turn.darts);
+    console.groupEnd();
+
     const tbody = document.getElementById("scoreboard-body");
     if (!tbody) return;
 
@@ -1036,29 +1085,39 @@ confirmBtn.addEventListener("click", () => {
     for (let i = 0; i < 3; i++) {
       const td = document.createElement("td");
       const dart = turn.darts?.[i];
-
+    
       if (dart) {
         // 🎯 Ricochet handling
-        if (dart.ring === "R" || dart.throw_type === "ricochet") {
-          td.textContent = "R";
-          td.classList.add("ricochet");
+        if (dart.throw_type === "ricochet") {
+          td.textContent = dart.score;      // show what was hit, e.g., "1x20"
+          td.classList.add("ricochet");       // apply your CSS class
         } else {
-          const dartValue = dart.score * parseInt(dart.segment);
+          const dartValue = dart.score;
           td.textContent = dartValue;
-          turnTotal += dartValue;
-
+          
           if (dart.hit_target) {
             td.classList.add("hit-target");
-
+    
             if (dart.ring === "T") td.classList.add("triple");
             else if (dart.ring === "D") td.classList.add("double");
             else td.classList.add("single");
           }
         }
+    
+        // ✅ Bust styling
+        if (dart.busted) td.classList.add("bust-dart");
+    
+        // ✅ Transfer any other classes from live table (optional)
+        if (dart.classes && Array.isArray(dart.classes)) {
+          dart.classes.forEach(cls => td.classList.add(cls));
+        }
+      } else {
+        td.textContent = "-";
       }
-
+    
       tr.appendChild(td);
     }
+    
 
     /* =========================
      Turn total
@@ -1394,7 +1453,6 @@ confirmBtn.addEventListener("click", () => {
   }
 
   function calculateGameStats(turns) {
-    
     const stats = {
       T: { aimed: 0, hit: 0 },
       D: { aimed: 0, hit: 0 },
@@ -1411,8 +1469,8 @@ confirmBtn.addEventListener("click", () => {
       for (let d of t.darts) {
         cumulativeThrows++;
 
-        runningScore -= d.score;  
-        
+        runningScore -= d.score;
+
         // Count aimed vs hit by ring type
         if (d.ring === "T") {
           stats.T.aimed++;
@@ -1556,12 +1614,11 @@ confirmBtn.addEventListener("click", () => {
     const key = String(turnId);
     const markers = markersByTurn[key];
     if (!markers) return;
-  
+
     markers.forEach((m) => {
       m.style.display = show ? "block" : "none";
     });
   }
-  
 
   // NEW VERSION
   // function toggleTurnMarkers(turnId, show) {
@@ -1586,8 +1643,10 @@ confirmBtn.addEventListener("click", () => {
         }
       });
     });
-    console.log("markersByTurn keys after rebuild:", Object.keys(markersByTurn));
-
+    console.log(
+      "markersByTurn keys after rebuild:",
+      Object.keys(markersByTurn)
+    );
   }
 
   /**
@@ -1672,20 +1731,11 @@ confirmBtn.addEventListener("click", () => {
     return circle;
   }
 
-
   function placeNormalMarker(x, y, turnId) {
     placeMarker(x, y, turnId);
   }
-  
-  
-  
-// ADD REGULAR FUNCTIONS HERE//
 
-
-
-
-
-
+  // ADD REGULAR FUNCTIONS HERE//
 
   //GAME STATS FUNCTIONS//
 
@@ -1702,19 +1752,18 @@ confirmBtn.addEventListener("click", () => {
   async function showGameStatsUnified(gameId) {
     try {
       const darts = await getDartsForGame(gameId);
-  
+
       const accuracyStats = compileGameStatsFromDarts(darts);
       populateTargetAccuracy(accuracyStats);
-  
+
       const keyStats = compileKeyStatsFromDarts(darts);
       populateKeyStats(keyStats);
-  
+
       document.getElementById("gameStatsModal").style.display = "block";
     } catch (err) {
       console.error("Stats error:", err);
     }
   }
-  
 
   async function getDartsForGame(gameId) {
     const res = await fetch(`load_game_stats.php?game_id=${gameId}`);
@@ -1792,122 +1841,107 @@ confirmBtn.addEventListener("click", () => {
     );
   }
 
-function compileKeyStatsFromDarts(darts, startingScore = 501) {
-  let remaining = startingScore;
+  function compileKeyStatsFromDarts(darts, startingScore = 501) {
+    let remaining = startingScore;
 
-  let totalDarts = 0;
-  let totalScore = 0;
+    let totalDarts = 0;
+    let totalScore = 0;
 
-  let preFinishDarts = 0;
-  let preFinishScore = 0;
-  let dartsToFinishRange = null;
+    let preFinishDarts = 0;
+    let preFinishScore = 0;
+    let dartsToFinishRange = null;
 
-  let t20Attempts = 0;
-  let t20WedgeHits = 0;
+    let t20Attempts = 0;
+    let t20WedgeHits = 0;
 
-  for (let i = 0; i < darts.length; i++) {
-    const d = darts[i];
+    for (let i = 0; i < darts.length; i++) {
+      const d = darts[i];
 
-    // ---------- Compute actual score including multiplier ----------
-    let dartScore = d.value || 0;
-    if (d.ring === "T") dartScore *= 3;
-    else if (d.ring === "D") dartScore *= 2;
+      // ---------- Compute actual score including multiplier ----------
+      let dartScore = d.value || 0;
+      if (d.ring === "T") dartScore *= 3;
+      else if (d.ring === "D") dartScore *= 2;
 
-    totalDarts++;
-    totalScore += dartScore;
+      totalDarts++;
+      totalScore += dartScore;
 
-    // ---------- A: 20 while targeting T20 ----------
-    if (d.aimedRing === "T" && d.aimedValue === 20) {
-      t20Attempts++;
-      // Count any hit in 20 wedge (S, D, T)
-      if (d.value === 20) t20WedgeHits++;
+      // ---------- A: 20 while targeting T20 ----------
+      if (d.aimedRing === "T" && d.aimedValue === 20) {
+        t20Attempts++;
+        // Count any hit in 20 wedge (S, D, T)
+        if (d.value === 20) t20WedgeHits++;
+      }
+
+      const nextRemaining = remaining - dartScore;
+
+      // ---------- B: Darts to reach finish range (<161) ----------
+      if (dartsToFinishRange === null && nextRemaining <= 160) {
+        dartsToFinishRange = totalDarts;
+      }
+
+      // ---------- Pre-finish scoring ----------
+      if (remaining > 160) {
+        preFinishDarts++;
+        preFinishScore += dartScore;
+      }
+
+      // ---------- Finish detection ----------
+      const isWinningDart = nextRemaining === 0 && d.ring === "D";
+      if (isWinningDart) break; // stop immediately
+
+      // ---------- Bust ----------
+      const isBust =
+        nextRemaining < 0 ||
+        nextRemaining === 1 ||
+        (nextRemaining === 0 && d.ring !== "D");
+
+      // Only update remaining if no bust
+      if (!isBust) {
+        remaining = nextRemaining;
+      }
+      // else remaining stays the same; totalDarts still counts the dart
     }
 
-    const nextRemaining = remaining - dartScore;
+    // ---------- 3-Dart Averages ----------
+    const overall3DA =
+      totalDarts > 0 ? ((totalScore / totalDarts) * 3).toFixed(2) : "0.00";
 
-    // ---------- B: Darts to reach finish range (<161) ----------
-    if (dartsToFinishRange === null && nextRemaining <= 160) {
-      dartsToFinishRange = totalDarts;
-    }
+    const preFinish3DA =
+      preFinishDarts > 0
+        ? ((preFinishScore / preFinishDarts) * 3).toFixed(2)
+        : "0.00";
 
-    // ---------- Pre-finish scoring ----------
-    if (remaining > 160) {
-      preFinishDarts++;
-      preFinishScore += dartScore;
-    }
+    return {
+      // Key stats
+      t20WedgeHits,
+      t20Attempts,
+      dartsToFinishRange,
+      totalDarts,
 
-    // ---------- Finish detection ----------
-    const isWinningDart = nextRemaining === 0 && d.ring === "D";
-    if (isWinningDart) break; // stop immediately
-
-    // ---------- Bust ----------
-    const isBust =
-      nextRemaining < 0 ||
-      nextRemaining === 1 ||
-      (nextRemaining === 0 && d.ring !== "D");
-
-    // Only update remaining if no bust
-    if (!isBust) {
-      remaining = nextRemaining;
-    }
-    // else remaining stays the same; totalDarts still counts the dart
+      // 3-Dart Averages
+      overall3DA,
+      preFinish3DA,
+    };
   }
 
-  // ---------- 3-Dart Averages ----------
-  const overall3DA =
-    totalDarts > 0 ? ((totalScore / totalDarts) * 3).toFixed(2) : "0.00";
-
-  const preFinish3DA =
-    preFinishDarts > 0
-      ? ((preFinishScore / preFinishDarts) * 3).toFixed(2)
-      : "0.00";
-
-  return {
-    // Key stats
-    t20WedgeHits,
-    t20Attempts,
-    dartsToFinishRange,
-    totalDarts,
-
-    // 3-Dart Averages
-    overall3DA,
-    preFinish3DA,
-  };
-}
-
-  
   function populateKeyStats(stats) {
-    document.getElementById("statS20vsT20").textContent =
-      `${stats.t20WedgeHits} / ${stats.t20Attempts}`;
-  
+    document.getElementById(
+      "statS20vsT20"
+    ).textContent = `${stats.t20WedgeHits} / ${stats.t20Attempts}`;
+
     document.getElementById("statThrowsToFinish").textContent =
       stats.dartsToFinishRange ?? "-";
-  
-    document.getElementById("statTotalDarts").textContent =
-      stats.totalDarts;
-  
-    document.getElementById("stat3DAOverall").textContent =
-      stats.overall3DA;
-  
+
+    document.getElementById("statTotalDarts").textContent = stats.totalDarts;
+
+    document.getElementById("stat3DAOverall").textContent = stats.overall3DA;
+
     document.getElementById("stat3DAPreFinish").textContent =
       stats.preFinish3DA;
   }
-  
-  function openInfoModal() {
-    document.getElementById("infoModal").style.display = "flex";
-  }
-  
-  function closeInfoModal() {
-    document.getElementById("infoModal").style.display = "none";
-  }
 
   
-
   
-
-
-  
-
   //ADD NEW LISTENERS HERE
 
   // Initial calculated target on game start

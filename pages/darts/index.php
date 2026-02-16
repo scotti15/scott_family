@@ -388,11 +388,12 @@ if (!$user_id) {
 </div>
 
 <!-- Info / Help Modal -->
-<div id="infoModal" class="modal-overlay" style="display:none;">
-  <div class="modal info-modal">
+<div id="infoModal" class="game-summary-overlay" style="display:none;">
+  <div class="game-summary-modal">
+
     <div class="modal-header">
       <h2>ℹ️ How to Use This Board</h2>
-      <button class="modal-close" onclick="closeInfoModal()">✕</button>
+      <button id="closeInfoBtn" class="modal-close">✕</button>
     </div>
 
     <div class="modal-body">

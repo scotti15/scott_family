@@ -142,6 +142,21 @@
 }
 
 /* ========================= */
+/* RICOCHET STATE */
+/* ========================= */
+.darts-page .ricochet {
+  background-color: #cccccc;        /* light gray background */
+  color: #ff4d4d;                   /* bright red text, matches markers */
+  font-weight: bold;
+  text-decoration: line-through;    /* strike-through */
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 0 4px #ff4d4d inset; /* red glow inside the cell */
+}
+
+
+
+/* ========================= */
 /* SVG / DARTBOARD */
 /* ========================= */
 .darts-page .scoring-segment:hover,
@@ -453,7 +468,23 @@
   font-weight: bold !important;
 }
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;                     /* top:0; left:0; right:0; bottom:0 */
+  background: rgba(0, 0, 0, 0.6);
+  display: none;                /* JS will switch to flex */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
 
+.modal {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 90%;
+}
 
 
 
