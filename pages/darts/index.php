@@ -116,6 +116,7 @@ if (!$user_id) {
         <button id="btn-loss">End Game (Loss)</button>
         <button id="btn-set-target">Set Target</button>
         <button id="btn-show-stats">📊 Game Stats</button>
+        <button id="btn-toggle-grouping">Toggle Group Center</button>
       </div>
 
     </div>
@@ -317,38 +318,43 @@ if (!$user_id) {
     <p id="gameSummarySubtitle" class="summary-subtitle">Game #4 · 501 Double Out</p>
 
     <div class="summary-section">
-      <h2>🎯 Target Accuracy</h2>
-      <table class="summary-table">
-        <thead>
-          <tr>
-            <th>Target</th>
-            <th>Hit</th>
-            <th>Aimed</th>
-            <th>%</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Triple</td>
-            <td id="hitsT">0</td>
-            <td id="aimedT">0</td>
-            <td id="pctT">0%</td>
-          </tr>
-          <tr>
-            <td>Double</td>
-            <td id="hitsD">0</td>
-            <td id="aimedD">0</td>
-            <td id="pctD">0%</td>
-          </tr>
-          <tr>
-            <td>Single</td>
-            <td id="hitsS">0</td>
-            <td id="aimedS">0</td>
-            <td id="pctS">0%</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <h2>🎯 Target Accuracy</h2>
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>Target</th>
+        <th>Hit</th>
+        <th>Aimed</th>
+        <th>%</th>
+        <th>Accuracy</th> <!-- New column -->
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Triple</td>
+        <td id="hitsT">0</td>
+        <td id="aimedT">0</td>
+        <td id="pctT">0%</td>
+        <td id="accT">0.0 cm</td> <!-- New field -->
+      </tr>
+      <tr>
+        <td>Double</td>
+        <td id="hitsD">0</td>
+        <td id="aimedD">0</td>
+        <td id="pctD">0%</td>
+        <td id="accD">0.0 cm</td> <!-- New field -->
+      </tr>
+      <tr>
+        <td>Single</td>
+        <td id="hitsS">0</td>
+        <td id="aimedS">0</td>
+        <td id="pctS">0%</td>
+        <td id="accS">0.0 cm</td> <!-- New field -->
+      </tr>
+    </tbody>
+  </table>
+</div>
+
     <div class="summary-section">
   <h2>📊 Key Stats</h2>
   <ul class="summary-stats">
@@ -376,9 +382,12 @@ if (!$user_id) {
       <strong>3-Dart Average (before finish range):</strong>
       <span id="stat3DAPreFinish">0.00</span>
     </li>
+    <li>
+      <strong>Grouping Radius:</strong>
+      <span id="statGroupingRadius">0.0 cm</span>
+    </li>
   </ul>
 </div>
-
     <div class="summary-actions">
       <button class="btn-secondary" onclick="replayGame()">Replay Game</button>
       <button id="closeStatsBtn" class="btn-primary">Close</button>

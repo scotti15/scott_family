@@ -111,20 +111,39 @@ if ($gameId) {
                     'darts'       => []
                 ];
             }
-
             if ($row['throw_number']) {
+
+                $isBusted = ($row['turn_result'] === 'bust');
+            
                 $turns[$tid]['darts'][] = [
-                    'throw_number' => (int)$row['throw_number'],
-                    'score'        => (int)$row['hit_score'],
-                    'ring'         => $row['ring'],
-                    'segment'      => $row['segment'],
-                    'hit_target'   => (bool)$row['hit_target'],
-                    'x'            => $row['x'] !== null ? (float)$row['x'] : null,
-                    'y'            => $row['y'] !== null ? (float)$row['y'] : null,
-                    'throw_type'   => $row['throw_type'],
+            
+                    "dart" => (int)$row['throw_number'],
+            
+                    "value" => (int)$row['hit_score'],
+            
+                    "score" => (int)$row['hit_score'],
+            
+                    "ring" => $row['ring'],
+            
+                    "segment" => $row['segment'],
+            
+                    "throw_type" => $row['throw_type'] ?? "normal",
+            
+                    "x" => $row['x'] !== null ? (float)$row['x'] : null,
+            
+                    "y" => $row['y'] !== null ? (float)$row['y'] : null,
+            
+                    "hitTarget" => (bool)$row['hit_target'],
+            
+                    "bust" => $isBusted,
+            
+                    "aimed_ring" => $row['ring'],
+            
+                    "aimed_value" => $row['segment']
+            
                 ];
-                
             }
+            
         }
 
         $turns = array_values($turns);

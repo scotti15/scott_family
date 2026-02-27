@@ -18,6 +18,7 @@ if (!$gameId) {
 }
 
 try {
+
     /* ---------------------------------
        1️⃣ Validate game belongs to user
     --------------------------------- */
@@ -78,7 +79,10 @@ try {
             d.aimed_value,
             d.hit_target,
             d.x,
-            d.y
+            d.y,
+            d.miss_distance,
+            d.miss_angle,
+            d.throw_type
         FROM dart_throws d
         JOIN dart_turns t ON d.turn_id = t.turn_id
         WHERE t.game_id = :gid
@@ -92,6 +96,7 @@ try {
        4️⃣ Assemble turns → darts
     --------------------------------- */
     $turns = [];
+
     foreach ($turnRows as $t) {
         $turns[$t['turn_id']] = [
             'turn_id'     => (int)$t['turn_id'],
@@ -102,32 +107,51 @@ try {
     }
 
     foreach ($dartRows as $d) {
+
         $turnId = $d['turn_id'];
         if (!isset($turns[$turnId])) continue;
 
         $turns[$turnId]['darts'][] = [
+
             'throw_number' => (int)$d['throw_number'],
-            'hit_score'    => (int)$d['hit_score'],
-            'ring'         => $d['ring'],
-            'segment'      => $d['segment'],
-            'aimed_ring'   => $d['aimed_ring'],
-            'aimed_value'  => $d['aimed_value'] !== null ? (int)$d['aimed_value'] : null,
-            'hit_target'   => (int)$d['hit_target'],
-            'x'            => $d['x'],
-            'y'            => $d['y']
+
+            // hit data
+            'hit_score' => (int)$d['hit_score'],
+            'ring'      => $d['ring'],
+            'segment'   => $d['segment'],
+
+            // aim data
+            'aimed_ring'  => $d['aimed_ring'],
+            'aimed_value' => $d['aimed_value'] !== null ? (int)$d['aimed_value'] : null,
+
+            // hit/miss
+            'hit_target' => (int)$d['hit_target'],
+
+            // board coordinates
+            'x' => $d['x'] !== null ? (float)$d['x'] : null,
+            'y' => $d['y'] !== null ? (float)$d['y'] : null,
+
+            // accuracy metrics
+            'miss_distance' => $d['miss_distance'] !== null ? (float)$d['miss_distance'] : null,
+            'miss_angle'    => $d['miss_angle'] !== null ? (float)$d['miss_angle'] : null,
+
+            // meta
+            'throw_type' => $d['throw_type'] ?? 'normal'
         ];
     }
 
     echo json_encode([
-        'status' => 'ok',
+        'status'  => 'ok',
         'game_id' => $gameId,
-        'turns' => array_values($turns)
+        'turns'   => array_values($turns)
     ]);
 
 } catch (Exception $e) {
+
     http_response_code(500);
+
     echo json_encode([
-        'error' => 'Server error',
+        'error'   => 'Server error',
         'message' => $e->getMessage()
     ]);
 }

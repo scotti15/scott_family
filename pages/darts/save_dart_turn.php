@@ -116,7 +116,7 @@ if (!empty($darts)) {
             ':throw_number' => (int)$dart['throw_number'],
             ':hit_score'    => (int)$dart['hit_score'],
             ':ring'         => $dart['ring'],
-            ':segment'      => $dart['segment'],      // must be VARCHAR to handle "R"
+            ':segment'      => isset($dart['segment']) ? (int)$dart['segment'] : 1,
             ':x'            => $dart['x'],
             ':y'            => $dart['y'],
             ':hit_target'   => !empty($dart['hit_target']) ? 1 : 0,
