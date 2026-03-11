@@ -145,90 +145,86 @@ if (!$user_id) {
 
         <!-- SEGMENTS: rotated 9° counter-clockwise -->
         <g id="segments" transform="rotate(-9)">
-          <!-- Segment order clockwise starting from top: 20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5 -->
-          <!-- Alternating colors black/yellow -->
-          <use href="#wedge" class="scoring-segment"  fill="black" data-value="20" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="#FFFF99" transform="rotate(18)" data-value="1" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="black" transform="rotate(36)" data-value="18" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="#FFFF99" transform="rotate(54)" data-value="4" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="black" transform="rotate(72)" data-value="13" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="#FFFF99" transform="rotate(90)" data-value="6" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="black" transform="rotate(108)" data-value="10" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="#FFFF99" transform="rotate(126)" data-value="15" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="black" transform="rotate(144)" data-value="2" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="#FFFF99" transform="rotate(162)" data-value="17" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="black" transform="rotate(180)" data-value="3" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="#FFFF99" transform="rotate(198)" data-value="19" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="black" transform="rotate(216)" data-value="7" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="#FFFF99" transform="rotate(234)" data-value="16" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="black" transform="rotate(252)" data-value="8" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="#FFFF99" transform="rotate(270)" data-value="11" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="black" transform="rotate(288)" data-value="14" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="#FFFF99" transform="rotate(306)" data-value="9" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="black" transform="rotate(324)" data-value="12" data-multiplier="1" />
-      <use href="#wedge" class="scoring-segment"  fill="#FFFF99" transform="rotate(342)" data-value="5" data-multiplier="1" />
+  <!-- Segment order clockwise starting from top: 20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5 -->
 
-        </g>
+  <use href="#wedge" class="scoring-segment" fill="#111111" data-value="20" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#F2E6B3" transform="rotate(18)" data-value="1" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#111111" transform="rotate(36)" data-value="18" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#F2E6B3" transform="rotate(54)" data-value="4" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#111111" transform="rotate(72)" data-value="13" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#F2E6B3" transform="rotate(90)" data-value="6" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#111111" transform="rotate(108)" data-value="10" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#F2E6B3" transform="rotate(126)" data-value="15" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#111111" transform="rotate(144)" data-value="2" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#F2E6B3" transform="rotate(162)" data-value="17" data-multiplier="1" />
 
-        <!-- Triple ring (middle of segment) -->
-        <!-- <circle r="99" fill="none" stroke="green" stroke-width="16" /> -->
-      <!-- Full Triple Ring -->
-      <g id="triple-ring">
-        <!-- Segment order clockwise starting from T20 at top -->
-        <!-- Colors alternate red/green starting with red on T20 -->
-        <!-- Inner radius 99, outer radius 107, trapezoid wedge shape -->
-        <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="red" transform="rotate(-9)" data-value="20" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="green" transform="rotate(9)" data-value="1" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="red" transform="rotate(27)" data-value="18" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="green" transform="rotate(45)" data-value="4" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="red" transform="rotate(63)" data-value="13" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="green" transform="rotate(81)" data-value="6" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="red" transform="rotate(99)" data-value="10" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="green" transform="rotate(117)" data-value="15" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="red" transform="rotate(135)" data-value="2" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="green" transform="rotate(153)" data-value="17" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="red" transform="rotate(171)" data-value="3" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="green" transform="rotate(189)" data-value="19" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="red" transform="rotate(207)" data-value="7" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="green" transform="rotate(225)" data-value="16" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="red" transform="rotate(243)" data-value="8" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="green" transform="rotate(261)" data-value="11" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="red" transform="rotate(279)" data-value="14" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="green" transform="rotate(297)" data-value="9" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="red" transform="rotate(315)" data-value="12" data-multiplier="3" />
-      <path class="scoring-segment"  d="M0 -99 A99 99 0 0 1 30 -92.34 L32.5 -100.89 A107 107 0 0 0 0 -107 Z" fill="green" transform="rotate(333)" data-value="5" data-multiplier="3" />
+  <use href="#wedge" class="scoring-segment" fill="#111111" transform="rotate(180)" data-value="3" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#F2E6B3" transform="rotate(198)" data-value="19" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#111111" transform="rotate(216)" data-value="7" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#F2E6B3" transform="rotate(234)" data-value="16" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#111111" transform="rotate(252)" data-value="8" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#F2E6B3" transform="rotate(270)" data-value="11" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#111111" transform="rotate(288)" data-value="14" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#F2E6B3" transform="rotate(306)" data-value="9" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#111111" transform="rotate(324)" data-value="12" data-multiplier="1" />
+  <use href="#wedge" class="scoring-segment" fill="#F2E6B3" transform="rotate(342)" data-value="5" data-multiplier="1" />
 
-      </g>
+</g>
+        <g id="triple-ring">
+  <!-- Triple wedges, symmetric, T20 centered on 0° -->
+  <!-- Inner radius: 99, outer radius: 110 -->
+  <!-- Each wedge spans 18° (half-width ±9°) -->
+  <!-- Fill alternates red/green, starting with red on T20 -->
+
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#cc0000" transform="rotate(0)" data-value="20" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#008000" transform="rotate(18)" data-value="1" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#cc0000" transform="rotate(36)" data-value="18" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#008000" transform="rotate(54)" data-value="4" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#cc0000" transform="rotate(72)" data-value="13" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#008000" transform="rotate(90)" data-value="6" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#cc0000" transform="rotate(108)" data-value="10" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#008000" transform="rotate(126)" data-value="15" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#cc0000" transform="rotate(144)" data-value="2" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#008000" transform="rotate(162)" data-value="17" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#cc0000" transform="rotate(180)" data-value="3" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#008000" transform="rotate(198)" data-value="19" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#cc0000" transform="rotate(216)" data-value="7" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#008000" transform="rotate(234)" data-value="16" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#cc0000" transform="rotate(252)" data-value="8" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#008000" transform="rotate(270)" data-value="11" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#cc0000" transform="rotate(288)" data-value="14" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#008000" transform="rotate(306)" data-value="9" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#cc0000" transform="rotate(324)" data-value="12" data-multiplier="3" />
+  <path class="scoring-segment" d="M-15.45 -93.86 A99 99 0 0 1 15.45 -93.86 L17.21 -104.71 A110 110 0 0 0 -17.21 -104.71 Z" fill="#008000" transform="rotate(342)" data-value="5" data-multiplier="3" />
+</g>
 
 
 
-        <!-- Double ring (outer) -->
-      <!-- Double ring -->
-      <g id="double-ring">
-        <!-- Segment order: 20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5 -->
-        <!-- Colors alternate starting with red for 20 -->
-        <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="red" transform="rotate(-9)" data-value="20" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="green" transform="rotate(9)" data-value="1" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="red" transform="rotate(27)" data-value="18" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="green" transform="rotate(45)" data-value="4" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="red" transform="rotate(63)" data-value="13" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="green" transform="rotate(81)" data-value="6" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="red" transform="rotate(99)" data-value="10" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="green" transform="rotate(117)" data-value="15" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="red" transform="rotate(135)" data-value="2" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="green" transform="rotate(153)" data-value="17" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="red" transform="rotate(171)" data-value="3" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="green" transform="rotate(189)" data-value="19" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="red" transform="rotate(207)" data-value="7" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="green" transform="rotate(225)" data-value="16" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="red" transform="rotate(243)" data-value="8" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="green" transform="rotate(261)" data-value="11" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="red" transform="rotate(279)" data-value="14" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="green" transform="rotate(297)" data-value="9" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="red" transform="rotate(315)" data-value="12" data-multiplier="2" />
-      <path class="scoring-segment"  d="M0 -162 A162 162 0 0 1 49.71 -153.24 L52.11 -161.97 A170 170 0 0 0 0 -170 Z" fill="green" transform="rotate(333)" data-value="5" data-multiplier="2" />
+<g id="double-ring">
 
-      </g>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#cc0000" transform="rotate(0)" data-value="20" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#008000" transform="rotate(18)" data-value="1" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#cc0000" transform="rotate(36)" data-value="18" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#008000" transform="rotate(54)" data-value="4" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#cc0000" transform="rotate(72)" data-value="13" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#008000" transform="rotate(90)" data-value="6" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#cc0000" transform="rotate(108)" data-value="10" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#008000" transform="rotate(126)" data-value="15" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#cc0000" transform="rotate(144)" data-value="2" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#008000" transform="rotate(162)" data-value="17" data-multiplier="2"/>
+
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#cc0000" transform="rotate(180)" data-value="3" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#008000" transform="rotate(198)" data-value="19" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#cc0000" transform="rotate(216)" data-value="7" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#008000" transform="rotate(234)" data-value="16" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#cc0000" transform="rotate(252)" data-value="8" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#008000" transform="rotate(270)" data-value="11" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#cc0000" transform="rotate(288)" data-value="14" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#008000" transform="rotate(306)" data-value="9" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#cc0000" transform="rotate(324)" data-value="12" data-multiplier="2"/>
+<path class="scoring-segment" d="M-25.48 -157.99 A162 162 0 0 1 25.48 -157.99 L26.75 -168.87 A170 170 0 0 0 -26.75 -168.87 Z" fill="#008000" transform="rotate(342)" data-value="5" data-multiplier="2"/>
+
+</g>
 
       <g id="numbers" text-anchor="middle" font-family="Arial" font-size="16" fill="white" stroke="black" stroke-width="2">
         <!-- Segment order clockwise starting from T20 at top -->
@@ -257,16 +253,20 @@ if (!$user_id) {
 
       <!-- Outer Bull (25) -->
       <circle
+        stroke="#99AABB"
+        stroke-width="1"
         r="15.9"
-        fill="green"
+        fill="#008000"
         data-value="25"
         data-multiplier="1"
       />
 
       <!-- Inner Bull (50) -->
-      <circle 
-        r="6.35"
-        fill="red"
+      <circle  
+        stroke="#99AABB"
+        stroke-width="1"
+          r="6.35"
+        fill="#cc0000"
         data-value="25"
         data-multiplier="2"
       />

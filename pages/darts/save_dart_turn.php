@@ -78,53 +78,61 @@ try {
 ----------------------------- */
 if (!empty($darts)) {
     $stmt = $pdo->prepare("
-        INSERT INTO dart_throws
-        (
-          turn_id,
-          throw_number,
-          hit_score,
-          ring,
-          segment,
-          x,
-          y,
-          hit_target,
-          is_implied,
-          aimed_ring,
-          aimed_value,
-          throw_type
-        )
-        VALUES
-        (
-          :turn_id,
-          :throw_number,
-          :hit_score,
-          :ring,
-          :segment,
-          :x,
-          :y,
-          :hit_target,
-          :is_implied,
-          :aimed_ring,
-          :aimed_value,
-          :throw_type
-        )
+    INSERT INTO dart_throws
+    (
+      turn_id,
+      throw_number,
+      hit_score,
+      ring,
+      segment,
+      x,
+      y,
+      hit_target,
+      is_implied,
+      aimed_ring,
+      aimed_value,
+      miss_distance,
+      miss_angle,
+      throw_type
+    )
+    VALUES
+    (
+      :turn_id,
+      :throw_number,
+      :hit_score,
+      :ring,
+      :segment,
+      :x,
+      :y,
+      :hit_target,
+      :is_implied,
+      :aimed_ring,
+      :aimed_value,
+      :miss_distance,
+      :miss_angle,
+      :throw_type
+    )
+    
     ");
 
     foreach ($darts as $dart) {
         $stmt->execute([
-            ':turn_id'      => $turnId,
-            ':throw_number' => (int)$dart['throw_number'],
-            ':hit_score'    => (int)$dart['hit_score'],
-            ':ring'         => $dart['ring'],
-            ':segment'      => isset($dart['segment']) ? (int)$dart['segment'] : 1,
-            ':x'            => $dart['x'],
-            ':y'            => $dart['y'],
-            ':hit_target'   => !empty($dart['hit_target']) ? 1 : 0,
-            ':is_implied'   => !empty($dart['is_implied']) ? 1 : 0,
-            ':aimed_ring'   => $dart['aimed_ring'] ?? null,
-            ':aimed_value'  => $dart['aimed_value'] ?? null,
-            ':throw_type'   => $dart['throw_type'] ?? 'normal'
+            ':turn_id'       => $turnId,
+            ':throw_number'  => (int)$dart['throw_number'],
+            ':hit_score'     => (int)$dart['hit_score'],
+            ':ring'          => $dart['ring'],
+            ':segment'       => isset($dart['segment']) ? (int)$dart['segment'] : 1,
+            ':x'             => $dart['x'],
+            ':y'             => $dart['y'],
+            ':hit_target'    => !empty($dart['hit_target']) ? 1 : 0,
+            ':is_implied'    => !empty($dart['is_implied']) ? 1 : 0,
+            ':aimed_ring'    => $dart['aimed_ring'] ?? null,
+            ':aimed_value'   => $dart['aimed_value'] ?? null,
+            ':miss_distance' => $dart['miss_distance'] ?? null,
+            ':miss_angle'    => $dart['miss_angle'] ?? null,
+            ':throw_type'    => $dart['throw_type'] ?? 'normal'
         ]);
+        
     }
 }
 

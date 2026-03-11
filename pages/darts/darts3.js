@@ -13,7 +13,57 @@ document.addEventListener("DOMContentLoaded", () => {
   let totalDarts = 0;
   const markersByTurn = {};
 
+  let lastGroupingStats = null;
+// FOR GROUPING BUTTON BEGIN
+let groupingVisible = false;
+
+document.getElementById("btn-toggle-grouping").addEventListener("click", () => {
+
+  console.log("Grouping stats at button click:", lastGroupingStats);
+
+  const board = document.getElementById("dartboard");
+  const existing = board.querySelector(".group-center-marker");
+
+  // Toggle off
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const center = board.viewBox.baseVal.width / 2;
+
+  cx = center + lastGroupingStats.centerX;
+  cy = center + lastGroupingStats.centerY;
+  
+  if (
+    lastGroupingStats &&
+    lastGroupingStats.centerX !== null &&
+    lastGroupingStats.centerY !== null
+  ) {
+    cx = 200 + lastGroupingStats.centerX;
+    cy = 200 + lastGroupingStats.centerY;
+  }
+
+  const marker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+
+  marker.setAttribute("class", "group-center-marker");
+  marker.setAttribute("cx", cx);
+  marker.setAttribute("cy", cy);
+  marker.setAttribute("r", "5");
+  marker.setAttribute("fill", "lime");
+
+  board.appendChild(marker);
+
+});
+
+
+
+
+
+// FOR GROUPING BUTTON END
+
   let games = [];
+  
 
   let turnNumber = 1;
   let startingScore = 501;
@@ -50,10 +100,10 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("loadSessionBtn")
     .addEventListener("click", loadSelectedSession);
 
-  document.getElementById("closeStatsBtn").addEventListener("click", () => {
-    const modal = document.getElementById("gameStatsModal");
-    modal.style.display = "none";
-  });
+  // document.getElementById("closeStatsBtn").addEventListener("click", () => {
+  //   const modal = document.getElementById("gameStatsModal");
+  //   modal.style.display = "none";
+  // });
 
   const closeInfoBtn = document.getElementById("closeInfoBtn");
   const infoModal = document.getElementById("infoModal");
@@ -68,6 +118,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("infoModal");
     modal.style.display = "flex";
   });
+
+  document.getElementById("closeStatsBtn").addEventListener("click", () => {
+
+    document.getElementById("gameStatsModal").style.display = "none";
+
+  });
+  
 
   const gameStatsBtn = document.getElementById("btn-show-stats");
 
@@ -337,26 +394,35 @@ dartIndex = 2;
   // MARKER
   // ================================
 
-  function placeMarker(x, y, turnId) {
-    const key = String(turnId); // ≡ƒöæ normalize here
-
+  function placeMarker(x, y, turnId, target) {
+    const key = String(turnId);
+  
     let marker;
-
     if (ricochetMode) {
       marker = createRicochetMarker(x, y);
     } else {
       marker = createNormalMarker(x, y);
     }
+  
+    marker.dataset.target = target; // store target
+    let markerFilter = "T20";  // hard-coded filter for now
+    console.log("target = ", target);
+    console.log("markerfilter = ", markerFilter);
 
+
+    // Show only if it matches current filter, otherwise hide
+    if (markerFilter && markerFilter !== target) {
+      marker.style.display = "none";
+    }
+  
     svg.appendChild(marker);
     markers.push(marker);
-
-    if (!markersByTurn[key]) {
-      markersByTurn[key] = [];
-    }
-
+  
+    if (!markersByTurn[key]) markersByTurn[key] = [];
     markersByTurn[key].push(marker);
   }
+  
+  
 
 // ================================
 // CONFIRM TURN
@@ -1615,6 +1681,7 @@ confirmBtn.addEventListener("click", () => {
   function addHistoryTurnRow(turn) {
     addHistoryRow(turn);
   }
+  
   function toggleTurnMarkers(turnId, show) {
     const key = String(turnId);
     const markers = markersByTurn[key];
@@ -1639,8 +1706,10 @@ confirmBtn.addEventListener("click", () => {
       const turnId = turn.turn_id;
 
       turn.darts.forEach((dart) => {
+        console.log(dart);
+
         if (dart.x != null && dart.y != null) {
-          placeNormalMarker(dart.x, dart.y, turnId); // <-- adds marker to markersByTurn
+          placeNormalMarker(dart.x, dart.y, turnId, dart.aimed_ring, dart.aimed_value);
           // hide marker initially
           const lastMarker =
             markersByTurn[turnId][markersByTurn[turnId].length - 1];
@@ -1673,7 +1742,7 @@ confirmBtn.addEventListener("click", () => {
     checkbox.type = "checkbox";
     checkbox.classList.add("turn-toggle");
     checkbox.dataset.turnId = turnNumber;
-    checkbox.checked = true;
+    checkbox.checked = false;
     tdCheck.appendChild(checkbox);
     tr.appendChild(tdCheck);
 
@@ -1736,41 +1805,54 @@ confirmBtn.addEventListener("click", () => {
     return circle;
   }
 
-  function placeNormalMarker(x, y, turnId) {
-    placeMarker(x, y, turnId);
+  function placeNormalMarker(x, y, turnId, aimed_ring, aimed_value) {
+    const target = aimed_ring + aimed_value; // e.g., "T20"
+    placeMarker(x, y, turnId, target);
   }
+  
 
   // ADD REGULAR FUNCTIONS HERE//
 
   //GAME STATS FUNCTIONS//
 
-  function compileGameStatsFromDarts(darts) {
-    return {
-      throws: darts.length,
-      scoringThrows: darts.filter((d) => d.score > 0).length,
-      ricochets: darts.filter((d) => d.throw_type === "ricochet").length,
-      targetAttempts: darts.filter((d) => d.aimedRing).length,
-      targetHits: darts.filter((d) => d.hitTarget).length,
-    };
-  }
+  // function compileGameStatsFromDarts(darts) {
+  //   return {
+  //     throws: darts.length,
+  //     scoringThrows: darts.filter((d) => d.score > 0).length,
+  //     ricochets: darts.filter((d) => d.throw_type === "ricochet").length,
+  //     targetAttempts: darts.filter((d) => d.aimedRing).length,
+  //     targetHits: darts.filter((d) => d.hitTarget).length,
+  //   };
+  // }
 
   async function showGameStatsUnified(gameId) {
     try {
       const darts = await getDartsForGame(gameId);
       console.log(darts);
-
-
+  
       const accuracyStats = compileGameStatsFromDarts(darts);
       populateTargetAccuracy(accuracyStats);
-
+  
       const keyStats = compileKeyStatsFromDarts(darts);
       populateKeyStats(keyStats);
-
+  
+      // ✅ Calculate ONCE
+      lastGroupingStats = calculateGroupingStats(darts);
+  
+      // Update text in modal
+      document.getElementById("statGroupingRadius").textContent =
+        lastGroupingStats.groupingRadius.toFixed(1) + " cm";
+  
+      // ❌ REMOVE THIS LINE
+      // drawGroupingCenter(lastGroupingStats.centerX, lastGroupingStats.centerY);
+  
       document.getElementById("gameStatsModal").style.display = "block";
+  
     } catch (err) {
       console.error("Stats error:", err);
     }
   }
+  
 
   async function getDartsForGame(gameId) {
     const res = await fetch(`load_game_stats.php?game_id=${gameId}`);
@@ -1977,7 +2059,41 @@ function populateTargetAccuracy(stats) {
       stats.preFinish3DA;
   }
 
+  function calculateGroupingStats(darts) {
 
+    const board = document.getElementById("dartboard");
+    const boardRadiusPx = board.getBoundingClientRect().width / 2;
+    const PIXEL_TO_CM = 17 / boardRadiusPx;
+  
+    // Only darts with coordinates
+    const valid = darts.filter(d => d.x != null && d.y != null);
+  
+    if (valid.length === 0) {
+      return {
+        groupingRadius: 0,
+        centerX: null,
+        centerY: null
+      };
+    }
+  
+    // ---------- Group center ----------
+    const meanX = valid.reduce((s,d)=>s+d.x,0) / valid.length;
+    const meanY = valid.reduce((s,d)=>s+d.y,0) / valid.length;
+  
+    // ---------- Distances from center ----------
+    const distances = valid.map(d =>
+      Math.sqrt((d.x - meanX)**2 + (d.y - meanY)**2)
+    );
+  
+    const avgPx = distances.reduce((s,d)=>s+d,0) / distances.length;
+  
+    return {
+      groupingRadius: avgPx * PIXEL_TO_CM,
+      centerX: meanX,
+      centerY: meanY
+    };
+  }
+  
   function clearLiveBoard() {
     dartCells.forEach((cell) => {
       cell.textContent = 0;
@@ -1985,6 +2101,28 @@ function populateTargetAccuracy(stats) {
     });
   }
   
+  function drawGroupingCenter(x, y) {
+
+    if (x == null || y == null) return;
+  
+    const board = document.getElementById("dartboard");
+  
+    const marker = document.createElement("div");
+    marker.className = "group-center-marker";
+  
+    marker.style.position = "absolute";
+    marker.style.left = `${x}px`;
+    marker.style.top = `${y}px`;
+    marker.style.width = "10px";
+    marker.style.height = "10px";
+    marker.style.background = "lime";
+    marker.style.borderRadius = "50%";
+    marker.style.transform = "translate(-50%, -50%)";
+    marker.style.pointerEvents = "none";
+    marker.style.zIndex = "2000";
+  
+    board.appendChild(marker);
+  }
   
   
   

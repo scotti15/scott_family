@@ -13,55 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let totalDarts = 0;
   const markersByTurn = {};
 
-  let lastGroupingStats = null;
-// FOR GROUPING BUTTON BEGIN
-let groupingVisible = false;
-
-document.getElementById("btn-toggle-grouping").addEventListener("click", () => {
-
-  console.log("Grouping stats at button click:", lastGroupingStats);
-
-  const board = document.getElementById("dartboard");
-  const existing = board.querySelector(".group-center-marker");
-
-  // Toggle off
-  if (existing) {
-    existing.remove();
-    return;
-  }
-
-  const center = board.viewBox.baseVal.width / 2;
-
-  cx = center + lastGroupingStats.centerX;
-  cy = center + lastGroupingStats.centerY;
-  
-  if (
-    lastGroupingStats &&
-    lastGroupingStats.centerX !== null &&
-    lastGroupingStats.centerY !== null
-  ) {
-    cx = 200 + lastGroupingStats.centerX;
-    cy = 200 + lastGroupingStats.centerY;
-  }
-
-  const marker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-
-  marker.setAttribute("class", "group-center-marker");
-  marker.setAttribute("cx", cx);
-  marker.setAttribute("cy", cy);
-  marker.setAttribute("r", "5");
-  marker.setAttribute("fill", "lime");
-
-  board.appendChild(marker);
-
-});
-
-
-
-
-
-// FOR GROUPING BUTTON END
-
   let games = [];
 
   let turnNumber = 1;
@@ -99,10 +50,10 @@ document.getElementById("btn-toggle-grouping").addEventListener("click", () => {
     .getElementById("loadSessionBtn")
     .addEventListener("click", loadSelectedSession);
 
-  // document.getElementById("closeStatsBtn").addEventListener("click", () => {
-  //   const modal = document.getElementById("gameStatsModal");
-  //   modal.style.display = "none";
-  // });
+  document.getElementById("closeStatsBtn").addEventListener("click", () => {
+    const modal = document.getElementById("gameStatsModal");
+    modal.style.display = "none";
+  });
 
   const closeInfoBtn = document.getElementById("closeInfoBtn");
   const infoModal = document.getElementById("infoModal");
@@ -111,19 +62,11 @@ document.getElementById("btn-toggle-grouping").addEventListener("click", () => {
     infoModal.style.display = "none";
   });
 
-
   document.getElementById("infoBtn").addEventListener("click", () => {
     console.log("Info icon clicked");
     const modal = document.getElementById("infoModal");
     modal.style.display = "flex";
   });
-
-  document.getElementById("closeStatsBtn").addEventListener("click", () => {
-
-    document.getElementById("gameStatsModal").style.display = "none";
-
-  });
-  
 
   const gameStatsBtn = document.getElementById("btn-show-stats");
 
@@ -272,8 +215,16 @@ document.getElementById("btn-toggle-grouping").addEventListener("click", () => {
       : null;
     const aimedValue = currentTarget?.score ?? null;
 
+    const target = getTargetCoordinates(aimedRing, aimedValue);
+
+    const dx = cursor.x - target.x;
+    const dy = cursor.y - target.y;
+
+    const miss_distance = Math.sqrt(dx * dx + dy * dy);
+    const miss_angle = Math.atan2(dy, dx);
+
     // ============================
-    // 5∩╕ÅΓâú Build Dart Object
+    //  Build Dart Object
     // ============================
     const dartData = {
       dart: dartIndex + 1,
@@ -284,6 +235,10 @@ document.getElementById("btn-toggle-grouping").addEventListener("click", () => {
       segment: `${multiplier}x${value}`,
       aimed_ring: aimedRing,
       aimed_value: aimedValue,
+
+      miss_distance: miss_distance,
+      miss_angle: miss_angle,
+
       throw_type: isRicochet ? "ricochet" : "normal",
       classes: isRicochet ? ["ricochet"] : [],
       x: cursor.x,
@@ -330,48 +285,47 @@ document.getElementById("btn-toggle-grouping").addEventListener("click", () => {
     remainingScore -= dartData.score; // 0 for ricochet
     remainingSpan.textContent = remainingScore;
 
-// ============================
-// 9∩╕ÅΓâú Bust Detection
-// ============================
-const isDoubleFinish = multiplier === 2;
-const isBust =
-  remainingScore < 0 ||
-  remainingScore === 1 ||
-  (remainingScore === 0 && !isDoubleFinish);
+    // ============================
+    // 9∩╕ÅΓâú Bust Detection
+    // ============================
+    const isDoubleFinish = multiplier === 2;
+    const isBust =
+      remainingScore < 0 ||
+      remainingScore === 1 ||
+      (remainingScore === 0 && !isDoubleFinish);
 
-if (isBust) {
-  dartCells[dartIndex].classList.add("bust-dart");
-  darts[dartIndex].busted = true;
-  bustThisTurn = true;
-  boardLocked = true; // stop further clicks until Confirm
+    if (isBust) {
+      dartCells[dartIndex].classList.add("bust-dart");
+      darts[dartIndex].busted = true;
+      bustThisTurn = true;
+      boardLocked = true; // stop further clicks until Confirm
 
-  // ≡ƒö╣ AUTO-FILL REMAINING DARTS
-  for (let i = dartIndex + 1; i < 3; i++) {
-    darts[i] = {
-      dart: i + 1,
-      value: 0,
-      multiplier: 0,
-      ring: "S",
-      score: 0,
-      segment: "1",
-      aimed_ring: null,
-      aimed_value: null,
-      hitTarget: false,
-      classes: [],
-      x: null,
-      y: null,
-      busted: false,
-      isImplied: 1,
-    };
+      // ≡ƒö╣ AUTO-FILL REMAINING DARTS
+      for (let i = dartIndex + 1; i < 3; i++) {
+        darts[i] = {
+          dart: i + 1,
+          value: 0,
+          multiplier: 0,
+          ring: "S",
+          score: 0,
+          segment: "1",
+          aimed_ring: null,
+          aimed_value: null,
+          hitTarget: false,
+          classes: [],
+          x: null,
+          y: null,
+          busted: false,
+          isImplied: 1,
+        };
 
-    // Update live table
-    dartCells[i].textContent = 0; 
-    dartCells[i].className = ""; // remove any prior styling
-  }
-  
-dartIndex = 2;
-}
+        // Update live table
+        dartCells[i].textContent = 0;
+        dartCells[i].className = ""; // remove any prior styling
+      }
 
+      dartIndex = 2;
+    }
 
     // ============================
     // ≡ƒöƒ Move to next dart
@@ -414,100 +368,99 @@ dartIndex = 2;
     markersByTurn[key].push(marker);
   }
 
-// ================================
-// CONFIRM TURN
-// ================================
-confirmBtn.addEventListener("click", () => {
-  console.group("CONFIRM TURN DEBUG");
-  console.log("darts array:", darts);
-  console.log("turnTotal:", turnTotal);
-  console.log("remainingScore BEFORE:", remainingScore);
+  // ================================
+  // CONFIRM TURN
+  // ================================
+  confirmBtn.addEventListener("click", () => {
+    console.group("CONFIRM TURN DEBUG");
+    console.log("darts array:", darts);
+    console.log("turnTotal:", turnTotal);
+    console.log("remainingScore BEFORE:", remainingScore);
 
-  if (darts.length === 0) return;
+    if (darts.length === 0) return;
 
-  // Keep a snapshot of remainingScore BEFORE any UI reset
-  const remainingScoreBeforeReset = remainingScore;
+    // Keep a snapshot of remainingScore BEFORE any UI reset
+    const remainingScoreBeforeReset = remainingScore;
 
-  // ≡ƒ¢æ Handle bust
-  const lastDart = darts[darts.length - 1];
-  const turnWasBust =
-    remainingScore < 0 ||
-    remainingScore === 1 ||
-    (remainingScore === 0 && lastDart?.multiplier !== 2);
+    // ≡ƒ¢æ Handle bust
+    const lastDart = darts[darts.length - 1];
+    const turnWasBust =
+      remainingScore < 0 ||
+      remainingScore === 1 ||
+      (remainingScore === 0 && lastDart?.multiplier !== 2);
 
-  if (turnWasBust) {
-    remainingScore = turnStartRemaining; // reset UI
-    turnTotal = 0;
-  }
-
-  remainingSpan.textContent = remainingScore;
-
-  // Build classes array for each dart if not already done
-  darts.forEach((dart, i) => {
-    if (!dart.classes) {
-      const hitTarget =
-        currentTarget &&
-        dart.value === currentTarget.score &&
-        dart.multiplier === currentTarget.multiplier;
-
-      const dartClasses = [];
-      if (hitTarget) {
-        dartClasses.push("hit-target");
-        if (currentTarget.multiplier === 3) dartClasses.push("triple");
-        else if (currentTarget.multiplier === 2) dartClasses.push("double");
-        else dartClasses.push("single");
-      }
-
-      dart.classes = dartClasses; // store for history
-      dart.hitTarget = hitTarget; // optional
-      dart.dart = i + 1; // 1-based index for table
+    if (turnWasBust) {
+      remainingScore = turnStartRemaining; // reset UI
+      turnTotal = 0;
     }
+
+    remainingSpan.textContent = remainingScore;
+
+    // Build classes array for each dart if not already done
+    darts.forEach((dart, i) => {
+      if (!dart.classes) {
+        const hitTarget =
+          currentTarget &&
+          dart.value === currentTarget.score &&
+          dart.multiplier === currentTarget.multiplier;
+
+        const dartClasses = [];
+        if (hitTarget) {
+          dartClasses.push("hit-target");
+          if (currentTarget.multiplier === 3) dartClasses.push("triple");
+          else if (currentTarget.multiplier === 2) dartClasses.push("double");
+          else dartClasses.push("single");
+        }
+
+        dart.classes = dartClasses; // store for history
+        dart.hitTarget = hitTarget; // optional
+        dart.dart = i + 1; // 1-based index for table
+      }
+    });
+
+    const winningDart = darts.find(
+      (d) => remainingScoreBeforeReset === 0 && d.multiplier === 2
+    );
+
+    // Add row to history table
+    addLiveTurnRow(darts, turnTotal, remainingScore, turnNumber);
+
+    // Save turn to DB using the actual remaining score
+    if (currentSessionId && currentGameId) {
+      const payload = buildTurnPayload(remainingScoreBeforeReset);
+      console.log("Saving turn payload:", payload);
+      console.log("Payload JSON:", JSON.stringify(payload, null, 2));
+      saveTurnToDb(payload);
+      currentTurns.push(payload);
+    } else {
+      console.log("No active session/game – skipping DB save");
+    }
+
+    if (winningDart) {
+      console.log("Winning dart detected:", winningDart);
+      finishGame("double_out"); // updates DB
+      return;
+    }
+
+    // Clear live turn highlights
+    dartCells.forEach((cell) => {
+      cell.className = "dart-cell";
+      cell.textContent = "";
+    });
+
+    // Clear markers and reset live turn
+    clearMarkers();
+    resetTurn();
+
+    // Prepare next target if automated
+    prepareNextTarget();
+
+    // Increment turn number
+    turnNumber++;
+
+    console.log("markersByTurn:", markersByTurn);
+    console.groupEnd();
   });
-
-  const winningDart = darts.find(
-    (d) => remainingScoreBeforeReset === 0 && d.multiplier === 2
-  );
-
-  // Add row to history table
-  addLiveTurnRow(darts, turnTotal, remainingScore, turnNumber);
-
-  // Save turn to DB using the actual remaining score
-  if (currentSessionId && currentGameId) {
-    const payload = buildTurnPayload(remainingScoreBeforeReset);
-    console.log("Saving turn payload:", payload);
-    console.log("Payload JSON:", JSON.stringify(payload, null, 2));
-    saveTurnToDb(payload);
-    currentTurns.push(payload);
-  } else {
-    console.log("No active session/game – skipping DB save");
-  }
-
-  if (winningDart) {
-    console.log("Winning dart detected:", winningDart);
-    finishGame("double_out"); // updates DB
-    return;
-  }
-
-  // Clear live turn highlights
-  dartCells.forEach((cell) => {
-    cell.className = "dart-cell";
-    cell.textContent = "";
-  });
-
-  // Clear markers and reset live turn
-  clearMarkers();
-  resetTurn();
-
-  // Prepare next target if automated
-  prepareNextTarget();
-
-  // Increment turn number
-  turnNumber++;
-
-  console.log("markersByTurn:", markersByTurn);
-  console.groupEnd();
-});
-
 
   // confirmBtn.addEventListener("click", () => {
   //   console.log("CONFIRM button clicked")
@@ -838,27 +791,26 @@ confirmBtn.addEventListener("click", () => {
   }
   function buildTurnPayload(actualRemainingScore) {
     let turnResult = "normal";
-  
+
     if (actualRemainingScore === 0 && darts.some((d) => d.multiplier === 2)) {
       turnResult = "double_out";
     } else if (actualRemainingScore < 0 || actualRemainingScore === 1) {
       turnResult = "bust";
     }
-      // Carry forward aim for implied darts
-      let lastAimRing = null;
-      let lastAimValue = null;
+    // Carry forward aim for implied darts
+    let lastAimRing = null;
+    let lastAimValue = null;
 
-      darts.forEach(d => {
-        if (d.aimed_ring) lastAimRing = d.aimed_ring;
-        if (d.aimed_value) lastAimValue = d.aimed_value;
+    darts.forEach((d) => {
+      if (d.aimed_ring) lastAimRing = d.aimed_ring;
+      if (d.aimed_value) lastAimValue = d.aimed_value;
 
-        if (d.value === 0 && d.x == null && d.y == null) {
-          d.aimed_ring = lastAimRing;
-          d.aimed_value = lastAimValue;
-        }
-      });
+      if (d.value === 0 && d.x == null && d.y == null) {
+        d.aimed_ring = lastAimRing;
+        d.aimed_value = lastAimValue;
+      }
+    });
 
-  
     return {
       game_id: currentGameId,
       turn_number: turnNumber,
@@ -868,26 +820,23 @@ confirmBtn.addEventListener("click", () => {
       darts: darts.map((d, i) => ({
         throw_number: i + 1,
         hit_score: d.value ?? 0,
-        ring:
-        d.multiplier === 3
-          ? "T"
-          : d.multiplier === 2
-          ? "D"
-          : "S",
-      
+        ring: d.multiplier === 3 ? "T" : d.multiplier === 2 ? "D" : "S",
+
         segment: d.segment ?? d.value ?? null,
         x: d.x ?? null,
         y: d.y ?? null,
         hit_target: !!d.hitTarget,
         aimed_ring: d.aimed_ring ?? null,
         aimed_value: d.aimed_value ?? null,
+
+        miss_distance: d.miss_distance ?? null,
+        miss_angle: d.miss_angle ?? null,
+
         is_implied: d.isImplied ? 1 : 0,
         throw_type: d.throw_type ?? "normal",
       })),
     };
   }
-  
-  
 
   function loadDartSessions() {
     fetch("list_dart_sessions.php")
@@ -1075,8 +1024,7 @@ confirmBtn.addEventListener("click", () => {
   }
 
   function populateHistoryTable(turns) {
-    
-  console.log("populateHistoryTable called with turns:", turns);
+    console.log("populateHistoryTable called with turns:", turns);
     clearHistoryTable();
 
     if (!turns || turns.length === 0) return;
@@ -1138,60 +1086,59 @@ confirmBtn.addEventListener("click", () => {
     for (let i = 0; i < 3; i++) {
       const td = document.createElement("td");
       const dart = turn.darts?.[i];
-    
-      if (dart) {
-    
-        if (dart.throw_type === "ricochet") {
-          td.textContent = dart.score;
-          td.classList.add("ricochet");
-    
-        } else {
-    
+      console.log(dart);
           let dartValue = Number(dart.score) * Number(dart.segment || 1);
 
-          td.textContent = dartValue;
-          if (!isBust) {
-            turnTotal += dartValue;
-          }
+          if (dart) {
+
+            let dartValue = Number(dart.score) * Number(dart.segment || 1);
           
-    
-          if (dart.hitTarget) {
-            td.classList.add("hit-target");
-    
-            if (dart.ring === "T") td.classList.add("triple");
-            else if (dart.ring === "D") td.classList.add("double");
-            else td.classList.add("single");
+            if (dart.throw_type === "ricochet") {
+              td.textContent = dartValue;
+              td.classList.add("ricochet");
+          
+            } else {
+              td.textContent = dartValue;
+          
+              if (!isBust) {
+                turnTotal += dartValue;
+              }
+          
+              if (dart.hitTarget) {
+                td.classList.add("hit-target");
+          
+                if (dart.ring === "T") td.classList.add("triple");
+                else if (dart.ring === "D") td.classList.add("double");
+                else td.classList.add("single");
+              }
+            }
+          
+            if (isBust) td.classList.add("bust-dart");
+          
+            if (dart.classes && Array.isArray(dart.classes)) {
+              dart.classes.forEach((cls) => td.classList.add(cls));
+            }
+          
+          } else {
+            td.textContent = "-";
           }
-        }
-    
-        if (dart.busted) td.classList.add("bust-dart");
-    
-        if (dart.classes && Array.isArray(dart.classes)) {
-          dart.classes.forEach(cls => td.classList.add(cls));
-        }
-    
-      } else {
-        td.textContent = "-";
-      }
-    
+
       tr.appendChild(td);
     }
-    
-    
 
     /* =========================
      Turn total
   ========================= */
-  const tdTotal = document.createElement("td");
-  tdTotal.textContent = isBust ? 0 : turnTotal;
-  tr.appendChild(tdTotal);
+    const tdTotal = document.createElement("td");
+    tdTotal.textContent = isBust ? 0 : turnTotal;
+    tr.appendChild(tdTotal);
 
     /* =========================
      Remaining score
   ========================= */
-  const tdScore = document.createElement("td");
-  tdScore.textContent = isBust ? turn.start_score : turn.end_score;
-  tr.appendChild(tdScore);
+    const tdScore = document.createElement("td");
+    tdScore.textContent = isBust ? turn.start_score : turn.end_score;
+    tr.appendChild(tdScore);
 
     tbody.appendChild(tr);
   }
@@ -1671,7 +1618,6 @@ confirmBtn.addEventListener("click", () => {
   function addHistoryTurnRow(turn) {
     addHistoryRow(turn);
   }
-  
   function toggleTurnMarkers(turnId, show) {
     const key = String(turnId);
     const markers = markersByTurn[key];
@@ -1692,6 +1638,20 @@ confirmBtn.addEventListener("click", () => {
   // }
 
   function rebuildMarkersFromThrows(turns) {
+    const target = "T20";
+
+    turns.forEach((turn) => {
+      const turnId = turn.turn_id;
+
+      turn.darts.forEach((dart) => {
+        const dartTarget = dart.aimed_ring + dart.aimed_value;
+
+        if (dartTarget === target) {
+          console.log("T20 dart found:", dart);
+        }
+      });
+    });
+
     turns.forEach((turn) => {
       const turnId = turn.turn_id;
 
@@ -1801,150 +1761,164 @@ confirmBtn.addEventListener("click", () => {
 
   //GAME STATS FUNCTIONS//
 
-  // function compileGameStatsFromDarts(darts) {
-  //   return {
-  //     throws: darts.length,
-  //     scoringThrows: darts.filter((d) => d.score > 0).length,
-  //     ricochets: darts.filter((d) => d.throw_type === "ricochet").length,
-  //     targetAttempts: darts.filter((d) => d.aimedRing).length,
-  //     targetHits: darts.filter((d) => d.hitTarget).length,
-  //   };
-  // }
+  function compileGameStatsFromDarts(darts) {
+    return {
+      throws: darts.length,
+      scoringThrows: darts.filter((d) => d.score > 0).length,
+      ricochets: darts.filter((d) => d.throw_type === "ricochet").length,
+      targetAttempts: darts.filter((d) => d.aimedRing).length,
+      targetHits: darts.filter((d) => d.hitTarget).length,
+    };
+  }
 
   async function showGameStatsUnified(gameId) {
+    console.log("showGameStatsUnified fired", gameId);
     try {
       const darts = await getDartsForGame(gameId);
       console.log(darts);
-  
+
       const accuracyStats = compileGameStatsFromDarts(darts);
       populateTargetAccuracy(accuracyStats);
-  
+
       const keyStats = compileKeyStatsFromDarts(darts);
       populateKeyStats(keyStats);
-  
-      // ✅ Calculate ONCE
-      lastGroupingStats = calculateGroupingStats(darts);
-  
-      // Update text in modal
-      document.getElementById("statGroupingRadius").textContent =
-        lastGroupingStats.groupingRadius.toFixed(1) + " cm";
-  
-      // ❌ REMOVE THIS LINE
-      // drawGroupingCenter(lastGroupingStats.centerX, lastGroupingStats.centerY);
-  
+
       document.getElementById("gameStatsModal").style.display = "block";
-  
     } catch (err) {
       console.error("Stats error:", err);
     }
   }
-  
 
   async function getDartsForGame(gameId) {
     const res = await fetch(`load_game_stats.php?game_id=${gameId}`);
     const data = await res.json();
-  
+
     if (data.status !== "ok") {
       throw new Error("Failed to load game stats");
     }
-  
-    // Flatten turns → darts
-    return data.turns.flatMap((t) =>
+
+    const allDarts = data.turns.flatMap((t) =>
       (t.darts || []).map((d) => ({
         // HIT
         ring: d.ring,
         value: d.hit_score,
         hitTarget: d.hit_target === 1,
-  
+
         // AIM
         aimedRing: d.aimed_ring,
         aimedValue: d.aimed_value,
-  
+
         // META
         throwType: d.throw_type ?? "normal",
         x: d.x,
         y: d.y,
-  
-        // NEW: accuracy metrics
+
+        // accuracy metrics
         missDistance: d.miss_distance,
         missAngle: d.miss_angle,
       }))
     );
+
+    const target = "T20";
+
+    const filteredDarts = allDarts.filter(
+      (d) => d.aimedRing + d.aimedValue === target && d.x != null && d.y != null
+    );
+
+    console.log("Filtered darts:", filteredDarts);
+
+    const groupingRadius = calculateGroupingRadius(filteredDarts);
+
+    console.log("Grouping radius:", groupingRadius);
+
+    return allDarts;
   }
 
+  // ---------------------------
+  // 1️⃣ Compile Game Stats from Darts
+  // ---------------------------
+  function compileGameStatsFromDarts(darts) {
+    // Conversion: pixels → cm
+    const board = document.getElementById("dartboard");
+    const boardRadiusPx = board.getBoundingClientRect().width / 2;
 
-// ---------------------------
-// 1️⃣ Compile Game Stats from Darts
-// ---------------------------
-function compileGameStatsFromDarts(darts) {
-  // Conversion: pixels → cm
-  const board = document.getElementById("dartboard");
-const boardRadiusPx = board.getBoundingClientRect().width / 2;
+    const PIXEL_TO_CM = 17 / boardRadiusPx;
 
-const PIXEL_TO_CM = 17 / boardRadiusPx;
+    const stats = {
+      T: { aimed: 0, hit: 0, missDistances: [] },
+      D: { aimed: 0, hit: 0, missDistances: [] },
+      S: { aimed: 0, hit: 0, missDistances: [] },
+    };
 
+    darts.forEach((d) => {
+      // Ignore darts with no aim (ricochet / unknown)
+      if (!d.aimedRing) return;
 
-  const stats = {
-    T: { aimed: 0, hit: 0, missDistances: [] },
-    D: { aimed: 0, hit: 0, missDistances: [] },
-    S: { aimed: 0, hit: 0, missDistances: [] },
-  };
+      const ring = d.aimedRing;
 
-  darts.forEach((d) => {
-    // Ignore darts with no aim (ricochet / unknown)
-    if (!d.aimedRing) return;
+      // Count aimed
+      stats[ring].aimed++;
 
-    const ring = d.aimedRing;
-
-    // Count aimed
-    stats[ring].aimed++;
-
-    // Compute miss distance in cm
-    let missCm = 0;
-    // if (d.hitTarget !== true && d.missDistance != null) {
+      // Compute miss distance in cm
+      let missCm = 0;
+      // if (d.hitTarget !== true && d.missDistance != null) {
       missCm = d.missDistance * PIXEL_TO_CM;
-    // }
+      // }
 
-    // Count hit
-    if (d.hitTarget === true) {
-      stats[ring].hit++;
-      stats[ring].missDistances.push(0); // hit → 0 cm
-    } else {
-      stats[ring].missDistances.push(missCm); // miss → cm
-    }
-  });
+      // Count hit
+      if (d.hitTarget === true) {
+        stats[ring].hit++;
+        stats[ring].missDistances.push(0); // hit → 0 cm
+      } else {
+        stats[ring].missDistances.push(missCm); // miss → cm
+      }
+    });
 
-  return stats;
-}
+    return stats;
+  }
 
-// ---------------------------
-// 2️⃣ Populate Modal Accuracy
-// ---------------------------
-function populateTargetAccuracy(stats) {
-  const pct = (h, a) => (a ? ((h / a) * 100).toFixed(1) + "%" : "0.0%");
-  const avg = (distances) =>
-    distances.length
-      ? (distances.reduce((sum, d) => sum + d, 0) / distances.length).toFixed(1)
-      : "0.0";
+  // ---------------------------
+  // 2️⃣ Populate Modal Accuracy
+  // ---------------------------
+  function populateTargetAccuracy(stats) {
+    const pct = (h, a) => (a ? ((h / a) * 100).toFixed(1) + "%" : "0.0%");
+    const avg = (distances) =>
+      distances.length
+        ? (distances.reduce((sum, d) => sum + d, 0) / distances.length).toFixed(
+            1
+          )
+        : "0.0";
 
-  // ---------- Triple ----------
-  document.getElementById("aimedT").textContent = stats.T.aimed;
-  document.getElementById("hitsT").textContent = stats.T.hit;
-  document.getElementById("pctT").textContent = pct(stats.T.hit, stats.T.aimed);
-  document.getElementById("accT").textContent = avg(stats.T.missDistances) + " cm";
+    // ---------- Triple ----------
+    document.getElementById("aimedT").textContent = stats.T.aimed;
+    document.getElementById("hitsT").textContent = stats.T.hit;
+    document.getElementById("pctT").textContent = pct(
+      stats.T.hit,
+      stats.T.aimed
+    );
+    document.getElementById("accT").textContent =
+      avg(stats.T.missDistances) + " cm";
 
-  // ---------- Double ----------
-  document.getElementById("aimedD").textContent = stats.D.aimed;
-  document.getElementById("hitsD").textContent = stats.D.hit;
-  document.getElementById("pctD").textContent = pct(stats.D.hit, stats.D.aimed);
-  document.getElementById("accD").textContent = avg(stats.D.missDistances) + " cm";
+    // ---------- Double ----------
+    document.getElementById("aimedD").textContent = stats.D.aimed;
+    document.getElementById("hitsD").textContent = stats.D.hit;
+    document.getElementById("pctD").textContent = pct(
+      stats.D.hit,
+      stats.D.aimed
+    );
+    document.getElementById("accD").textContent =
+      avg(stats.D.missDistances) + " cm";
 
-  // ---------- Single ----------
-  document.getElementById("aimedS").textContent = stats.S.aimed;
-  document.getElementById("hitsS").textContent = stats.S.hit;
-  document.getElementById("pctS").textContent = pct(stats.S.hit, stats.S.aimed);
-  document.getElementById("accS").textContent = avg(stats.S.missDistances) + " cm";
-}
+    // ---------- Single ----------
+    document.getElementById("aimedS").textContent = stats.S.aimed;
+    document.getElementById("hitsS").textContent = stats.S.hit;
+    document.getElementById("pctS").textContent = pct(
+      stats.S.hit,
+      stats.S.aimed
+    );
+    document.getElementById("accS").textContent =
+      avg(stats.S.missDistances) + " cm";
+  }
 
   function compileKeyStatsFromDarts(darts, startingScore = 501) {
     let remaining = startingScore;
@@ -1959,13 +1933,29 @@ function populateTargetAccuracy(stats) {
     let t20Attempts = 0;
     let t20WedgeHits = 0;
 
+    let groupingDarts = [];
+
     for (let i = 0; i < darts.length; i++) {
       const d = darts[i];
 
+      if (
+        d.aimedRing === "T" &&
+        Number(d.aimedValue) === 20 &&
+        d.x != null &&
+        d.y != null
+      ) {
+        groupingDarts.push({ x: Number(d.x), y: Number(d.y) });
+      }
       // ---------- Compute actual score including multiplier ----------
-      let dartScore = d.value || 0;
-      if (d.ring === "T") dartScore *= 3;
-      else if (d.ring === "D") dartScore *= 2;
+      
+      const isRicochet = d.throwType === "ricochet";
+
+      let dartScore = 0;
+      if (!isRicochet) {
+        dartScore = d.value || 0;
+        if (d.ring === "T") dartScore *= 3;
+        else if (d.ring === "D") dartScore *= 2;
+      }
 
       totalDarts++;
       totalScore += dartScore;
@@ -2016,6 +2006,10 @@ function populateTargetAccuracy(stats) {
         ? ((preFinishScore / preFinishDarts) * 3).toFixed(2)
         : "0.00";
 
+     const groupingRadius =
+        groupingDarts.length > 1
+          ? calculateGroupingRadius(groupingDarts)
+          : null;
     return {
       // Key stats
       t20WedgeHits,
@@ -2026,6 +2020,9 @@ function populateTargetAccuracy(stats) {
       // 3-Dart Averages
       overall3DA,
       preFinish3DA,
+      
+      // Accuracy
+      groupingRadius,
     };
   }
 
@@ -2043,77 +2040,73 @@ function populateTargetAccuracy(stats) {
 
     document.getElementById("stat3DAPreFinish").textContent =
       stats.preFinish3DA;
+      
+      document.getElementById("statGroupingRadius").textContent =
+      stats.groupingRadius != null
+        ? `${(stats.groupingRadius).toFixed(1)} mm`
+        : "-";
   }
 
-  function calculateGroupingStats(darts) {
-
-    const board = document.getElementById("dartboard");
-    const boardRadiusPx = board.getBoundingClientRect().width / 2;
-    const PIXEL_TO_CM = 17 / boardRadiusPx;
-  
-    // Only darts with coordinates
-    const valid = darts.filter(d => d.x != null && d.y != null);
-  
-    if (valid.length === 0) {
-      return {
-        groupingRadius: 0,
-        centerX: null,
-        centerY: null
-      };
-    }
-  
-    // ---------- Group center ----------
-    const meanX = valid.reduce((s,d)=>s+d.x,0) / valid.length;
-    const meanY = valid.reduce((s,d)=>s+d.y,0) / valid.length;
-  
-    // ---------- Distances from center ----------
-    const distances = valid.map(d =>
-      Math.sqrt((d.x - meanX)**2 + (d.y - meanY)**2)
-    );
-  
-    const avgPx = distances.reduce((s,d)=>s+d,0) / distances.length;
-  
-    return {
-      groupingRadius: avgPx * PIXEL_TO_CM,
-      centerX: meanX,
-      centerY: meanY
-    };
-  }
-  
   function clearLiveBoard() {
     dartCells.forEach((cell) => {
       cell.textContent = 0;
       cell.className = ""; // remove any prior styling
     });
   }
-  
-  function drawGroupingCenter(x, y) {
 
-    if (x == null || y == null) return;
+  function getTargetCoordinates(ring, value) {
+    // bull targets
+    if (value == 25) {
+      return { x: 0, y: 0 };
+    }
+
+    const segmentOrder = [
+      20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5,
+    ];
+
+    const index = segmentOrder.indexOf(Number(value));
+
+    // 360 / 20 segments
+    const angle = ((index * 18 - 90) * Math.PI) / 180;
+
+    let radius;
+
+    if (ring === "T") radius = 103; // triple ring center
+    else if (ring === "D") radius = 166; // double ring center
+    else radius = 140; // single ring (approx middle)
+
+    const x = radius * Math.cos(angle);
+    const y = radius * Math.sin(angle);
+
+    return { x, y };
+  }
+
+
+  function calculateGroupingRadius(darts) {
+    if (!darts.length) return 0;
   
-    const board = document.getElementById("dartboard");
+    // find group center
+    const centerX = darts.reduce((sum, d) => sum + d.x, 0) / darts.length;
+    const centerY = darts.reduce((sum, d) => sum + d.y, 0) / darts.length;
   
-    const marker = document.createElement("div");
-    marker.className = "group-center-marker";
+    // average distance from center
+    const avgDistance =
+      darts.reduce((sum, d) => {
+        const dx = d.x - centerX;
+        const dy = d.y - centerY;
+        return sum + Math.sqrt(dx * dx + dy * dy);
+      }, 0) / darts.length;
   
-    marker.style.position = "absolute";
-    marker.style.left = `${x}px`;
-    marker.style.top = `${y}px`;
-    marker.style.width = "10px";
-    marker.style.height = "10px";
-    marker.style.background = "lime";
-    marker.style.borderRadius = "50%";
-    marker.style.transform = "translate(-50%, -50%)";
-    marker.style.pointerEvents = "none";
-    marker.style.zIndex = "2000";
-  
-    board.appendChild(marker);
+    return avgDistance;
   }
   
   
   
   
-  //ADD NEW LISTENERS HERE
+  
+  
+  
+  //ADD NEW FUNCTIONS HERE
 
   // Initial calculated target on game start
   const initialTarget = getTarget(remainingScore);
