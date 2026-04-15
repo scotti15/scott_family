@@ -175,7 +175,7 @@ if (isset($_GET['list_id']) && is_numeric($_GET['list_id'])) {
 <!-- Expose PHP variables to JS -->
 <script>
   const CURRENT_USER_ID = <?= json_encode($_SESSION['user_id']) ?>;
-  const CURRENT_LIST_ID = <?= json_encode($selected_list_id) ?>;
+  let CURRENT_LIST_ID = <?= json_encode($selected_list_id) ?>;
 </script>
 
 <!-- Your main JS file -->

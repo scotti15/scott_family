@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let gameFinished = true;
   let currentTurns = []; // keeps all turns for the current game
 
+  let viewMode = "raw"; // or "wedge"
+
   let remainingScore = startingScore;
   let ricochetMode = false;
 
@@ -41,6 +43,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let sessionActive = false;
 
   let turnStartScore = null;
+
+  const toggle = document.getElementById("scoreToggle");
+  toggle.addEventListener("change", () => {
+    viewMode = toggle.checked ? "wedge" : "raw";
+
+    console.log("VIEW MODE CHANGED:", viewMode);
+
+    populateHistoryTable(currentTurns);
+  });
 
   document
     .getElementById("newSessionBtn")
@@ -141,6 +152,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!svg || !confirmBtn) {
     console.error("Dartboard elements missing from DOM");
     return;
+  }
+
+  function isGameComplete(turns) {
+    return (
+      turns.length > 0 &&
+      turns[turns.length - 1].end_score == 0 &&
+      turns[turns.length - 1].turn_result === "double_out"
+    );
   }
   // ================================
   // BOARD CLICK (RICHOCHET SHOW SCORE)
@@ -893,58 +912,74 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         /* -------------------------
-           1∩╕ÅΓâú Session + Game identity
+           1️⃣ Session + Game identity
         ------------------------- */
         currentSessionId = data.session.session_id;
         currentGameId = data.game ? data.game.game_id : null;
         sessionActive = true;
-
         games = data.games;
 
         /* -------------------------
-           2∩╕ÅΓâú Populate game dropdown
+           2️⃣ Populate dropdown
         ------------------------- */
         populateGameDropdown(data.games, currentGameId);
 
         /* -------------------------
-           3∩╕ÅΓâú Clear UI-only state
-           (do NOT touch scoring)
+           3️⃣ Reset UI
         ------------------------- */
+        clearHistoryTable();
         clearMarkers();
         clearTargetHighlight();
-        resetTurnUI(); // ΓÜá∩╕Å UI reset only
-        boardLocked = false;
+        resetTurnUI();
 
         /* -------------------------
-           4∩╕ÅΓâú Populate history + restore score
+           4️⃣ Load turns
         ------------------------- */
-        if (data.turns && data.turns.length > 0) {
-          populateHistoryTable(data.turns);
-          // ≡ƒöü Rebuild markers for replay
+        const turns = data.turns || [];
+
+        if (turns.length > 0) {
+          populateHistoryTable(turns);
+
           Object.keys(markersByTurn).forEach((k) => delete markersByTurn[k]);
-          rebuildMarkersFromThrows(data.turns);
+          rebuildMarkersFromThrows(turns);
+
+          remainingScore = turns[turns.length - 1].end_score;
+          turnNumber = turns[turns.length - 1].turn_number + 1;
         } else {
           // Fresh game
           turnNumber = 1;
           remainingScore = startingScore;
           turnStartRemaining = startingScore;
-
-          const remainingEl = document.getElementById("remaining-score");
-          if (remainingEl) remainingEl.textContent = remainingScore;
         }
 
+        const remainingEl = document.getElementById("remaining-score");
+        if (remainingEl) remainingEl.textContent = remainingScore;
+
         /* -------------------------
-           5∩╕ÅΓâú Prepare next turn
+           5️⃣ Prepare next turn
         ------------------------- */
         prepareNextTarget();
         updateActiveSessionUI();
 
-        // Optional sanity check (remove later)
+        /* -------------------------
+           🔒 FINAL: Lock/Unlock
+        ------------------------- */
+        const complete = isGameComplete(turns);
+
+        boardLocked = complete;
+
+        if (complete) {
+          lockGameUI();
+        } else {
+          unlockGameUI();
+        }
+
+        console.log("Board locked?", boardLocked);
+
         console.log("Session resumed:", {
           currentGameId,
           turnNumber,
           remainingScore,
-          turnStartRemaining,
         });
       })
       .catch((err) => console.error("Load session failed:", err));
@@ -1082,46 +1117,43 @@ document.addEventListener("DOMContentLoaded", () => {
   ========================= */
     let turnTotal = 0;
     const isBust = turn.turn_result === "bust";
-
     for (let i = 0; i < 3; i++) {
       const td = document.createElement("td");
       const dart = turn.darts?.[i];
-      console.log(dart);
-          let dartValue = Number(dart.score) * Number(dart.segment || 1);
+      console.log("DART OBJECT:", dart);
 
-          if (dart) {
+      if (dart) {
+        let dartValue = Number(dart.score) * Number(dart.segment || 1);
 
-            let dartValue = Number(dart.score) * Number(dart.segment || 1);
-          
-            if (dart.throw_type === "ricochet") {
-              td.textContent = dartValue;
-              td.classList.add("ricochet");
-          
-            } else {
-              td.textContent = dartValue;
-          
-              if (!isBust) {
-                turnTotal += dartValue;
-              }
-          
-              if (dart.hitTarget) {
-                td.classList.add("hit-target");
-          
-                if (dart.ring === "T") td.classList.add("triple");
-                else if (dart.ring === "D") td.classList.add("double");
-                else td.classList.add("single");
-              }
-            }
-          
-            if (isBust) td.classList.add("bust-dart");
-          
-            if (dart.classes && Array.isArray(dart.classes)) {
-              dart.classes.forEach((cls) => td.classList.add(cls));
-            }
-          
-          } else {
-            td.textContent = "-";
+        if (dart.throw_type === "ricochet") {
+          td.textContent =
+            viewMode === "wedge" ? `${dart.ring}${dart.score}` : dartValue;
+          td.classList.add("ricochet");
+        } else {
+          td.textContent =
+            viewMode === "wedge" ? `${dart.ring}${dart.score}` : dartValue;
+
+          if (!isBust) {
+            turnTotal += dartValue;
           }
+
+          if (dart.hitTarget) {
+            td.classList.add("hit-target");
+
+            if (dart.ring === "T") td.classList.add("triple");
+            else if (dart.ring === "D") td.classList.add("double");
+            else td.classList.add("single");
+          }
+        }
+
+        if (isBust) td.classList.add("bust-dart");
+
+        if (dart.classes && Array.isArray(dart.classes)) {
+          dart.classes.forEach((cls) => td.classList.add(cls));
+        }
+      } else {
+        td.textContent = "-";
+      }
 
       tr.appendChild(td);
     }
@@ -1162,7 +1194,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function loadGameById(gameId) {
-    console.log("≡ƒôÑ Loading game:", gameId);
+    console.log("🎯 Loading game:", gameId);
 
     fetch(
       `load_dart_session.php?session_id=${currentSessionId}&game_id=${gameId}`
@@ -1170,6 +1202,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((res) => res.json())
       .then((data) => {
         games = data.games;
+
         if (data.status !== "ok") {
           console.error("Load failed", data);
           return;
@@ -1177,32 +1210,50 @@ document.addEventListener("DOMContentLoaded", () => {
 
         currentGameId = data.game.game_id;
 
-        // Reset UI
+        // -------------------------
+        // Reset UI first
+        // -------------------------
         clearHistoryTable();
         resetGameUI();
 
-        // Store turns globally
+        // -------------------------
+        // Load turns
+        // -------------------------
         currentTurns = data.turns || [];
-        // console.log(currentTurns[0].darts);
-        console.log("Turns data from server:", data.turns);
+        console.log("Turns data from server:", currentTurns);
 
-        // Rebuild history
         currentTurns.forEach((turn) => addHistoryRow(turn));
-        rebuildMarkersFromThrows(currentTurns); // <--- Step 1
-        console.log("Markers after rebuild:", markersByTurn);
+        rebuildMarkersFromThrows(currentTurns);
 
-        // Restore remaining score
+        // -------------------------
+        // Restore score + turn
+        // -------------------------
         remainingScore = currentTurns.length
           ? currentTurns[currentTurns.length - 1].end_score
           : 501;
 
         document.getElementById("remaining-score").textContent = remainingScore;
 
-        // Restore turn number
         turnNumber = currentTurns.length
           ? currentTurns[currentTurns.length - 1].turn_number + 1
           : 1;
+
         prepareNextTarget();
+
+        // -------------------------
+        // 🔒 FINAL: Lock/Unlock
+        // -------------------------
+        const complete = isGameComplete(currentTurns);
+
+        boardLocked = complete;
+
+        if (complete) {
+          lockGameUI();
+        } else {
+          unlockGameUI();
+        }
+
+        console.log("Board locked?", boardLocked);
       })
       .catch((err) => console.error(err));
   }
@@ -1947,7 +1998,7 @@ document.addEventListener("DOMContentLoaded", () => {
         groupingDarts.push({ x: Number(d.x), y: Number(d.y) });
       }
       // ---------- Compute actual score including multiplier ----------
-      
+
       const isRicochet = d.throwType === "ricochet";
 
       let dartScore = 0;
@@ -2006,10 +2057,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ? ((preFinishScore / preFinishDarts) * 3).toFixed(2)
         : "0.00";
 
-     const groupingRadius =
-        groupingDarts.length > 1
-          ? calculateGroupingRadius(groupingDarts)
-          : null;
+    const groupingRadius =
+      groupingDarts.length > 1 ? calculateGroupingRadius(groupingDarts) : null;
     return {
       // Key stats
       t20WedgeHits,
@@ -2020,7 +2069,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // 3-Dart Averages
       overall3DA,
       preFinish3DA,
-      
+
       // Accuracy
       groupingRadius,
     };
@@ -2040,10 +2089,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("stat3DAPreFinish").textContent =
       stats.preFinish3DA;
-      
-      document.getElementById("statGroupingRadius").textContent =
+
+    document.getElementById("statGroupingRadius").textContent =
       stats.groupingRadius != null
-        ? `${(stats.groupingRadius).toFixed(1)} mm`
+        ? `${stats.groupingRadius.toFixed(1)} mm`
         : "-";
   }
 
@@ -2081,14 +2130,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return { x, y };
   }
 
-
   function calculateGroupingRadius(darts) {
     if (!darts.length) return 0;
-  
+
     // find group center
     const centerX = darts.reduce((sum, d) => sum + d.x, 0) / darts.length;
     const centerY = darts.reduce((sum, d) => sum + d.y, 0) / darts.length;
-  
+
     // average distance from center
     const avgDistance =
       darts.reduce((sum, d) => {
@@ -2096,16 +2144,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const dy = d.y - centerY;
         return sum + Math.sqrt(dx * dx + dy * dy);
       }, 0) / darts.length;
-  
+
     return avgDistance;
   }
-  
-  
-  
-  
-  
-  
-  
+
   //ADD NEW FUNCTIONS HERE
 
   // Initial calculated target on game start

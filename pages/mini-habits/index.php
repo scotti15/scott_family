@@ -33,16 +33,25 @@ require_once 'rollover_daily_stats.php';
 
 
 <!-- User Selection -->
-<div class="card p-3 mb-4">
-    <label><strong>Viewing Habits For:</strong></label>
-    <select id="userSelector" class="form-select" style="max-width: 300px;">
-        <?php foreach ($users as $u): ?>
-            <option value="<?= $u['id'] ?>" 
-                <?= ($u['id'] == $view_user_id ? 'selected' : '') ?>>
-                <?= htmlspecialchars($u['username']) ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
+<div class="card p-3 mb-4 d-flex flex-row align-items-center justify-content-between">
+
+    <div class="d-flex align-items-center gap-3">
+        <label class="mb-0"><strong>Viewing Habits For:</strong></label>
+
+        <select id="userSelector" class="form-select" style="max-width: 300px;">
+            <?php foreach ($users as $u): ?>
+                <option value="<?= $u['id'] ?>" 
+                    <?= ($u['id'] == $view_user_id ? 'selected' : '') ?>>
+                    <?= htmlspecialchars($u['username']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <a id="historyBtn" href="../mini-habits/history.php?user=<?= $view_user_id ?>" class="btn btn-outline-primary">
+    View History
+</a>
+
 </div>
 
 <button id="showDeactivatedBtn" class="btn btn-outline-secondary mb-3">

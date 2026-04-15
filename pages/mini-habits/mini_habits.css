@@ -31,3 +31,19 @@
 .hm-50  { background: #7bc96f; }
 .hm-75  { background: #239a3b; }
 .hm-100 { background: #196127; }
+
+.hm-empty {
+    background: #f5f5f5;
+}
+
+.hm-0 {
+    background: #e0e0e0;
+}
+
+.hm-partial {
+    background: #7bc96f;
+}
+
+.hm-na {
+    background: #dcdcdc;
+}

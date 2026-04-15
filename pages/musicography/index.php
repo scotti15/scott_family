@@ -103,8 +103,8 @@ if (!$userId) {
                 <td><?= $row['track_length'] ?></td>
                 <td><?= $row['release_year'] ?></td>
                 <td><?= htmlspecialchars($row['genre']) ?></td>
-                <td><?= htmlspecialchars($row['composer']) ?></td>
-                <td><?= htmlspecialchars($row['featured_artist']) ?></td>
+                <td><?= htmlspecialchars($row['composer'] ?? '') ?></td>
+                <td><?= htmlspecialchars($row['featured_artist'] ?? '') ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>

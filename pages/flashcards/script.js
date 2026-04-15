@@ -413,6 +413,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // and reset your flashcard cycle/overall counters
   });
   async function loadFlashcards(listId) {
+    CURRENT_LIST_ID = listId;
+    window._celebrated = false;
     try {
       const res = await fetch(`get_flashcards.php?list_id=${listId}`);
       const data = await res.json();

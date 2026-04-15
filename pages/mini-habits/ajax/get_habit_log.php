@@ -5,23 +5,26 @@ if (session_status() == PHP_SESSION_NONE) session_start();
 
 header('Content-Type: application/json');
 
-$user_id = intval($_GET['user_id'] ?? 0);
-$month   = $_GET['month'] ?? date('Y-m'); // fallback to current month
+$user_id = intval($_GET['user_id'] ?? $_GET['uid'] ?? 0);
+$month   = $_GET['month'] ?? date('Y-m');
 
 try {
     $stmt = $pdo->prepare("
-        SELECT
-            l.completed_date,
-            h.habit_name,
-            l.completed,
-            l.target,
-            ROUND((l.completed / l.target) * 100) AS percent_complete
-        FROM mini_habit_log l
-        JOIN mini_habits h ON h.habit_id = l.habit_id
-        WHERE l.user_id = :user_id
-          AND DATE_FORMAT(l.completed_date, '%Y-%m') = :month
-        ORDER BY l.completed_date, h.habit_name
-    ");
+    SELECT
+        l.completed_date,
+        h.habit_name,
+        l.completed,
+        l.target,
+        ROUND((l.completed / l.target) * 100) AS percent_complete,
+        h.create_date,
+        h.is_active,
+        h.modified
+    FROM mini_habit_log l
+    JOIN mini_habits h ON h.habit_id = l.habit_id
+    WHERE l.user_id = :user_id
+      AND DATE_FORMAT(l.completed_date, '%Y-%m') = :month
+    ORDER BY l.completed_date, h.habit_name
+");
 
     $stmt->execute([
         ':user_id' => $user_id,
