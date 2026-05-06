@@ -47,24 +47,23 @@ if (!$user_id) {
     </div>
     <div class="tabs-row">
 
-<!-- Tabs (LEFT) -->
-<div class="tabs">
-    <button class="tab-btn active" data-tab="overview">Overview</button>
-    <button class="tab-btn" data-tab="scoring">Scoring</button>
-    <button class="tab-btn" data-tab="finishing">Finishing</button>
-    <button class="tab-btn" data-tab="insights">Insights</button>
-    <button class="tab-btn" data-tab="heatmaps">Heatmaps</button>
-</div>
+        <!-- Tabs (LEFT) -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="scoring">Scoring</button>
+            <button class="tab-btn" data-tab="finishing">Finishing</button>
+            <button class="tab-btn" data-tab="insights">Insights</button>
+            <button class="tab-btn" data-tab="heatmaps">Heatmaps</button>
+        </div>
 
-<!-- Key (RIGHT) -->
-<div class="metric-key">
-    <span>▼ lower is better</span>
-    <span>▲ higher is better</span>
-</div>
+        <!-- Key (RIGHT) -->
+        <div class="metric-key">
+            <span>▼ lower is better</span>
+            <span>▲ higher is better</span>
+        </div>
 
-</div>
-    <!-- Tab Contents -->
-
+    </div>
+    <!-- TAB CONTENTS -->
     <div id="overview" class="tab-content">
 
         <h2>Overview</h2>
@@ -104,12 +103,14 @@ if (!$user_id) {
                 <h3>Scoring 3DA</h3>
                 <p id="scoring3da-value">--</p>
             </div>
+
         </div>
 
         <div class="chart-container" style="margin-top:30px;">
             <h3 id="chart-title">3-Dart Average Over Time</h3>
             <canvas id="chart-3da" height="100"></canvas>
         </div>
+
         <div style="margin: 15px 0;">
             <label>
                 Target:
@@ -117,49 +118,61 @@ if (!$user_id) {
             </label>
             <input type="range" id="target-slider" min="0" max="100" step="1" />
         </div>
-        <div id="scoring" class="tab-content" style="display:none;">
-            <h2>Scoring</h2>
-            <p>This is the scoring stats page.</p>
-        </div>
 
-        <div id="finishing" class="tab-content" style="display:none;">
-            <h2>Finishing</h2>
-            <p>This is the finishing stats page.</p>
-        </div>
-
-        <div id="insights" class="tab-content" style="display:none;">
-            <h2>Insights</h2>
-            <p>This is the insights page.</p>
-        </div>
-
-        <div id="heatmaps" class="tab-content" style="display:none;">
-            <h2>Heatmaps</h2>
-            <p>This is the heatmaps page.</p>
-        </div>
     </div>
 
-</div>
 
-<script>
-document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
+    <div id="scoring" class="tab-content" style="display:none;">
 
-        // Active button styling
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
+        <h2>Scoring</h2>
 
-        const tab = btn.dataset.tab;
+        <div class="stats-grid">
 
-        // Show/hide content
-        document.querySelectorAll(".tab-content").forEach(el => {
-            el.style.display = "none";
+            <div class="stat-card">
+                <h3>S20 (when aiming T20) %</h3>
+                <p id="stat-s20-t20">--</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="finishing" class="tab-content" style="display:none;">
+        <h2>Finishing</h2>
+        <p>This is the finishing stats page.</p>
+    </div>
+
+    <div id="insights" class="tab-content" style="display:none;">
+        <h2>Insights</h2>
+        <p>This is the insights page.</p>
+    </div>
+
+    <div id="heatmaps" class="tab-content" style="display:none;">
+        <h2>Heatmaps</h2>
+        <p>This is the heatmaps page.</p>
+    </div>
+
+<!-- 
+    <script>
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+
+            // Active button styling
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            const tab = btn.dataset.tab;
+
+            // Show/hide content
+            document.querySelectorAll(".tab-content").forEach(el => {
+                el.style.display = "none";
+            });
+
+            document.getElementById(tab).style.display = "block";
         });
-
-        document.getElementById(tab).style.display = "block";
     });
-});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="darts_statistics.js"></script>
+    </script> -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="darts_statistics.js"></script>
 
-<?php include "../../includes/footer.php"; ?>
+    <?php include "../../includes/footer.php"; ?>

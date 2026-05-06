@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let totalCards = 0; // total number of words in the current list
   let currentCycleCount = 0; // counts how many cycles have been completed
   let totalAnswers = 0; // increments on every answer
+  let overallRemaining = 0;
+  let baseScore = 3; // default
 
   let finalTimeSeconds = 0;
   let finalTimeDisplay = "00:00";
@@ -61,17 +63,20 @@ document.addEventListener("DOMContentLoaded", () => {
   let timerStarted = false;
 
   document.getElementById("reviewModeBtn").addEventListener("click", () => {
-    if (!confirm("Start Review Mode? This will restart the game with all words requiring only 1 correct answer.")) {
+    if (
+      !confirm(
+        "Start Review Mode? This will restart the game with all words requiring only 1 correct answer."
+      )
+    ) {
       return;
     }
-  
+
     // restart the game with base value = 1
     resetGame(1);
-  
+
     // update button text so user knows Review Mode is active
     document.getElementById("reviewModeBtn").textContent = "Review Mode Active";
   });
-  
 
   // ensure card starts showing front
   card.style.transform = "rotateY(0deg)";
@@ -94,6 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
         mastered: false,
       }));
 
+      overallRemaining = computeTotalRequired(allWords.length, 5, baseScore);
+
       startNewCycle(5);
       prepareNextPass();
       showNextWord();
@@ -105,8 +112,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (gameOver) return; // stop updating once finished
     const cycleSum = allWords
       .filter((w) => w.inCycle && w.value > 0)
-      .reduce((s, w) => s + Math.min(w.value, getRequiredValue()), 0);
-    const overallSum = allWords.reduce((s, w) => s + w.value, 0);
+      .reduce((s, w) => s + (w.value || 0), 0);
+    const overallSum = overallRemaining;
     cycleScoreEl.textContent = `Cycle: ${cycleSum}`;
     overallScoreEl.textContent = `Overall: ${overallSum}`;
     // 🎉 Trigger celebration when all words are mastered
@@ -207,12 +214,35 @@ document.addEventListener("DOMContentLoaded", () => {
       prepareNextPass();
     }
     currentWordObj = passQueue.shift();
-    displayWord(currentWordObj.question);
+    displayWord(currentWordObj);
   }
 
-  function displayWord(text) {
-    cardFront.textContent = text;
-    setFontSizeByLength(cardFront);
+  function displayWord(wordObj) {
+    cardFront.innerHTML = "";
+
+    const q = wordObj.question;
+
+    const isImage =
+      typeof q === "string" && /\.(jpg|jpeg|png|gif|webp)$/i.test(q);
+
+    if (isImage) {
+      const img = document.createElement("img");
+      img.src = "images/" + encodeURIComponent(q);
+
+      img.style.maxWidth = "80%";
+      img.style.maxHeight = "150px";
+      img.style.objectFit = "contain";
+      img.style.display = "block";
+      img.style.margin = "0 auto";
+
+      cardFront.appendChild(img);
+    } else {
+      const textEl = document.createElement("div");
+      textEl.textContent = q;
+      setFontSizeByLength(textEl);
+      cardFront.appendChild(textEl);
+    }
+
     cardFront.style.backgroundColor = "white";
     cardFront.style.color = "#111";
     cardInput.value = "";
@@ -257,9 +287,11 @@ document.addEventListener("DOMContentLoaded", () => {
       currentWordObj.value = Math.max(0, currentWordObj.value - 1);
       answerDisplay.textContent = "";
       correctCount++;
+      overallRemaining -= 1;
     } else {
       currentWordObj.value += 1;
       answerDisplay.textContent = `Answer: ${currentWordObj.answer}`;
+      overallRemaining += 1;
     }
     updateScoreDisplays();
   }
@@ -433,10 +465,21 @@ document.addEventListener("DOMContentLoaded", () => {
       allWords = data.flashcards.map((item) => ({
         question: item.question,
         answer: item.answer,
+
+        // NEW (won’t break anything if null)
+        question_image: item.question_image || null,
+        answer_image: item.answer_image || null,
+
         value: 3,
         inCycle: false,
         mastered: false,
       }));
+
+      
+      overallRemaining = computeTotalRequired(allWords.length, 5, baseScore);
+
+      console.log("First card:", allWords[0]);
+      console.log("All cards:", allWords);
 
       totalCards = allWords.length;
 
@@ -466,12 +509,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- event listener ---
   restartButton.addEventListener("click", () => {
-    if (!confirm("Are you sure you want to restart? All progress will be lost."))
+    if (
+      !confirm("Are you sure you want to restart? All progress will be lost.")
+    )
       return;
-  
+
     resetGame(3); // normal mode
   });
-  
 
   function getRandomWords(count) {
     if (unusedWords.length < count) {
@@ -560,9 +604,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .filter((w) => w.inCycle && w.value > 0)
           .reduce((s, w) => s + (w.value || 0), 0)
       : 0;
-    const overallSum = Array.isArray(allWords)
-      ? allWords.reduce((s, w) => s + (w.value || 0), 0)
-      : 0;
+    const overallSum = overallRemaining;
 
     // Fallback for starting totals: if not defined, set them to current sums (prevents divide-by-zero)
     if (!totalStartingValue || totalStartingValue <= 0)
@@ -878,47 +920,67 @@ document.addEventListener("DOMContentLoaded", () => {
     return reviewMode ? 1 : 3;
   }
 
-  function resetGame(baseScore) {
-
+  function resetGame(newBaseScore) {
+    baseScore = newBaseScore;  // ← ADD THIS LINE
     // stop celebration / game-over state
     window._celebrated = false;
     gameOver = false;
-  
+
     allWords.forEach((w) => {
       w.value = baseScore;
       w.inCycle = false;
       w.mastered = false;
     });
-  
+
+    console.log("n:", allWords.length);
+console.log("baseScore:", baseScore);
+    
+    overallRemaining = computeTotalRequired(allWords.length, 5, baseScore);
+    totalStartingValue = overallRemaining;
+
     nextBatchIndex = 0;
     currentCycleWords = [];
     passQueue = [];
-  
+
     startNewCycle(5);
     prepareNextPass();
     showNextWord();
     updateScoreDisplays();
-  
+
     cardInput.disabled = false;
     button.disabled = false;
-  
+
     clearInterval(timerInterval);
     totalSeconds = 0;
     updateTimerDisplay();
     timerStarted = false;
     isPaused = false;
     pauseBtn.textContent = "Pause";
-  
+
     quizStatus.textContent = "Restarted! Let's go again 🚀";
     setTimeout(() => {
       quizStatus.textContent = "";
     }, 1800);
   }
-  
-  
-  
-  
-  
+
+  function computeTotalRequired(n, batchSize = 5, reps = 3) {
+    
+    let total = 0;
+    let introduced = 0;
+
+    while (introduced < n) {
+      const add = Math.min(batchSize, n - introduced);
+
+      // new words
+      total += add * reps;
+
+      // existing words need 1 more repetition
+      total += introduced;
+
+      introduced += add;
+    }
+    return total;
+  }
 
   //ADD NEW FUNCTIONS HERE
 });

@@ -66,6 +66,19 @@ switch ($metric) {
             AND dt.is_valid = 1
         ";
         break;
+
+        case 'wedge20_t20':
+            $metricSql = "
+                (SUM(CASE WHEN dt.hit_score = 20 THEN 1 ELSE 0 END) 
+                / NULLIF(COUNT(*),0)) * 100
+            ";
+        
+            $havingSql = "
+                AND dt.aimed_ring = 'T'
+                AND dt.aimed_value = 20
+                AND dt.is_valid = 1
+            ";
+            break;
         
     case 'doubleAttempts':
         $metricSql = "COUNT(*)";

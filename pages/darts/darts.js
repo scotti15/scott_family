@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+  
   loadDartSessions();
 
   // ================================
@@ -829,6 +830,12 @@ document.addEventListener("DOMContentLoaded", () => {
         d.aimed_value = lastAimValue;
       }
     });
+    let startScore = turnStartRemaining;
+let endScore = actualRemainingScore;
+
+if (turnResult === "bust") {
+  endScore = startScore; // 🔥 enforce rule
+}
 
     return {
       game_id: currentGameId,
@@ -1067,10 +1074,19 @@ document.addEventListener("DOMContentLoaded", () => {
     turns.forEach((turn) => addHistoryTurnRow(turn));
 
     const lastTurn = turns[turns.length - 1];
-
+    const isBust = lastTurn.turn_result === "bust";
+    
+    console.log("Last Turn object:", lastTurn);
+    console.log("Is bust?", isBust);
+    
     turnNumber = lastTurn.turn_number + 1;
-    remainingScore = lastTurn.end_score;
-    turnStartRemaining = lastTurn.end_score; // ≡ƒöÆ authoritative baseline
+    
+    remainingScore = isBust
+      ? lastTurn.start_score
+      : lastTurn.end_score;
+    
+    // Critical: reset turn baseline correctly
+    turnStartRemaining = remainingScore;
 
     const remainingEl = document.getElementById("remaining-score");
     if (remainingEl) remainingEl.textContent = remainingScore;
@@ -1225,13 +1241,20 @@ document.addEventListener("DOMContentLoaded", () => {
         currentTurns.forEach((turn) => addHistoryRow(turn));
         rebuildMarkersFromThrows(currentTurns);
 
+const lastTurn = currentTurns[currentTurns.length - 1];
+
+console.log("Last turn in loadGameById:", lastTurn);
+console.log("Turn result:", lastTurn?.turn_result);
+console.log("Start score:", lastTurn?.start_score);
+console.log("End score:", lastTurn?.end_score);
+
         // -------------------------
         // Restore score + turn
         // -------------------------
         remainingScore = currentTurns.length
           ? currentTurns[currentTurns.length - 1].end_score
           : 501;
-
+console.log("Remaining BEFORE fix:", remainingScore);
         document.getElementById("remaining-score").textContent = remainingScore;
 
         turnNumber = currentTurns.length

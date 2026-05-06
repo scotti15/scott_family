@@ -365,10 +365,10 @@ if (!$user_id) {
 
 
                 <!-- Outer Bull (25) -->
-                <circle stroke="#99AABB" stroke-width="1" r="15.9" fill="#008000" data-value="25" data-multiplier="1" />
+                <circle class="scoring-segment" stroke="#99AABB" stroke-width="1" r="15.9" fill="#008000" data-value="25" data-multiplier="1" />
 
                 <!-- Inner Bull (50) -->
-                <circle stroke="#99AABB" stroke-width="1" r="6.35" fill="#cc0000" data-value="25" data-multiplier="2" />
+                <circle class="scoring-segment" stroke="#99AABB" stroke-width="1" r="6.35" fill="#cc0000" data-value="25" data-multiplier="2" />
             </svg>
         </div>
 

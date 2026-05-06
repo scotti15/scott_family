@@ -1,5 +1,25 @@
+const tabDefaultMetric = {
+  overview: "3da",
+  scoring: "wedge20_t20",
+  finishing: null,
+  insights: null,
+  heatmaps: null
+};
+
 // Run on page load
+
 document.addEventListener("DOMContentLoaded", async () => {
+  initTabs();
+
+  
+//   // simulate clicking the default active tab
+//   const activeTab = document.querySelector(".tab-btn.active");
+//   if (activeTab) {
+//     activeTab.click();
+//   }
+// }); 
+
+
   let currentFilters = {
     session: "all",
   };
@@ -129,15 +149,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         `get_double_pct.php?session=${currentFilters.session}`
       );
       const data = await res.json();
-  
+
       console.log("Double Attempts response:", data);
-  
+
       if (data.error) return;
-  
+
       const avgAttemptsPerGame = data.double_pct
         ? (data.attempts / data.successes).toFixed(2)
         : "--";
-  
+
       document.getElementById("stat-doubleAttempts").textContent =
         avgAttemptsPerGame;
     } catch (err) {
@@ -284,11 +304,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function loadChartByMetric(metric) {
+    
+    console.log("Loading metric:", metric);
     try {
       const res = await fetch(
         `get_timeseries.php?metric=${metric}&session=${currentFilters.session}`
       );
       const json = await res.json();
+      
+    console.log("labels:", json.labels);
+    console.log("data:", json.data);
 
       if (!chart3DA) {
         initChart(json.labels, json.data, metric);
@@ -303,6 +328,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         dpl: "Darts Per Leg Over Time",
         doubleAttempts: "Double Attempts Over Time",
         scoring3da: "Scoring 3-Dart Average Over Time",
+        "wedge20_t20": "20 Wedge % (T20 Target) Over Time",
       };
 
       document.getElementById("chart-title").textContent =
@@ -355,5 +381,72 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     chart3DA.update();
   }
+
+
+
+function initTabs() {
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+
+      // active button styling
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const tab = btn.dataset.tab;
+
+      // show correct tab
+      document.querySelectorAll(".tab-content").forEach((el) => {
+        el.style.display = "none";
+      });
+
+      document.getElementById(tab).style.display = "block";
+
+      // load tab-specific stats (cards)
+      if (tab === "scoring") {
+        loadScoringStats();
+      }
+
+      // 🔥 THIS is the pipeline routing
+      const metric = tabDefaultMetric[tab];
+
+      if (metric) {
+        loadChartByMetric(metric);
+      }
+    });
+  });
+}
+
+
+
   // ADD NEW FUNCTIONS HERE
+
+
+
+
+
+
+
+
+
+
+
+
 });
+
+
+function loadScoringStats() {
+  const filter = document.getElementById("session-filter").value;
+
+  fetch("stats/scoring/get_scoring_stats.php?filter=" + filter)
+    .then((res) => res.json())
+    .then((data) => {
+      const el = document.getElementById("stat-s20-t20");
+
+      if (data.s20_when_t20_has_data) {
+        el.textContent = data.s20_when_t20_pct.toFixed(2) + "%";
+      } else {
+        el.textContent = "—";
+      }
+    })
+    .catch((err) => console.error(err));
+}
