@@ -338,37 +338,40 @@ if (!$user_id) {
 
                 </g>
 
-                <g id="numbers" text-anchor="middle" font-family="Arial" font-size="16" fill="white" stroke="black"
-                    stroke-width="2">
+                <g id="numbers" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold"
+                    fill="black" stroke="white" stroke-width="1.8" paint-order="stroke fill"
+                    transform="translate(0, 4) scale(1.03)">
                     <!-- Segment order clockwise starting from T20 at top -->
                     <text x="0" y="-180">20</text>
-                    <text x="55" y="-171" transform="rotate(18 55 -171)">1</text>
-                    <text x="105" y="-144" transform="rotate(36 105 -144)">18</text>
-                    <text x="144" y="-105" transform="rotate(54 144 -105)">4</text>
-                    <text x="171" y="-55" transform="rotate(72 171 -55)">13</text>
-                    <text x="180" y="0" transform="rotate(90 180 0)">6</text>
-                    <text x="171" y="55" transform="rotate(108 171 55)">10</text>
-                    <text x="144" y="105" transform="rotate(126 144 105)">15</text>
-                    <text x="105" y="144" transform="rotate(144 105 144)">2</text>
-                    <text x="55" y="171" transform="rotate(162 55 171)">17</text>
-                    <text x="0" y="180" transform="rotate(180 0 180)">3</text>
-                    <text x="-55" y="171" transform="rotate(198 -55 171)">19</text>
-                    <text x="-105" y="144" transform="rotate(216 -105 144)">7</text>
-                    <text x="-144" y="105" transform="rotate(234 -144 105)">16</text>
-                    <text x="-171" y="55" transform="rotate(252 -171 55)">8</text>
-                    <text x="-180" y="0" transform="rotate(270 -180 0)">11</text>
-                    <text x="-171" y="-55" transform="rotate(288 -171 -55)">14</text>
-                    <text x="-144" y="-105" transform="rotate(306 -144 -105)">9</text>
-                    <text x="-105" y="-144" transform="rotate(324 -105 -144)">12</text>
-                    <text x="-55" y="-171" transform="rotate(342 -55 -171)">5</text>
+                    <text x="55" y="-171" transform="(18 55 -171)">1</text>
+                    <text x="105" y="-144" transform="(36 105 -144)">18</text>
+                    <text x="144" y="-105" transform="(54 144 -105)">4</text>
+                    <text x="171" y="-55" transform="(72 171 -55)">13</text>
+                    <text x="180" y="0" transform="(90 180 0)">6</text>
+                    <text x="171" y="55" transform="(108 171 55)">10</text>
+                    <text x="144" y="105" transform="(126 144 105)">15</text>
+                    <text x="105" y="144" transform="(144 105 144)">2</text>
+                    <text x="55" y="171" transform="(162 55 171)">17</text>
+                    <text x="0" y="180" transform="(180 0 180)">3</text>
+                    <text x="-55" y="171" transform="(198 -55 171)">19</text>
+                    <text x="-105" y="144" transform="(216 -105 144)">7</text>
+                    <text x="-144" y="105" transform="(234 -144 105)">16</text>
+                    <text x="-171" y="55" transform="(252 -171 55)">8</text>
+                    <text x="-180" y="0" transform="(270 -180 0)">11</text>
+                    <text x="-171" y="-55" transform="(288 -171 -55)">14</text>
+                    <text x="-144" y="-105" transform="(306 -144 -105)">9</text>
+                    <text x="-105" y="-144" transform="(324 -105 -144)">12</text>
+                    <text x="-55" y="-171" transform="(342 -55 -171)">5</text>
                 </g>
 
 
                 <!-- Outer Bull (25) -->
-                <circle class="scoring-segment" stroke="#99AABB" stroke-width="1" r="15.9" fill="#008000" data-value="25" data-multiplier="1" />
+                <circle class="scoring-segment" stroke="#99AABB" stroke-width="1" r="15.9" fill="#008000"
+                    data-value="25" data-multiplier="1" />
 
                 <!-- Inner Bull (50) -->
-                <circle class="scoring-segment" stroke="#99AABB" stroke-width="1" r="6.35" fill="#cc0000" data-value="25" data-multiplier="2" />
+                <circle class="scoring-segment" stroke="#99AABB" stroke-width="1" r="6.35" fill="#cc0000"
+                    data-value="25" data-multiplier="2" />
             </svg>
         </div>
 

@@ -57,3 +57,64 @@
     align-items: center;
     margin-bottom: 15px;
   }
+
+  .target-wheel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.target-wheel-grid .stat-card {
+    text-align: center;
+}
+
+#svg-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: pre-line;
+    pointer-events: none;
+    display: none;
+    z-index: 1000;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 30px;
+    margin-top: 15px;
+    font-size: 12px;
+  }
+  
+  .legend-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .box {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    border-radius: 2px;
+  }
+  
+  .box.green { background: #4caf50; }
+  .box.yellow { background: #ffeb3b; }
+  .box.red { background: #f44336; }
+  .box.gray { background: #eeeeee; }
+
+  .stat-subtext {
+    font-size: 14px;
+    color: rgb(3, 0, 0);
+    margin-top: 4px;
+  }

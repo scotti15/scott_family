@@ -139,20 +139,87 @@ if (!$user_id) {
 
     <div id="finishing" class="tab-content" style="display:none;">
         <h2>Finishing</h2>
-        <p>This is the finishing stats page.</p>
-    </div>
 
-    <div id="insights" class="tab-content" style="display:none;">
-        <h2>Insights</h2>
-        <p>This is the insights page.</p>
-    </div>
+        <div class="stats-grid">
+            <div class="stat-card"
+                title="Raw mechanical double accuracy. Measures how often you hit the intended double, excluding post-bust implied darts.">
+                <h3>Pure Double %</h3>
+                <p id="stat-pure-double">--</p>
+                <div id="stat-pure-double-effort" class="stat-subtext"></div>
+            </div>
 
-    <div id="heatmaps" class="tab-content" style="display:none;">
-        <h2>Heatmaps</h2>
-        <p>This is the heatmaps page.</p>
-    </div>
+            <div class="stat-card"
+                title="Real in-game double conversion rate. Includes post-bust implied darts, reflecting actual gameplay performance.">
+                <h3>Gameplay Double %</h3>
+                <p id="stat-gameplay-double">--</p>
+                <div id="stat-gameplay-double-effort" class="stat-subtext"></div>
+            </div>
 
-<!-- 
+            <div class="stat-card" title="Accuracy on intended setup singles used to leave a preferred double.">
+                <h3>Setup S %</h3>
+                <p id="stat-setup-s">--</p>
+            </div>
+
+            <div class="stat-card"
+                title="Average darts used from the first double attempt until the checkout is completed.">
+                <h3>Darts per Checkout A</h3>
+                <p id="stat-dpc-a">--</p>
+            </div>
+
+            <div class="stat-card"
+                title="Average darts used from the first turn where a checkout is mathematically possible (170 or less) until the checkout is completed.">
+                <h3>Darts per Checkout B</h3>
+                <p id="stat-dpc-b">--</p>
+            </div>
+        </div>
+        <div class="target-wheel-grid">
+            <div class="stat-card">
+                <h3>Double Accuracy by Target</h3>
+                <div id="double-target-wheel"></div>
+                <div class="legend-section">
+                    <div class="legend-item"><span class="box green"></span> ≥ 10%</div>
+                    <div class="legend-item"><span class="box yellow"></span> 5–9.99%</div>
+                    <div class="legend-item"><span class="box red"></span>
+                        < 5%</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Setup Accuracy by Target</h3>
+                    <div id="setup-target-wheel"></div>
+                    <div class="legend-section">
+                        <div class="legend-item"><span class="box green"></span> ≥ 35%</div>
+                        <div class="legend-item"><span class="box yellow"></span> 20–34.99%</div>
+                        <div class="legend-item"><span class="box red"></span>
+                            < 20%</div>
+                        </div>
+                    </div>
+                    <div id="svg-tooltip"></div>
+                    <div class="chart-legend">
+
+
+
+                        <div class="legend-section">
+                            <!-- <strong>Data reliability</strong> -->
+                            <!-- <div class="legend-item"><span class="box gray"></span>
+                                < 20 attempts (low confidence)</div>
+                            </div> -->
+
+                        </div>
+                    </div>
+                </div>
+
+                <div id="insights" class="tab-content" style="display:none;">
+                    <h2>Insights</h2>
+                    <p>This is the insights page.</p>
+                </div>
+
+                <div id="heatmaps" class="tab-content" style="display:none;">
+                    <h2>Heatmaps</h2>
+                    <p>This is the heatmaps page.</p>
+                </div>
+
+                <!-- 
     <script>
     document.querySelectorAll(".tab-btn").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -172,7 +239,7 @@ if (!$user_id) {
         });
     });
     </script> -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="darts_statistics.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script src="darts_statistics.js"></script>
 
-    <?php include "../../includes/footer.php"; ?>
+                <?php include "../../includes/footer.php"; ?>

@@ -3,7 +3,7 @@ const tabDefaultMetric = {
   scoring: "wedge20_t20",
   finishing: null,
   insights: null,
-  heatmaps: null
+  heatmaps: null,
 };
 
 // Run on page load
@@ -11,14 +11,12 @@ const tabDefaultMetric = {
 document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
 
-  
-//   // simulate clicking the default active tab
-//   const activeTab = document.querySelector(".tab-btn.active");
-//   if (activeTab) {
-//     activeTab.click();
-//   }
-// }); 
-
+  //   // simulate clicking the default active tab
+  //   const activeTab = document.querySelector(".tab-btn.active");
+  //   if (activeTab) {
+  //     activeTab.click();
+  //   }
+  // });
 
   let currentFilters = {
     session: "all",
@@ -304,16 +302,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function loadChartByMetric(metric) {
-    
     console.log("Loading metric:", metric);
     try {
       const res = await fetch(
         `get_timeseries.php?metric=${metric}&session=${currentFilters.session}`
       );
       const json = await res.json();
-      
-    console.log("labels:", json.labels);
-    console.log("data:", json.data);
+
+      console.log("labels:", json.labels);
+      console.log("data:", json.data);
 
       if (!chart3DA) {
         initChart(json.labels, json.data, metric);
@@ -328,7 +325,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         dpl: "Darts Per Leg Over Time",
         doubleAttempts: "Double Attempts Over Time",
         scoring3da: "Scoring 3-Dart Average Over Time",
-        "wedge20_t20": "20 Wedge % (T20 Target) Over Time",
+        wedge20_t20: "20 Wedge % (T20 Target) Over Time",
       };
 
       document.getElementById("chart-title").textContent =
@@ -382,57 +379,275 @@ document.addEventListener("DOMContentLoaded", async () => {
     chart3DA.update();
   }
 
+  function initTabs() {
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        // active button styling
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
 
+        const tab = btn.dataset.tab;
 
-function initTabs() {
-  document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
+        // show correct tab
+        document.querySelectorAll(".tab-content").forEach((el) => {
+          el.style.display = "none";
+        });
 
-      // active button styling
-      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
+        document.getElementById(tab).style.display = "block";
 
-      const tab = btn.dataset.tab;
+        // load tab-specific stats (cards)
+        if (tab === "scoring") {
+          loadScoringStats();
+        }
 
-      // show correct tab
-      document.querySelectorAll(".tab-content").forEach((el) => {
-        el.style.display = "none";
+        if (tab === "finishing") {
+          loadPureDouble();
+          loadGameplayDouble();
+          loadSetupS();
+          loadDPCA();
+          loadDPCB();
+          renderTargetWheel("double-target-wheel", "double");
+          renderTargetWheel("setup-target-wheel", "setup");
+
+          loadDoubleTargetWheel();
+          loadSetupTargetWheel();
+        }
+        // 🔥 THIS is the pipeline routing
+        const metric = tabDefaultMetric[tab];
+
+        if (metric) {
+          loadChartByMetric(metric);
+        }
       });
-
-      document.getElementById(tab).style.display = "block";
-
-      // load tab-specific stats (cards)
-      if (tab === "scoring") {
-        loadScoringStats();
-      }
-
-      // 🔥 THIS is the pipeline routing
-      const metric = tabDefaultMetric[tab];
-
-      if (metric) {
-        loadChartByMetric(metric);
-      }
     });
-  });
-}
+  }
 
+  function renderTargetWheel(containerId, prefix) {
+    const dartOrder = [
+      20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5,
+    ];
 
+    const size = 300;
+    const center = size / 2;
+    const outerRadius = 130;
+    const innerRadius = 40; // creates a donut hole for the center summary
+
+    // Helper: convert polar coordinates to cartesian
+    function polarToCartesian(cx, cy, r, angleDeg) {
+      const angleRad = ((angleDeg - 90) * Math.PI) / 180;
+      return {
+        x: cx + r * Math.cos(angleRad),
+        y: cy + r * Math.sin(angleRad),
+      };
+    }
+
+    // Helper: create SVG path for one wedge
+    function describeArcSegment(cx, cy, rOuter, rInner, startAngle, endAngle) {
+      const p1 = polarToCartesian(cx, cy, rOuter, endAngle);
+      const p2 = polarToCartesian(cx, cy, rOuter, startAngle);
+      const p3 = polarToCartesian(cx, cy, rInner, startAngle);
+      const p4 = polarToCartesian(cx, cy, rInner, endAngle);
+
+      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+      return [
+        `M ${p1.x} ${p1.y}`,
+        `A ${rOuter} ${rOuter} 0 ${largeArcFlag} 0 ${p2.x} ${p2.y}`,
+        `L ${p3.x} ${p3.y}`,
+        `A ${rInner} ${rInner} 0 ${largeArcFlag} 1 ${p4.x} ${p4.y}`,
+        "Z",
+      ].join(" ");
+    }
+
+    let svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  `;
+
+    // Build the 20 wedges
+    dartOrder.forEach((num, i) => {
+      const startAngle = i * 18 - 9;
+      const endAngle = startAngle + 18;
+
+      // ---- THIS IS WHERE THE SVG HTML FOR EACH SEGMENT GOES ----
+      const path = describeArcSegment(
+        center,
+        center,
+        outerRadius,
+        innerRadius,
+        startAngle,
+        endAngle
+      );
+
+      // Position text roughly in the middle of the wedge
+      const midAngle = startAngle + 9;
+      const labelRadius = (outerRadius + innerRadius) / 2;
+
+      const labelPos = polarToCartesian(center, center, labelRadius, midAngle);
+
+      svg += `
+      <path
+        id="${prefix}-segment-${num}"
+        d="${path}"
+        fill="#e0e0e0"
+        stroke="#ffffff"
+        stroke-width="1"
+      />
+
+      <text
+        x="${labelPos.x}"
+        y="${labelPos.y}"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-size="11"
+        font-weight="bold"
+        pointer-events="none"
+      >
+        ${num}
+      </text>
+    `;
+    });
+
+    // Center circle (optional overall percentage later)
+    svg += `
+      <circle
+        cx="${center}"
+        cy="${center}"
+        r="${innerRadius - 2}"
+        fill="white"
+        stroke="#ccc"
+      />
+    </svg>
+  `;
+
+    document.getElementById(containerId).innerHTML = svg;
+  }
+
+  async function loadDoubleTargetWheel() {
+    try {
+      const res = await fetch("stats/finishing/get_double_targets.php");
+      const rows = await res.json();
+
+      rows.forEach((row) => {
+        const hits = Number(row.hits);
+        const target = row.target;
+        const pct = Number(row.pct);
+        const attempts = Number(row.attempts);
+
+        // Find the SVG segment
+        const segment = document.getElementById(`double-segment-${target}`);
+        if (!segment) return;
+
+        // Determine fill color
+        let color = "#cccccc"; // default
+
+        if (attempts < 1) {
+          color = "#eeeeee"; // too little data
+        } else if (pct >= 10) {
+          color = "#4caf50"; // green
+        } else if (pct >= 5) {
+          color = "#ffeb3b"; // yellow
+        } else {
+          color = "#f44336"; // red
+        }
+
+        segment.setAttribute("fill", color);
+
+        const label = "S";
+        const tooltip = document.getElementById("svg-tooltip");
+
+        document
+          .querySelectorAll(
+            "path[id^='double-segment'], path[id^='double-segment']"
+          )
+          .forEach((el) => {
+            el.addEventListener("mousemove", (e) => {
+              tooltip.style.display = "block";
+              tooltip.style.left = e.pageX + 10 + "px";
+              tooltip.style.top = e.pageY + 10 + "px";
+              tooltip.textContent = el.dataset.tooltip;
+            });
+
+            el.addEventListener("mouseleave", () => {
+              tooltip.style.display = "none";
+            });
+          });
+
+        segment.dataset.tooltip =
+          `${label}${target}\n` +
+          `${pct.toFixed(2)}%\n` +
+          `${hits} hits\n` +
+          `${attempts} attempts`;
+      });
+    } catch (err) {
+      console.error("Souble Target Wheel load error:", err);
+    }
+  }
+
+  async function loadSetupTargetWheel() {
+    try {
+      const res = await fetch("stats/finishing/get_setup_targets.php");
+      const rows = await res.json();
+
+      rows.forEach((row) => {
+        const hits = Number(row.hits);
+        const target = row.target;
+        const pct = Number(row.pct);
+        const attempts = Number(row.attempts);
+
+        // Find the SVG segment
+        const segment = document.getElementById(`setup-segment-${target}`);
+        if (!segment) return;
+
+        // Determine fill color
+        let color = "#cccccc"; // default
+
+        if (attempts < 1) {
+          color = "#eeeeee"; // too little data
+        } else if (pct >= 35) {
+          color = "#4caf50"; // green
+        } else if (pct >= 20) {
+          color = "#ffeb3b"; // yellow
+        } else {
+          color = "#f44336"; // red
+        }
+
+        segment.setAttribute("fill", color);
+
+        const label = "S";
+        const tooltip = document.getElementById("svg-tooltip");
+
+        document
+          .querySelectorAll(
+            "path[id^='setup-segment'], path[id^='setup-segment']"
+          )
+          .forEach((el) => {
+            el.addEventListener("mousemove", (e) => {
+              tooltip.style.display = "block";
+              tooltip.style.left = e.pageX + 10 + "px";
+              tooltip.style.top = e.pageY + 10 + "px";
+              tooltip.textContent = el.dataset.tooltip;
+            });
+
+            el.addEventListener("mouseleave", () => {
+              tooltip.style.display = "none";
+            });
+          });
+
+        segment.dataset.tooltip =
+          `${label}${target}\n` +
+          `${pct.toFixed(2)}%\n` +
+          `${hits} hits\n` +
+          `${attempts} attempts`;
+      });
+    } catch (err) {
+      console.error("Setup Target Wheel load error:", err);
+    }
+  }
 
   // ADD NEW FUNCTIONS HERE
-
-
-
-
-
-
-
-
-
-
-
-
 });
-
 
 function loadScoringStats() {
   const filter = document.getElementById("session-filter").value;
@@ -449,4 +664,90 @@ function loadScoringStats() {
       }
     })
     .catch((err) => console.error(err));
+}
+
+async function loadPureDouble() {
+  try {
+    const res = await fetch("stats/finishing/get_pure_double.php");
+    const json = await res.json();
+    const pct = Number(json.pure_double_pct ?? 0);
+
+    document.getElementById("stat-pure-double").textContent =
+      (json.pure_double_pct ?? 0) + "%";
+      // Derived stat: attempts per success
+      const attemptsPerSuccess = pct > 0 ? (100 / pct) : 0;
+  
+      document.getElementById("stat-pure-double-effort").textContent =
+        `(~${attemptsPerSuccess.toFixed(1)} attempts)`;
+  } catch (err) {
+    console.error("Pure Double load error:", err);
+  }
+}
+
+async function loadGameplayDouble() {
+  try {
+    const res = await fetch("stats/finishing/get_gameplay_double.php");
+    const json = await res.json();
+    const pct = Number(json.gameplay_double_pct ?? 0);
+
+    // Main stat
+    document.getElementById("stat-gameplay-double").textContent =
+      pct.toFixed(1) + "%";
+
+    // Derived stat: attempts per success
+    const attemptsPerSuccess = pct > 0 ? (100 / pct) : 0;
+
+    document.getElementById("stat-gameplay-double-effort").textContent =
+      `(~${attemptsPerSuccess.toFixed(1)} attempts)`;
+
+  } catch (err) {
+    console.error("Gameplay Double load error:", err);
+  }
+}
+
+async function loadSetupSingle() {
+  try {
+    const res = await fetch("stats/finishing/get_setup_single.php");
+
+    const json = await res.json();
+
+    document.getElementById("stat-setup-single").textContent =
+      (json.setup_single_pct ?? 0) + "%";
+  } catch (err) {
+    console.error("Setup Single load error:", err);
+  }
+}
+
+async function loadSetupS() {
+  try {
+    const res = await fetch("stats/finishing/get_setup_s.php");
+    const json = await res.json();
+
+    document.getElementById("stat-setup-s").textContent =
+      (json.setup_s_pct ?? 0) + "%";
+  } catch (err) {
+    console.error("Setup S load error:", err);
+  }
+}
+
+async function loadDPCA() {
+  try {
+    const res = await fetch("stats/finishing/get_dpc_a.php");
+    const json = await res.json();
+
+    document.getElementById("stat-dpc-a").textContent = json.dpc_a ?? "--";
+  } catch (err) {
+    console.error("DPC-A load error:", err);
+  }
+}
+
+async function loadDPCB() {
+  try {
+    const res = await fetch("stats/finishing/get_dpc_b.php");
+    const json = await res.json();
+
+    document.getElementById("stat-dpc-b").textContent = json.dpc_b ?? "--";
+  } catch (err) {
+    console.error("DPC-B load error:", err);
+  }
 }

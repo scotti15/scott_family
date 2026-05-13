@@ -475,6 +475,8 @@ document.addEventListener("DOMContentLoaded", () => {
         mastered: false,
       }));
 
+      baseScore = 3;
+
       
       overallRemaining = computeTotalRequired(allWords.length, 5, baseScore);
 
