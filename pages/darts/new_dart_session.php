@@ -12,6 +12,7 @@ if (!$userId) {
 try {
     $pdo->beginTransaction();
 
+    date_default_timezone_set('America/Montreal');
     // 1️⃣ Create new session
     $sessionName = 'Session ' . date('Y-m-d H:i');
     $stmt = $pdo->prepare("

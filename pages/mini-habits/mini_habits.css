@@ -26,7 +26,7 @@
 }
 
 /* intensity levels */
-.hm-0   { background: #f0f0f0; }
+.hm-0   { background: #d15a5a; }
 .hm-25  { background: #c6e48b; }
 .hm-50  { background: #7bc96f; }
 .hm-75  { background: #239a3b; }
@@ -37,7 +37,7 @@
 }
 
 .hm-0 {
-    background: #e0e0e0;
+    background: #f28b82;
 }
 
 .hm-partial {

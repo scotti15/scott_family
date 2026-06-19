@@ -12,7 +12,8 @@ if ($userId > 0) {
     and t.UserID = a.UserID
     WHERE Date <= NOW()
       AND t.UserID = ?
-    GROUP BY t.UserID, a.AccountName;");
+    GROUP BY t.UserID, a.AccountName
+    HAVING ABS(SUM(Price * Quantity + Tax)) > 1;");
     $stmt->execute([$userId]);
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }

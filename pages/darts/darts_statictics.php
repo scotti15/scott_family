@@ -1,7 +1,4 @@
 <?php
-// ---------------------------------
-// Standard includes
-// ---------------------------------
 require_once "../../config/db.php";
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -11,14 +8,9 @@ if (session_status() === PHP_SESSION_NONE) {
 include "../../includes/header.php";
 include "../../includes/navbar.php";
 
-// ---------------------------------
-// User info
-// ---------------------------------
 $user_id = $_SESSION["user_id"] ?? 0;
 $role = $_SESSION["role"] ?? "user";
-$isAdmin = $role === "admin";
 
-// Basic access guard
 if (!$user_id) {
     echo "<p>Please log in to use the darts tracker.</p>";
     include "../../includes/footer.php";
@@ -26,14 +18,12 @@ if (!$user_id) {
 }
 ?>
 
-<!-- ---------------------------------
-     Stats Dashboard UI
----------------------------------- -->
 <link rel="stylesheet" href="darts_statistics.css">
 
 <div class="container" style="padding:20px;">
-    <div class="filters">
 
+    <!-- FILTERS -->
+    <div class="filters">
         <label>
             Session:
             <select id="session-filter">
@@ -43,11 +33,11 @@ if (!$user_id) {
                 <option value="last5">Last 5 Sessions</option>
             </select>
         </label>
-
     </div>
+
+    <!-- TABS -->
     <div class="tabs-row">
 
-        <!-- Tabs (LEFT) -->
         <div class="tabs">
             <button class="tab-btn active" data-tab="overview">Overview</button>
             <button class="tab-btn" data-tab="scoring">Scoring</button>
@@ -56,19 +46,20 @@ if (!$user_id) {
             <button class="tab-btn" data-tab="heatmaps">Heatmaps</button>
         </div>
 
-        <!-- Key (RIGHT) -->
         <div class="metric-key">
             <span>▼ lower is better</span>
             <span>▲ higher is better</span>
         </div>
 
     </div>
-    <!-- TAB CONTENTS -->
+
+    <!-- ========================= -->
+    <!-- OVERVIEW TAB -->
+    <!-- ========================= -->
     <div id="overview" class="tab-content">
 
         <h2>Overview</h2>
 
-        <!-- Summary Cards -->
         <div class="stats-grid">
 
             <div class="stat-card selectable" data-metric="3da">
@@ -82,10 +73,7 @@ if (!$user_id) {
             </div>
 
             <div class="stat-card selectable" data-metric="doubleAttempts">
-                <h3>
-                    Double Attempts
-                    <span class="metric-direction">▼</span>
-                </h3>
+                <h3>Double Attempts ▼</h3>
                 <p id="stat-doubleAttempts">--</p>
             </div>
 
@@ -121,125 +109,146 @@ if (!$user_id) {
 
     </div>
 
-
+    <!-- ========================= -->
+    <!-- SCORING TAB -->
+    <!-- ========================= -->
     <div id="scoring" class="tab-content" style="display:none;">
 
         <h2>Scoring</h2>
 
         <div class="stats-grid">
-
             <div class="stat-card">
                 <h3>S20 (when aiming T20) %</h3>
                 <p id="stat-s20-t20">--</p>
+            </div>
+        </div>
+
+        <div class="target-wheel-grid">
+
+            <div class="stat-card">
+                <h3 id="t20-wheel-title">T20 Wedge Distribution</h3>
+                <div id="t20-distribution-wheel"></div>
+            </div>
+
+            <div class="legend-section">
+                <div class="legend-item">
+                    <span class="box dark-green"></span> Elite
+                </div>
+
+                <div class="legend-item">
+                    <span class="box light-green"></span> Strong
+                </div>
+
+                <div class="legend-item">
+                    <span class="box yellow"></span> Average
+                </div>
+
+                <div class="legend-item">
+                    <span class="box light-red"></span> Needs Work
+                </div>
+
+                <div class="legend-item">
+                    <span class="box red"></span> Major Leak
+                </div>
             </div>
 
         </div>
 
     </div>
 
+    <!-- ========================= -->
+    <!-- FINISHING TAB -->
+    <!-- ========================= -->
     <div id="finishing" class="tab-content" style="display:none;">
+
         <h2>Finishing</h2>
 
         <div class="stats-grid">
-            <div class="stat-card"
-                title="Raw mechanical double accuracy. Measures how often you hit the intended double, excluding post-bust implied darts.">
+
+            <div class="stat-card">
                 <h3>Pure Double %</h3>
                 <p id="stat-pure-double">--</p>
-                <div id="stat-pure-double-effort" class="stat-subtext"></div>
             </div>
 
-            <div class="stat-card"
-                title="Real in-game double conversion rate. Includes post-bust implied darts, reflecting actual gameplay performance.">
+            <div class="stat-card">
                 <h3>Gameplay Double %</h3>
                 <p id="stat-gameplay-double">--</p>
-                <div id="stat-gameplay-double-effort" class="stat-subtext"></div>
             </div>
 
-            <div class="stat-card" title="Accuracy on intended setup singles used to leave a preferred double.">
+            <div class="stat-card">
                 <h3>Setup S %</h3>
                 <p id="stat-setup-s">--</p>
             </div>
 
-            <div class="stat-card"
-                title="Average darts used from the first double attempt until the checkout is completed.">
+            <div class="stat-card">
                 <h3>Darts per Checkout A</h3>
                 <p id="stat-dpc-a">--</p>
             </div>
 
-            <div class="stat-card"
-                title="Average darts used from the first turn where a checkout is mathematically possible (170 or less) until the checkout is completed.">
+            <div class="stat-card">
                 <h3>Darts per Checkout B</h3>
                 <p id="stat-dpc-b">--</p>
             </div>
+
         </div>
+
         <div class="target-wheel-grid">
+
             <div class="stat-card">
                 <h3>Double Accuracy by Target</h3>
                 <div id="double-target-wheel"></div>
-                <div class="legend-section">
-                    <div class="legend-item"><span class="box green"></span> ≥ 10%</div>
-                    <div class="legend-item"><span class="box yellow"></span> 5–9.99%</div>
-                    <div class="legend-item"><span class="box red"></span>
-                        < 5%</div>
-                    </div>
+            </div>
+
+            <div class="legend-section">
+                <div class="legend-item"><span class="box green"></span> ≥ 10%</div>
+                <div class="legend-item"><span class="box yellow"></span> 5–9.99%</div>
+                <div class="legend-item"><span class="box red"></span>
+                    < 5%</div>
                 </div>
+
+            </div>
+
+            <div class="target-wheel-grid">
 
                 <div class="stat-card">
                     <h3>Setup Accuracy by Target</h3>
                     <div id="setup-target-wheel"></div>
-                    <div class="legend-section">
-                        <div class="legend-item"><span class="box green"></span> ≥ 35%</div>
-                        <div class="legend-item"><span class="box yellow"></span> 20–34.99%</div>
-                        <div class="legend-item"><span class="box red"></span>
-                            < 20%</div>
-                        </div>
+                </div>
+
+                <div class="legend-section">
+                    <div class="legend-item"><span class="box green"></span> ≥ 35%</div>
+                    <div class="legend-item"><span class="box yellow"></span> 20–34.99%</div>
+                    <div class="legend-item"><span class="box red"></span>
+                        < 20%</div>
                     </div>
-                    <div id="svg-tooltip"></div>
-                    <div class="chart-legend">
 
-
-
-                        <div class="legend-section">
-                            <!-- <strong>Data reliability</strong> -->
-                            <!-- <div class="legend-item"><span class="box gray"></span>
-                                < 20 attempts (low confidence)</div>
-                            </div> -->
-
-                        </div>
-                    </div>
                 </div>
 
-                <div id="insights" class="tab-content" style="display:none;">
-                    <h2>Insights</h2>
-                    <p>This is the insights page.</p>
-                </div>
+            </div>
 
-                <div id="heatmaps" class="tab-content" style="display:none;">
-                    <h2>Heatmaps</h2>
-                    <p>This is the heatmaps page.</p>
-                </div>
+            <!-- ========================= -->
+            <!-- INSIGHTS TAB -->
+            <!-- ========================= -->
+            <div id="insights" class="tab-content" style="display:none;">
+                <h2>Insights</h2>
+                <p>This is the insights page.</p>
+            </div>
 
-                <!-- 
-    <script>
-    document.querySelectorAll(".tab-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
+            <!-- ========================= -->
+            <!-- HEATMAPS TAB -->
+            <!-- ========================= -->
+            <div id="heatmaps" class="tab-content" style="display:none;">
+                <h2>Heatmaps</h2>
+                <p>This is the heatmaps page.</p>
+            </div>
 
-            // Active button styling
-            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
+        </div>
 
-            const tab = btn.dataset.tab;
+        <!-- TOOLTIP (GLOBAL - IMPORTANT) -->
+        <div id="svg-tooltip"></div>
 
-            // Show/hide content
-            document.querySelectorAll(".tab-content").forEach(el => {
-                el.style.display = "none";
-            });
+        <!-- SCRIPTS -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="darts_statistics.js"></script>
 
-            document.getElementById(tab).style.display = "block";
-        });
-    });
-    </script> -->
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                <script src="darts_statistics.js"></script>
-
-                <?php include "../../includes/footer.php"; ?>
+        <?php include "../../includes/footer.php"; ?>

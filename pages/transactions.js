@@ -104,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // -----------------------------
   submitBtn.addEventListener("click", async () => {
     const payload = {
+      user_id: userDropdown.value,      
       from_account: fromSelect.value,
       to_account: toSelect.value,
       amount: parseFloat(amountInput.value)

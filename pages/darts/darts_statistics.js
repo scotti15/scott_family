@@ -400,6 +400,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         // load tab-specific stats (cards)
         if (tab === "scoring") {
           loadScoringStats();
+          renderTargetWheel("t20-distribution-wheel", "t20");
+          loadT20DistributionWheel();
         }
 
         if (tab === "finishing") {
@@ -522,6 +524,91 @@ document.addEventListener("DOMContentLoaded", async () => {
   `;
 
     document.getElementById(containerId).innerHTML = svg;
+  }
+
+  async function loadT20DistributionWheel() {
+    try {
+      const res = await fetch(
+        "stats/scoring/get_T20_target_wedge_distribution.php"
+      );
+      const json = await res.json();
+      const rows = json.rows;
+      const totalAttempts = json.totalAttempts;
+      console.log(rows);
+
+      const tooltip = document.getElementById("svg-tooltip");
+
+      rows.forEach((row) => {
+        const wedge = Number(row.wedge);
+        const hits = Number(row.hits);
+        const pct = Number(row.pct);
+
+
+        const segment = document.getElementById(`t20-segment-${wedge}`);
+        if (!segment) return;
+
+        let color = "#cccccc";
+
+        // T20 - higher is better
+        if (wedge === 20) {
+            if (pct >= 75) color = "#1b5e20";       // Dark Green - Elite
+            else if (pct >= 60) color = "#81c784";  // Light Green - Strong
+            else if (pct >= 40) color = "#ffeb3b";  // Yellow - Average
+            else if (pct >= 30) color = "#ef9a9a";  // Light Red - Needs Work
+            else color = "#f44336";                 // Red - Major Leak
+        }
+        
+        // S1 / S5 - adjacent misses
+        else if (wedge === 1 || wedge === 5) {
+            if (pct <= 5) color = "#1b5e20";        // Dark Green - Elite
+            else if (pct <= 10) color = "#81c784";  // Light Green - Strong
+            else if (pct <= 15) color = "#ffeb3b";  // Yellow - Average
+            else if (pct <= 20) color = "#ef9a9a";  // Light Red - Needs Work
+            else color = "#f44336";                 // Red - Major Leak
+        }
+        
+        // 18 / 12 - deeper misses
+        else if (wedge === 18 || wedge === 12) {
+            if (pct <= 1) color = "#1b5e20";        // Dark Green - Elite
+            else if (pct <= 3) color = "#81c784";   // Light Green - Strong
+            else if (pct <= 5) color = "#ffeb3b";   // Yellow - Average
+            else if (pct <= 8) color = "#ef9a9a";   // Light Red - Needs Work
+            else color = "#f44336";                 // Red - Major Leak
+        }
+        
+        // Everything else - wild misses
+        else {
+            if (pct <= 1) color = "#1b5e20";        // Acceptable
+            else color = "#f44336";                 // Major Leak
+        }
+
+        segment.setAttribute("fill", color);
+
+        segment.dataset.tooltip =
+          `Wedge ${wedge}\n` + `${pct.toFixed(2)}%\n` + `${hits} hits\n`;
+      });
+
+      const title = document.getElementById("t20-wheel-title");
+
+      if (title) {
+        title.textContent = `T20 Wedge Distribution (${totalAttempts} attempts)`;
+      }
+
+      document.querySelectorAll("path[id^='t20-segment']").forEach((el) => {
+        el.addEventListener("mousemove", (e) => {
+          tooltip.style.display = "block";
+          tooltip.style.left = e.pageX + 10 + "px";
+          tooltip.style.top = e.pageY + 10 + "px";
+          tooltip.textContent = el.dataset.tooltip;
+        });
+
+        el.addEventListener("mouseleave", () => {
+          tooltip.style.display = "none";
+        });
+      });
+    } catch (err) {
+      console.error("T20 Distribution Wheel load error:", err);
+    }
   }
 
   async function loadDoubleTargetWheel() {
@@ -674,11 +761,12 @@ async function loadPureDouble() {
 
     document.getElementById("stat-pure-double").textContent =
       (json.pure_double_pct ?? 0) + "%";
-      // Derived stat: attempts per success
-      const attemptsPerSuccess = pct > 0 ? (100 / pct) : 0;
-  
-      document.getElementById("stat-pure-double-effort").textContent =
-        `(~${attemptsPerSuccess.toFixed(1)} attempts)`;
+    // Derived stat: attempts per success
+    const attemptsPerSuccess = pct > 0 ? 100 / pct : 0;
+
+    document.getElementById(
+      "stat-pure-double-effort"
+    ).textContent = `(~${attemptsPerSuccess.toFixed(1)} attempts)`;
   } catch (err) {
     console.error("Pure Double load error:", err);
   }
@@ -695,11 +783,11 @@ async function loadGameplayDouble() {
       pct.toFixed(1) + "%";
 
     // Derived stat: attempts per success
-    const attemptsPerSuccess = pct > 0 ? (100 / pct) : 0;
+    const attemptsPerSuccess = pct > 0 ? 100 / pct : 0;
 
-    document.getElementById("stat-gameplay-double-effort").textContent =
-      `(~${attemptsPerSuccess.toFixed(1)} attempts)`;
-
+    document.getElementById(
+      "stat-gameplay-double-effort"
+    ).textContent = `(~${attemptsPerSuccess.toFixed(1)} attempts)`;
   } catch (err) {
     console.error("Gameplay Double load error:", err);
   }

@@ -133,13 +133,14 @@ document.addEventListener('DOMContentLoaded', function () {
             dates.forEach((d) => {
                 const date = d.trim();
                 const entry = grid[habit][date];
+                console.log('ENTRY', entry);
 
                 let cls = 'hm-na';
                 let tooltip = '';
 
                 if (!entry) {
                     cls = 'hm-na';
-                } else if (entry.target === 0) {
+                } else if (Number(entry.active) === 0) {
                     cls = 'hm-na'; // inactive day (your system already defines this)
                 } else if (entry.pct >= 100) {
                     cls = 'hm-100';
