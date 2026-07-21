@@ -14,6 +14,8 @@ if (!$user_id) {
     exit();
 }
 
+require_once "../../../../includes/session_filter.php";
+
 $stmt = $pdo->prepare("
     SELECT
         COUNT(*) AS attempts,
@@ -37,14 +39,15 @@ $stmt = $pdo->prepare("
     JOIN dart_turns t ON dt.turn_id = t.turn_id
     JOIN dart_games g ON t.game_id = g.game_id
     JOIN dart_sessions s ON g.play_session_id = s.session_id
+    $sessionJoin
     WHERE
         s.user_id = :user_id
         AND dt.is_valid = 1
         AND dt.aimed_ring = 'S'
 ");
 
-$stmt->execute([
-    ':user_id' => $user_id
-]);
+$stmt->execute($params);
 
-echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+echo json_encode($result);

@@ -14,6 +14,8 @@ if (!$user_id) {
     exit();
 }
 
+require_once "../../../../includes/session_filter.php";
+
 $sql = "
 SELECT
     ROUND(AVG(game_darts), 2) AS dpc_b
@@ -55,7 +57,7 @@ FROM (
         ON t.game_id = g.game_id
     JOIN dart_throws dt
         ON dt.turn_id = t.turn_id
-
+$sessionJoin
     WHERE s.user_id = :user_id
       AND g.finished_at IS NOT NULL
       AND dt.is_valid = 1
@@ -66,10 +68,9 @@ FROM (
 ) x
 ";
 
+
 $stmt = $pdo->prepare($sql);
-$stmt->execute([
-    ':user_id' => $user_id
-]);
+$stmt->execute($params);
 
 $result = $stmt->fetch(PDO::FETCH_ASSOC);
 

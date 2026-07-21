@@ -8,40 +8,14 @@ if (session_status() === PHP_SESSION_NONE) {
 header('Content-Type: application/json');
 
 $user_id = $_SESSION['user_id'] ?? 0;
-$sessionFilter = $_GET['session'] ?? 'all';
+$sessionFilter = $_GET['filter'] ?? 'all';
 
 if (!$user_id) {
     echo json_encode(["error" => "Not logged in"]);
     exit();
 }
 
-/* -----------------------------
-   SESSION FILTER
------------------------------ */
-
-$limit = null;
-
-if ($sessionFilter === "last1") $limit = 1;
-if ($sessionFilter === "last3") $limit = 3;
-if ($sessionFilter === "last5") $limit = 5;
-
-$sessionJoin = "";
-$params = [':user_id' => $user_id];
-
-if ($limit !== null) {
-    $sessionJoin = "
-        JOIN (
-            SELECT session_id
-            FROM dart_sessions
-            WHERE user_id = :user_id_inner
-            ORDER BY created_at DESC
-            LIMIT $limit
-        ) recent_sessions
-        ON s.session_id = recent_sessions.session_id
-    ";
-
-    $params[':user_id_inner'] = $user_id;
-}
+require_once "../../../../includes/session_filter.php";
 
 /* -----------------------------
    QUERY
@@ -50,8 +24,7 @@ if ($limit !== null) {
 $sql = "
 SELECT
     dt.hit_score AS wedge,
-    COUNT(*) AS hits,
-    ROUND(COUNT(*) * 100.0 / totals.total_attempts, 2) AS pct
+    COUNT(*) AS hits
 FROM dart_throws dt
 JOIN dart_turns t 
     ON dt.turn_id = t.turn_id
@@ -59,22 +32,7 @@ JOIN dart_games g
     ON t.game_id = g.game_id
 JOIN dart_sessions s 
     ON g.play_session_id = s.session_id
-JOIN (
-    SELECT 
-        COUNT(*) AS total_attempts
-    FROM dart_throws dt2
-    JOIN dart_turns t2 
-        ON dt2.turn_id = t2.turn_id
-    JOIN dart_games g2 
-        ON t2.game_id = g2.game_id
-    JOIN dart_sessions s2 
-        ON g2.play_session_id = s2.session_id
-    WHERE s2.user_id = :user_id
-      AND dt2.is_valid = 1
-      AND g2.finished_at IS NOT NULL
-      AND dt2.aimed_ring = 'T'
-      AND dt2.aimed_value = 20
-) AS totals
+    $sessionJoin
 WHERE s.user_id = :user_id
   AND dt.is_valid = 1
   AND g.finished_at IS NOT NULL

@@ -168,11 +168,13 @@ if (!$user_id) {
             <div class="stat-card">
                 <h3>Pure Double %</h3>
                 <p id="stat-pure-double">--</p>
+                <div id="stat-pure-double-effort" class="stat-subtext"></div>
             </div>
 
             <div class="stat-card">
                 <h3>Gameplay Double %</h3>
                 <p id="stat-gameplay-double">--</p>
+                <div id="stat-gameplay-double-effort" class="stat-subtext"></div>
             </div>
 
             <div class="stat-card">
@@ -180,12 +182,14 @@ if (!$user_id) {
                 <p id="stat-setup-s">--</p>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card"
+                title="Average darts used from the first double attempt until the checkout is completed.">
                 <h3>Darts per Checkout A</h3>
                 <p id="stat-dpc-a">--</p>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card"
+                title="Average darts used from the first turn where a checkout is mathematically possible (170 or less) until the checkout is completed.">
                 <h3>Darts per Checkout B</h3>
                 <p id="stat-dpc-b">--</p>
             </div>
@@ -194,37 +198,30 @@ if (!$user_id) {
 
         <div class="target-wheel-grid">
 
-            <div class="stat-card">
-                <h3>Double Accuracy by Target</h3>
-                <div id="double-target-wheel"></div>
-            </div>
+<div class="stat-card">
+    <h3>Double Accuracy by Target</h3>
+    <div id="double-target-wheel"></div>
 
-            <div class="legend-section">
-                <div class="legend-item"><span class="box green"></span> ≥ 10%</div>
-                <div class="legend-item"><span class="box yellow"></span> 5–9.99%</div>
-                <div class="legend-item"><span class="box red"></span>
-                    < 5%</div>
-                </div>
+    <div class="legend-section">
+        <div class="legend-item"><span class="box green"></span> ≥ 10%</div>
+        <div class="legend-item"><span class="box yellow"></span> 5–9.99%</div>
+        <div class="legend-item"><span class="box red"></span> &lt; 5%</div>
+    </div>
+</div>
 
-            </div>
 
-            <div class="target-wheel-grid">
+<div class="stat-card">
+    <h3>Setup Accuracy by Target</h3>
+    <div id="setup-target-wheel"></div>
 
-                <div class="stat-card">
-                    <h3>Setup Accuracy by Target</h3>
-                    <div id="setup-target-wheel"></div>
-                </div>
+    <div class="legend-section">
+        <div class="legend-item"><span class="box green"></span> ≥ 35%</div>
+        <div class="legend-item"><span class="box yellow"></span> 20–34.99%</div>
+        <div class="legend-item"><span class="box red"></span> &lt; 20%</div>
+    </div>
+</div>
 
-                <div class="legend-section">
-                    <div class="legend-item"><span class="box green"></span> ≥ 35%</div>
-                    <div class="legend-item"><span class="box yellow"></span> 20–34.99%</div>
-                    <div class="legend-item"><span class="box red"></span>
-                        < 20%</div>
-                    </div>
-
-                </div>
-
-            </div>
+</div>
 
             <!-- ========================= -->
             <!-- INSIGHTS TAB -->

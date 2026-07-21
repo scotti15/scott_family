@@ -339,6 +339,20 @@
   background: rgba(0,0,0,0.08);
 }
 
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 4px 0;
+}
+
+.stat-label {
+    font-weight: 600;
+}
+
+.stat-value {
+    font-weight: bold;
+}
 
 
 

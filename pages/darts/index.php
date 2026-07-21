@@ -105,8 +105,26 @@ if (!$user_id) {
                 Score: <span id="remaining-score">501</span>
             </div>
 
-            <div class="target">
-                Target: <strong id="target-text">T20</strong>
+            <div class="stat-card">
+                <div id="target-panel">
+
+                    <div class="stat-row">
+                        <span class="stat-label">Target</span>
+                        <span class="stat-value" id="target-text">T20</span>
+                    </div>
+                </div>
+
+                <div id="checkout-panel" style="display:none;">
+                    <div class="stat-row">
+                        <span class="stat-label">Checkout</span>
+                        <span class="stat-value" id="checkout-route">—</span>
+                    </div>
+
+                    <div class="stat-row">
+                        <span class="stat-label secondary">• on single</span>
+                        <span class="stat-value" id="checkout-single-route">—</span>
+                    </div>
+                </div>
             </div>
 
 
@@ -343,25 +361,25 @@ if (!$user_id) {
                     transform="translate(0, 4) scale(1.03)">
                     <!-- Segment order clockwise starting from T20 at top -->
                     <text x="0" y="-180">20</text>
-                    <text x="55" y="-171" transform="(18 55 -171)">1</text>
-                    <text x="105" y="-144" transform="(36 105 -144)">18</text>
-                    <text x="144" y="-105" transform="(54 144 -105)">4</text>
-                    <text x="171" y="-55" transform="(72 171 -55)">13</text>
-                    <text x="180" y="0" transform="(90 180 0)">6</text>
-                    <text x="171" y="55" transform="(108 171 55)">10</text>
-                    <text x="144" y="105" transform="(126 144 105)">15</text>
-                    <text x="105" y="144" transform="(144 105 144)">2</text>
-                    <text x="55" y="171" transform="(162 55 171)">17</text>
-                    <text x="0" y="180" transform="(180 0 180)">3</text>
-                    <text x="-55" y="171" transform="(198 -55 171)">19</text>
-                    <text x="-105" y="144" transform="(216 -105 144)">7</text>
-                    <text x="-144" y="105" transform="(234 -144 105)">16</text>
-                    <text x="-171" y="55" transform="(252 -171 55)">8</text>
-                    <text x="-180" y="0" transform="(270 -180 0)">11</text>
-                    <text x="-171" y="-55" transform="(288 -171 -55)">14</text>
-                    <text x="-144" y="-105" transform="(306 -144 -105)">9</text>
-                    <text x="-105" y="-144" transform="(324 -105 -144)">12</text>
-                    <text x="-55" y="-171" transform="(342 -55 -171)">5</text>
+                    <text x="55" y="-171">1</text>
+                    <text x="105" y="-144">18</text>
+                    <text x="144" y="-105">4</text>
+                    <text x="171" y="-55">13</text>
+                    <text x="180" y="0">6</text>
+                    <text x="171" y="55">10</text>
+                    <text x="144" y="105">15</text>
+                    <text x="105" y="144">2</text>
+                    <text x="55" y="171">17</text>
+                    <text x="0" y="180">3</text>
+                    <text x="-55" y="171">19</text>
+                    <text x="-105" y="144">7</text>
+                    <text x="-144" y="105">16</text>
+                    <text x="-171" y="55">8</text>
+                    <text x="-180" y="0">11</text>
+                    <text x="-171" y="-55">14</text>
+                    <text x="-144" y="-105">9</text>
+                    <text x="-105" y="-144">12</text>
+                    <text x="-55" y="-171">5</text>
                 </g>
 
 

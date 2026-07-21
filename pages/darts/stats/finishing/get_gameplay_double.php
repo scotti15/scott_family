@@ -14,6 +14,8 @@ if (!$user_id) {
     exit();
 }
 
+require_once "../../../../includes/session_filter.php";
+
 $stmt = $pdo->prepare("
     SELECT
         ROUND(
@@ -24,15 +26,14 @@ $stmt = $pdo->prepare("
     JOIN dart_turns t ON dt.turn_id = t.turn_id
     JOIN dart_games g ON t.game_id = g.game_id
     JOIN dart_sessions s ON g.play_session_id = s.session_id
+    $sessionJoin
     WHERE
         s.user_id = :user_id
         AND dt.aimed_ring = 'D'
         AND dt.is_valid = 1
 ");
 
-$stmt->execute([
-    ':user_id' => $user_id
-]);
+$stmt->execute($params);
 
 $result = $stmt->fetch(PDO::FETCH_ASSOC);
 

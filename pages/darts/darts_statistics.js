@@ -231,6 +231,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadT20Pct();
     load3DAChart();
     loadScoring3DA();
+
+    // Scoring
+    loadT20DistributionWheel();
+    loadScoringStats();
+
+    // Finishing
+    loadDoubleTargetWheel();
+    loadSetupTargetWheel();
+    loadPureDouble();
+    loadSetupS();
+    loadGameplayDouble();
+    loadSetupS();
+    loadDPCA();
+    loadDPCB();
   }
 
   function initChart(labels = [], data = [], metric = "3da") {
@@ -527,11 +541,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function loadT20DistributionWheel() {
+    const filter = document.getElementById("session-filter").value;
+
     try {
       const res = await fetch(
-        "stats/scoring/get_T20_target_wedge_distribution.php"
+        `stats/scoring/get_T20_target_wedge_distribution.php?filter=${filter}`
       );
       const json = await res.json();
+
+      document
+      .querySelectorAll("path[id^='t20-segment']")
+      .forEach((segment) => {
+        segment.setAttribute("fill", "#eeeeee");
+        segment.dataset.tooltip = "No attempts";
+      });
+
       const rows = json.rows;
       const totalAttempts = json.totalAttempts;
       console.log(rows);
@@ -543,7 +567,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         const hits = Number(row.hits);
         const pct = Number(row.pct);
 
-
         const segment = document.getElementById(`t20-segment-${wedge}`);
         if (!segment) return;
 
@@ -551,35 +574,35 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // T20 - higher is better
         if (wedge === 20) {
-            if (pct >= 75) color = "#1b5e20";       // Dark Green - Elite
-            else if (pct >= 60) color = "#81c784";  // Light Green - Strong
-            else if (pct >= 40) color = "#ffeb3b";  // Yellow - Average
-            else if (pct >= 30) color = "#ef9a9a";  // Light Red - Needs Work
-            else color = "#f44336";                 // Red - Major Leak
+          if (pct >= 75) color = "#1b5e20"; // Dark Green - Elite
+          else if (pct >= 60) color = "#81c784"; // Light Green - Strong
+          else if (pct >= 40) color = "#ffeb3b"; // Yellow - Average
+          else if (pct >= 30) color = "#ef9a9a"; // Light Red - Needs Work
+          else color = "#f44336"; // Red - Major Leak
         }
-        
+
         // S1 / S5 - adjacent misses
         else if (wedge === 1 || wedge === 5) {
-            if (pct <= 5) color = "#1b5e20";        // Dark Green - Elite
-            else if (pct <= 10) color = "#81c784";  // Light Green - Strong
-            else if (pct <= 15) color = "#ffeb3b";  // Yellow - Average
-            else if (pct <= 20) color = "#ef9a9a";  // Light Red - Needs Work
-            else color = "#f44336";                 // Red - Major Leak
+          if (pct <= 5) color = "#1b5e20"; // Dark Green - Elite
+          else if (pct <= 10) color = "#81c784"; // Light Green - Strong
+          else if (pct <= 15) color = "#ffeb3b"; // Yellow - Average
+          else if (pct <= 20) color = "#ef9a9a"; // Light Red - Needs Work
+          else color = "#f44336"; // Red - Major Leak
         }
-        
+
         // 18 / 12 - deeper misses
         else if (wedge === 18 || wedge === 12) {
-            if (pct <= 1) color = "#1b5e20";        // Dark Green - Elite
-            else if (pct <= 3) color = "#81c784";   // Light Green - Strong
-            else if (pct <= 5) color = "#ffeb3b";   // Yellow - Average
-            else if (pct <= 8) color = "#ef9a9a";   // Light Red - Needs Work
-            else color = "#f44336";                 // Red - Major Leak
+          if (pct <= 1) color = "#1b5e20"; // Dark Green - Elite
+          else if (pct <= 3) color = "#81c784"; // Light Green - Strong
+          else if (pct <= 5) color = "#ffeb3b"; // Yellow - Average
+          else if (pct <= 8) color = "#ef9a9a"; // Light Red - Needs Work
+          else color = "#f44336"; // Red - Major Leak
         }
-        
+
         // Everything else - wild misses
         else {
-            if (pct <= 1) color = "#1b5e20";        // Acceptable
-            else color = "#f44336";                 // Major Leak
+          if (pct <= 1) color = "#1b5e20"; // Acceptable
+          else color = "#f44336"; // Major Leak
         }
 
         segment.setAttribute("fill", color);
@@ -613,8 +636,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadDoubleTargetWheel() {
     try {
-      const res = await fetch("stats/finishing/get_double_targets.php");
+      const filter = document.getElementById("session-filter").value;
+
+      const res = await fetch(
+        "stats/finishing/get_double_targets.php?filter=" + filter
+      );
       const rows = await res.json();
+
+document
+  .querySelectorAll("path[id^='double-segment']")
+  .forEach((segment) => {
+    segment.setAttribute("fill", "#eeeeee");
+    segment.dataset.tooltip = "No attempts";
+  });
 
       rows.forEach((row) => {
         const hits = Number(row.hits);
@@ -641,25 +675,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         segment.setAttribute("fill", color);
 
+        document
+        .querySelectorAll(
+          "path[id^='double-segment'], path[id^='double-segment']"
+        )
+        .forEach((el) => {
+          el.addEventListener("mousemove", (e) => {
+            tooltip.style.display = "block";
+            tooltip.style.left = e.pageX + 10 + "px";
+            tooltip.style.top = e.pageY + 10 + "px";
+            tooltip.textContent = el.dataset.tooltip;
+          });
+      
+          el.addEventListener("mouseleave", () => {
+            tooltip.style.display = "none";
+          });
+        });
+      
         const label = "S";
         const tooltip = document.getElementById("svg-tooltip");
-
-        document
-          .querySelectorAll(
-            "path[id^='double-segment'], path[id^='double-segment']"
-          )
-          .forEach((el) => {
-            el.addEventListener("mousemove", (e) => {
-              tooltip.style.display = "block";
-              tooltip.style.left = e.pageX + 10 + "px";
-              tooltip.style.top = e.pageY + 10 + "px";
-              tooltip.textContent = el.dataset.tooltip;
-            });
-
-            el.addEventListener("mouseleave", () => {
-              tooltip.style.display = "none";
-            });
-          });
 
         segment.dataset.tooltip =
           `${label}${target}\n` +
@@ -674,9 +708,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadSetupTargetWheel() {
     try {
-      const res = await fetch("stats/finishing/get_setup_targets.php");
+      const filter = document.getElementById("session-filter").value;
+
+      const res = await fetch(
+        "stats/finishing/get_setup_targets.php?filter=" + filter
+      );
       const rows = await res.json();
 
+      document
+  .querySelectorAll("path[id^='setup-segment']")
+  .forEach((segment) => {
+    segment.setAttribute("fill", "#eeeeee");
+    segment.dataset.tooltip = "No attempts";
+  });
       rows.forEach((row) => {
         const hits = Number(row.hits);
         const target = row.target;
@@ -755,7 +799,10 @@ function loadScoringStats() {
 
 async function loadPureDouble() {
   try {
-    const res = await fetch("stats/finishing/get_pure_double.php");
+    const filter = document.getElementById("session-filter").value;
+
+    const res = await fetch(
+      "stats/finishing/get_pure_double.php?filter=" + filter);
     const json = await res.json();
     const pct = Number(json.pure_double_pct ?? 0);
 
@@ -774,7 +821,11 @@ async function loadPureDouble() {
 
 async function loadGameplayDouble() {
   try {
-    const res = await fetch("stats/finishing/get_gameplay_double.php");
+    const filter = document.getElementById("session-filter").value;
+
+    const res = await fetch(
+      "stats/finishing/get_gameplay_double.php?filter=" + filter
+    );
     const json = await res.json();
     const pct = Number(json.gameplay_double_pct ?? 0);
 
@@ -793,22 +844,14 @@ async function loadGameplayDouble() {
   }
 }
 
-async function loadSetupSingle() {
-  try {
-    const res = await fetch("stats/finishing/get_setup_single.php");
-
-    const json = await res.json();
-
-    document.getElementById("stat-setup-single").textContent =
-      (json.setup_single_pct ?? 0) + "%";
-  } catch (err) {
-    console.error("Setup Single load error:", err);
-  }
-}
-
 async function loadSetupS() {
   try {
-    const res = await fetch("stats/finishing/get_setup_s.php");
+    const filter = document.getElementById("session-filter").value;
+
+    const res = await fetch(
+      "stats/finishing/get_setup_s.php?filter=" + filter
+    );
+
     const json = await res.json();
 
     document.getElementById("stat-setup-s").textContent =
@@ -817,10 +860,13 @@ async function loadSetupS() {
     console.error("Setup S load error:", err);
   }
 }
-
 async function loadDPCA() {
   try {
-    const res = await fetch("stats/finishing/get_dpc_a.php");
+    const filter = document.getElementById("session-filter").value;
+
+    const res = await fetch(
+      "stats/finishing/get_dpc_a.php?filter=" + filter
+    );
     const json = await res.json();
 
     document.getElementById("stat-dpc-a").textContent = json.dpc_a ?? "--";
@@ -831,7 +877,11 @@ async function loadDPCA() {
 
 async function loadDPCB() {
   try {
-    const res = await fetch("stats/finishing/get_dpc_b.php");
+    const filter = document.getElementById("session-filter").value;
+
+    const res = await fetch(
+      "stats/finishing/get_dpc_b.php?filter=" + filter
+    );
     const json = await res.json();
 
     document.getElementById("stat-dpc-b").textContent = json.dpc_b ?? "--";

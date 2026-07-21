@@ -29,9 +29,197 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let turnStartRemaining = remainingScore;
 
-  let currentTarget = getTarget(remainingScore);
-  highlightTarget(currentTarget.score, currentTarget.multiplier);
-  prepareNextTarget();
+  const checkoutRoutes3 = {
+
+    // Impossible
+    169: null,
+    168: null,
+    166: null,
+    165: null,
+    163: null,
+    162: null,
+    159: null,
+
+    // 3-dart checkouts
+    170: ["T20","T20","D25"],
+    167: ["T20","T19","D25"],
+    164: ["T20","T18","D25"],
+    161: ["T20","T17","D25"],
+    160: ["T20","T20","D20"],
+    158: ["T20","T20","D19"],
+    157: ["T20","T19","D20"],
+    156: ["T20","T20","D18"],
+    155: ["T20","T19","D19"],
+    154: ["T20","T18","D20"],
+    153: ["T20","T19","D18"],
+    152: ["T20","T20","D16"],
+    151: ["T20","T17","D20"],
+    150: ["T20","T18","D18"],
+    149: ["T20","T19","D16"],
+    148: ["T20","T16","D20"],
+    147: ["T20","T17","D18"],
+    146: ["T20","T18","D16"],
+    145: ["T20","T15","D20"],
+    144: ["T20","T20","D12"],
+    143: ["T20","T17","D16"],
+    142: ["T20","T14","D20"],
+    141: ["T20","T19","D12"],
+    140: ["T20","T20","D10"],
+    139: ["T19","T14","D20"],
+    138: ["T20","T18","D12"],
+    137: ["T20","T19","D10"],
+    136: ["T20","T20","D8"],
+    135: ["T20","T17","D12"],
+    134: ["T20","T14","D16"],
+    133: ["T20","T19","D8"],
+    132: ["T20","T16","D12"],
+    131: ["T20","T13","D16"],
+    130: ["T20","T20","D5"],
+    129: ["T19","T16","D12"],
+    128: ["T18","T14","D16"],
+    127: ["T20","T17","D8"],
+    126: ["T19","T19","D6"],
+    125: ["25","T20","D20"],
+    124: ["T20","T16","D8"],
+    123: ["T19","T16","D9"],
+    122: ["T18","T18","D7"],
+    121: ["T20","T11","D14"],
+    120: ["T20","20","D20"],
+    119: ["T19","T12","D13"],
+    118: ["T20","18","D20"],
+    117: ["T20","17","D20"],
+    116: ["T20","16","D20"],
+    115: ["T20","15","D20"],
+    114: ["T20","14","D20"],
+    113: ["T20","13","D20"],
+    112: ["T20","12","D20"],
+    111: ["T20","11","D20"],
+    110: ["T20","10","D20"],
+    109: ["T20","9","D20"],
+    108: ["T20","16","D16"],
+    107: ["T19","18","D16"],
+    106: ["T20","10","D18"],
+    105: ["T20","13","D16"],
+    104: ["T18","18","D16"],
+    103: ["T19","10","D18"],
+    102: ["T20","10","D16"],
+    101: ["T17","10","D20"]
+  }
+
+  const checkoutRoutes2 = {
+
+    // 2-dart checkouts
+    110: ["T20", "D25"],  
+    107: ["T19", "D25"],
+    104: ["T18", "D25"],
+    101: ["T17", "D25"],
+    100: ["T20","D20"],
+    99: ["T19","D21"],
+    98: ["T20","D19"],
+    97: ["T19","D20"],
+    96: ["T20","D18"],
+    95: ["T19","D19"],
+    94: ["T18","D20"],
+    93: ["T19","D18"],
+    92: ["T20","D16"],
+    91: ["T17","D20"],
+    90: ["T20","D15"],
+    89: ["T19","D16"],
+    88: ["T16","D20"],
+    87: ["T17","D18"],
+    86: ["T18","D16"],
+    85: ["T15","D20"],
+    84: ["T20","D12"],
+    83: ["T17","D16"],
+    82: ["T14","D20"],
+    81: ["T19","D12"],
+    80: ["T20","D10"],
+    79: ["T13","D20"],
+    78: ["T18","D12"],
+    77: ["T19","D10"],
+    76: ["T20","D8"],
+    75: ["T17","D12"],
+    74: ["T14","D16"],
+    73: ["T19","D8"],
+    72: ["T16","D12"],
+    71: ["T13","D16"],
+    70: ["T18","D8"],
+    69: ["T19","D6"],
+    68: ["T20","D4"],
+    67: ["T17","D8"],
+    66: ["T10","D18"],
+    65: ["25","D20"],
+    64: ["T16","D8"],
+    63: ["T13","D12"],
+    62: ["T10","D16"],
+    61: ["T15","D8"],
+    60: ["20","D20"],
+    59: ["19","D20"],
+    58: ["18","D20"],
+    57: ["17","D20"],
+    56: ["16","D20"],
+    55: ["15","D20"],
+    54: ["14","D20"],
+    53: ["13","D20"],
+    52: ["12","D20"],
+    51: ["11","D20"],
+    50: ["D25"],
+    49: ["9","D20"],
+    48: ["D24"],
+    47: ["7","D20"],
+    46: ["6","D20"],
+    45: ["13","D16"],
+    44: ["D22"],
+    43: ["3","D20"],
+    42: ["10","D16"],
+    41: ["9","D16"],
+
+    // Continuation favouring 32 route
+    40: ["D20"],
+    39: ["7","D16"],
+    38: ["D19"],
+    37: ["5","D16"],
+    36: ["D18"],
+    35: ["3","D16"],
+    34: ["D17"],
+    33: ["1","D16"],
+    32: ["D16"],
+    31: ["15","D8"],
+    30: ["D15"],
+    29: ["13","D8"],
+    28: ["D14"],
+    27: ["11","D8"],
+    26: ["D13"],
+    25: ["9","D8"],
+    24: ["D12"],
+    23: ["7","D8"],
+    22: ["D11"],
+    21: ["5","D8"],
+    20: ["D10"],
+    19: ["3","D8"],
+    18: ["D9"],
+    17: ["1","D8"],
+    16: ["D8"],
+    15: ["7","D4"],
+    14: ["D7"],
+    13: ["5","D4"],
+    12: ["D6"],
+    11: ["3","D4"],
+    10: ["D5"],
+    9: ["1","D4"],
+    8: ["D4"],
+    7: ["3","D2"],
+    6: ["D3"],
+    5: ["1","D2"],
+    4: ["D2"],
+    3: ["1","D1"],
+    2: ["D1"]
+};
+
+ let currentTarget 
+// = getTarget(remainingScore);
+// highlightTarget(currentTarget.score, currentTarget.multiplier);
+// prepareNextTarget();
 
   const scoreboardBody = document.getElementById("scoreboard-body");
   const remainingSpan = document.getElementById("remaining-score");
@@ -226,6 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================
     // 4∩╕ÅΓâú Snapshot Target
     // ============================
+    console.log("Current target before throw:", currentTarget);
     const aimedRing = currentTarget
       ? currentTarget.multiplier === 3
         ? "T"
@@ -357,7 +546,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1∩╕ÅΓâú1∩╕ÅΓâú Recalculate next target
     // ============================
     if (!setTargetMode && !boardLocked) {
-      currentTarget = getTarget(remainingScore);
+        const dartsRemaining = 3 - darts.length;
+        currentTarget = getTarget(remainingScore, dartsRemaining);
       highlightTarget(currentTarget.score, currentTarget.multiplier);
       updateTargetText(currentTarget);
     }
@@ -474,6 +664,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Prepare next target if automated
     prepareNextTarget();
+    
+    // updateCheckout();
 
     // Increment turn number
     turnNumber++;
@@ -557,7 +749,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 9∩╕ÅΓâú Recalculate next target if needed
     if (!setTargetMode && !boardLocked) {
-      currentTarget = getTarget(remainingScore);
+      const dartsRemaining = 3 - darts.length;
+  
+      currentTarget = getTarget(remainingScore, dartsRemaining);
       highlightTarget(currentTarget.score, currentTarget.multiplier);
       updateTargetText(currentTarget);
     }
@@ -657,7 +851,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function getTarget(remainingScore) {
+  function getTarget(remainingScore, dartsRemaining) {
+
+    console.log("getTarget", remainingScore, dartsRemaining);
+
+    
+    let route = null;
+
+    if (dartsRemaining === 3) {
+        route = checkoutRoutes3[remainingScore];
+    }
+    else if (dartsRemaining === 2) {
+        route = checkoutRoutes2[remainingScore];
+    }
+
+    let singleRoute = null;
+
+    if (
+        route &&
+        dartsRemaining === 3 &&
+        getMultiplier(route[0]) === 3
+    ) {
+        const firstValue = parseInt(route[0].replace(/\D/g, ""));
+        const afterSingle = remainingScore - firstValue;
+
+        singleRoute = checkoutRoutes2[afterSingle] || null;
+    }
+
+    if (route) {
+        return {
+            score: parseInt(route[0].replace(/\D/g, "")),
+            multiplier: getMultiplier(route[0]),
+            route: route,
+            singleRoute: singleRoute
+        };
+    }
+
     const preferredFinishes = [40, 32, 20, 16, 10, 8, 4, 2];
 
     // 1∩╕ÅΓâú High score ΓåÆ triple 20
@@ -762,18 +991,52 @@ document.addEventListener("DOMContentLoaded", () => {
   // }
 
   function updateTargetText(target) {
-    const el = document.getElementById("target-text");
-    if (!el || !target) return;
+    const targetEl = document.getElementById("target-text");
+    const checkoutEl = document.getElementById("checkout-route");
+    const singleEl = document.getElementById("checkout-single-route");
+    const checkoutPanel = document.getElementById("checkout-panel");
+    const targetPanel = document.getElementById("target-panel");
 
-    let prefix = "S";
-    if (target.multiplier === 2) prefix = "D";
-    else if (target.multiplier === 3) prefix = "T";
+    if (!target) return;
 
-    el.textContent = `Target: ${prefix}${target.score}`;
-  }
+    if (target.route && target.route.length > 1) {
+
+        // Hide normal target
+        targetPanel.style.display = "none";
+
+        // Show checkout
+        checkoutPanel.style.display = "block";
+
+        checkoutEl.textContent = target.route.join(" → ");
+
+        singleEl.textContent = target.singleRoute
+            ? target.singleRoute.join(" → ")
+            : "—";
+
+    } else {
+
+        // Show normal target
+        targetPanel.style.display = "block";
+
+        // Hide checkout
+        checkoutPanel.style.display = "none";
+
+        let prefix = "S";
+        if (target.multiplier === 2) prefix = "D";
+        else if (target.multiplier === 3) prefix = "T";
+
+        targetEl.textContent = `${prefix}${target.score}`;
+    }
+}
 
   function prepareNextTarget() {
-    currentTarget = getTarget(remainingScore); // your automated target logic
+    const dartsRemaining = 3 - darts.length;
+
+    currentTarget = getTarget(remainingScore, dartsRemaining);
+
+    console.log(currentTarget);
+
+
     highlightTarget(currentTarget.score, currentTarget.multiplier);
     updateTargetText(currentTarget); // "Target: T20" etc
   }
@@ -2171,9 +2434,54 @@ console.log("Remaining BEFORE fix:", remainingScore);
     return avgDistance;
   }
 
-  //ADD NEW FUNCTIONS HERE
 
-  // Initial calculated target on game start
-  const initialTarget = getTarget(remainingScore);
-  highlightTarget(initialTarget.score, initialTarget.multiplier);
+
+  function getMultiplier(target) {
+
+    if (target.startsWith("T")) return 3;
+    if (target.startsWith("D")) return 2;
+
+    return 1;
+}
+
+
+
+//   function updateCheckout() {
+
+//     if (remainingScore <= 170) {
+
+//         document.getElementById("target-panel").style.display = "none";
+//         document.getElementById("checkout-panel").style.display = "block";
+
+//     } else {
+
+//         document.getElementById("target-panel").style.display = "block";
+//         document.getElementById("checkout-panel").style.display = "none";
+
+//     }
+
+//     const route = getCheckoutRoute(remainingScore, dartsLeft);
+
+//     if (route) {
+//         checkoutRoute.textContent = route.join(" → ");
+//     } else {
+//         checkoutRoute.textContent = "No checkout";
+//     }
+
+// }
+
+// function getCheckoutRoute(score, dartsLeft) {
+
+//   if (score === 100 && dartsLeft >= 2)
+//       return ["T20", "D20"];
+
+//   return null;
+// }
+
+
+  
+  
+  
+  //ADD NEW FUNCTIONS HERE
+  prepareNextTarget();
 });
