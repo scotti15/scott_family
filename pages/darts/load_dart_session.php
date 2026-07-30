@@ -88,6 +88,7 @@ if ($gameId) {
         d.hit_target,
         d.x,
         d.y,
+        d.miss_distance,
         d.throw_type
             FROM dart_turns t
             LEFT JOIN dart_throws d
@@ -132,6 +133,8 @@ if ($gameId) {
                     "x" => $row['x'] !== null ? (float)$row['x'] : null,
             
                     "y" => $row['y'] !== null ? (float)$row['y'] : null,
+
+                    "miss_distance" => $row['miss_distance'] !== null ? (float)$row['miss_distance'] : null,
             
                     "hitTarget" => (bool)$row['hit_target'],
             
@@ -145,6 +148,23 @@ if ($gameId) {
             }
             
         }
+        foreach ($turns as &$turn) {
+
+            $distances = [];
+        
+            foreach ($turn['darts'] as $dart) {
+                if ($dart['miss_distance'] !== null) {
+                    $distances[] = $dart['miss_distance'];
+                }
+            }
+        
+            $turn['accuracy'] = $distances
+                ? round(array_sum($distances) / count($distances) / 10, 1)
+                : null;
+        }
+        
+        unset($turn);
+        
 
         $turns = array_values($turns);
     }

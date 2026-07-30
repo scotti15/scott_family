@@ -603,11 +603,266 @@ input:checked + .slider::before {
   opacity: 1;
 }
 
+#remaining-score {
+  font-size: 2rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+#remaining-container.checkout-mode #remaining-score {
+  font-size: 3rem;
+  color: #ffc107;
+  text-shadow:
+      1px 1px 0 #7a5a00,
+     -1px 1px 0 #7a5a00,
+      1px -1px 0 #7a5a00,
+     -1px -1px 0 #7a5a00,
+      0 0 12px rgba(255,193,7,.6);
+}
+
+#target-card.checkout-mode {
+  transition: background-color 0.5s ease;
+  border: 2px solid #ffc107;
+  box-shadow: 0 0 12px rgba(255, 193, 7, 0.6);
+  padding: 6px;
+  background-color: #FFF;
+}
+
+#dartboard.checkout-mode {
+  transition: background-color 0.5s ease;
+  background-color: rgb(110, 91, 91);
+}
+
+.accuracy-hot {
+  color: #ff0000;       /* red hot */
+  font-weight: bold;
+}
+
+.accuracy-warm {
+  color: #a57504;       /* yellow/gold */
+  font-weight: bold;
+}
+
+.accuracy-neutral {
+  color: #028f0c;       /* green */
+  font-weight: bold;
+}
+
+.accuracy-cool {
+  color: #33aaff;       /* light blue */
+  font-weight: bold;
+}
+
+.accuracy-cold {
+  color: #003f8c;       /* deep blue */
+  font-weight: bold;
+}
 
 
+#remaining-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+}
+
+#visit-number {
+  font-size: 1.2rem;
+  color: #000;
+  font-weight: 600;
+}
+
+@keyframes checkoutPulse {
+  0% {
+      transform: scale(1);
+      color:#ffc107;
+      text-shadow: 0 0 0px red;
+  }
+
+  50% {
+      transform: scale(1.20);
+      color: #ff4040;
+      text-shadow:
+          0 0 10px red,
+          0 0 20px red,
+          0 0 30px red;
+  }
+
+  100% {
+      transform: scale(1);
+      color:#ffc107;
+      text-shadow: 0 0 0px red;
+  }
+}
+
+.checkout-pulse {
+  animation: checkoutPulse 1.5s ease-in-out infinite;
+  display: inline-block;   /* required so transform works nicely */
+}
+
+/* ================
+TWO PLAYER CSS
+================= */
+.darts-two-player #target-panel {
+  display: none;
+}
+
+.darts-two-player #scoreboard-container {
+  display: none;
+}
+
+.darts-two-player #target-card {
+  display: none;
+}
+
+.darts-two-player .view-toggle {
+  display: none;
+}
+
+.darts-two-player #confirmTurn {
+  margin-bottom: 20px;
+}
+
+.darts-two-player .dartboardcontrols button {
+  padding: 6px 10px;
+  font-size: 0.9rem;
+}
+
+.darts-two-player .darts-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  grid-template-areas:
+      "board player"
+      "session session";
+  gap: 20px;
+  align-items: start;
+}
+
+.darts-two-player .board-panel {
+    grid-area: board;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.darts-two-player .board-panel svg {
+  width: 800px;
+  height: 800px;
+}
+
+.darts-two-player .player-panel {
+    grid-area: player;
+    border: 2px solid blue;
+}
+
+.darts-two-player .session-panel {
+    grid-area: session;
+    border: 2px solid purple;
+}
+
+#match-scoreboard {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#match-scoreboard th,
+#match-scoreboard td {
+  padding: 8px 12px;
+}
+
+#match-scoreboard thead th {
+  text-align: center;
+}
+
+#match-scoreboard tbody th {
+  text-align: left;
+  white-space: nowrap;
+}
+
+#match-scoreboard td {
+  text-align: center;
+}
+
+.darts-two-player #remaining-container {
+  display: none;
+}
+
+.darts-two-player #player-scoreboard {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.darts-two-player #player-scoreboard th,
+.darts-two-player #player-scoreboard td {
+  padding: 8px;
+  text-align: center;
+}
+
+.darts-two-player #player-scoreboard tbody th  {
+  text-align: left;
+  background-color: #FFFF99;
+  color: green;
+}
 
 
+.darts-two-player .player-name {
+  display: inline-block;
+}
 
+.darts-two-player .player-name {
+  display: inline-block;
+}
+
+.darts-two-player .player-name {
+  display: inline-block;
+}
+
+/* Player 1 active */
+.darts-two-player .player1-active thead th:nth-child(2) {
+  background: red;
+  color: black;
+}
+
+.darts-two-player .player1-active thead th:nth-child(3) {
+  background: #bbb;
+  color: #333;
+}
+
+/* Player 2 active */
+.darts-two-player .player2-active thead th:nth-child(3) {
+  background: red;
+  color: black;
+}
+
+.darts-two-player .player2-active thead th:nth-child(2) {
+  background: #bbb;
+  color: #333;
+}
+
+/* Player 1 active - body cells */
+.darts-two-player .player1-active tbody td:nth-child(2) {
+  background-color: #FFFF99;
+  color: green;
+}
+
+/* Player 1 active - inactive player body cells */
+.darts-two-player .player1-active tbody td:nth-child(3) {
+  background-color: #bbb;
+  color: #333;
+}
+
+/* Player 2 active - body cells */
+.darts-two-player .player2-active tbody td:nth-child(3) {
+    background-color: #FFFF99;
+    color: green;
+}
+
+/* Player 2 active - inactive player body cells */
+.darts-two-player .player2-active tbody td:nth-child(2) {
+    background-color: #bbb;
+    color: #333;
+}
 /* ========================= */
 /* RESPONSIVE: stack columns on small screens */
 /* ========================= */

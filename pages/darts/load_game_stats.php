@@ -139,6 +139,30 @@ try {
             'throw_type' => $d['throw_type'] ?? 'normal'
         ];
     }
+/* ---------------------------------
+   5️⃣ Calculate accuracy by turn
+--------------------------------- */
+
+foreach ($turns as &$turn) {
+
+    $totalMiss = 0;
+    $count = 0;
+
+    foreach ($turn['darts'] as $dart) {
+
+        if ($dart['miss_distance'] !== null) {
+            $totalMiss += $dart['miss_distance'];
+            $count++;
+        }
+    }
+
+    $turn['accuracy'] = $count
+        ? round(($totalMiss / $count) / 10, 1)   // convert mm → cm
+        : null;
+}
+
+unset($turn);
+
 
     echo json_encode([
         'status'  => 'ok',

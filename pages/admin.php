@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cols = tableColumns[currentTable].filter(c=> c !== 'id');
 
     cols.forEach(c=>{
-      let val = edit && data ? data[c] : '';
+      let val = edit && data && data[c] != null ? data[c] : '';
 
       // Special cases: items.is_food → checkbox
       if(currentTable === 'items' && c === 'is_food'){
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formFields.innerHTML += `
           <div class="mb-3">
             <label class="form-label">${c}</label>
-            <input class="form-control" name="fields[${c}]" value="${val}" required>
+            <input class="form-control" name="fields[${c}]" value="${val}" ${currentTable === 'menu_items' && c === 'parent_id' ? '' : 'required'}>
           </div>
         `;
       }
@@ -254,6 +254,13 @@ document.addEventListener('DOMContentLoaded', () => {
       formData.set('fields[is_food]', checkbox.checked ? 1 : 0);
     }
 
+    if (currentTable === 'menu_items') {
+  const parentField = formData.get('fields[parent_id]');
+  if (parentField === '') {
+    formData.set('fields[parent_id]', null);
+  }
+}
+
     formData.append('table', currentTable);
     formData.append('action', itemIdInput.value ? 'edit' : 'add');
 
@@ -263,6 +270,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const data = await res.json();
+    
+console.log(data);
     if(data.success){
       bootstrapModal.hide();
       fetchTable(currentTable);

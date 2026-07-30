@@ -6,6 +6,12 @@ $action = $_POST['action'];
 $id = $_POST['id'] ?? null;
 $fields = $_POST['fields'];
 
+if ($table === 'menu_items' && isset($fields['parent_id'])) {
+    if ($fields['parent_id'] === '' || $fields['parent_id'] === 'null') {
+        $fields['parent_id'] = null;
+    }
+}
+
 $allowedTables = [
     'accounts'=>'AccountID',
     'categories'=>'CategoryID',

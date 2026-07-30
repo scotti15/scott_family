@@ -102,10 +102,10 @@ if (!$user_id) {
             </div>
 
             <div id="remaining-container">
-                Score: <span id="remaining-score">501</span>
+                <span id="remaining-score">501</span>
+                <span id="visit-number"></span>
             </div>
-
-            <div class="stat-card">
+            <div class="stat-card" id="target-card">
                 <div id="target-panel">
 
                     <div class="stat-row">
@@ -141,6 +141,7 @@ if (!$user_id) {
                             <th>3</th>
                             <th>Total</th>
                             <th>Score</th>
+                            <th>Acc.</th>
                         </tr>
                     </thead>
                     <tbody id="scoreboard-body"></tbody>
