@@ -1289,8 +1289,14 @@ document.addEventListener("DOMContentLoaded", () => {
           Object.keys(markersByTurn).forEach((k) => delete markersByTurn[k]);
           rebuildMarkersFromThrows(turns);
 
-          remainingScore = turns[turns.length - 1].end_score;
-          turnNumber = turns[turns.length - 1].turn_number + 1;
+          const lastTurn = turns[turns.length - 1];
+
+          remainingScore =
+            lastTurn.turn_result === "bust"
+              ? lastTurn.start_score
+              : lastTurn.end_score;
+          
+          turnNumber = lastTurn.turn_number + 1;
         } else {
           // Fresh game
           turnNumber = 1;
@@ -1606,9 +1612,16 @@ document.addEventListener("DOMContentLoaded", () => {
         // -------------------------
         // Restore score + turn
         // -------------------------
-        remainingScore = currentTurns.length
-          ? currentTurns[currentTurns.length - 1].end_score
-          : 501;
+        if (currentTurns.length) {
+          const lastTurn = currentTurns[currentTurns.length - 1];
+      
+          remainingScore =
+              lastTurn.turn_result === "bust"
+                  ? lastTurn.start_score
+                  : lastTurn.end_score;
+      } else {
+          remainingScore = 501;
+      }
         console.log("Remaining BEFORE fix:", remainingScore);
         document.getElementById("remaining-score").textContent = remainingScore;
 
