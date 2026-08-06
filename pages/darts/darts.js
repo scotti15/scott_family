@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let turnStartRemaining = remainingScore;
 
+
   const checkoutRoutes3 = {
     // Impossible
     169: null,
@@ -227,6 +228,23 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentSessionId = null;
   let currentGameId = null;
   let sessionActive = false;
+  let currentSessionDescription = "";
+  
+  const sessionDescriptionInput =
+  document.getElementById("sessionDescription");
+
+
+  sessionDescriptionInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        saveSessionDescription();
+    }
+});
+
+sessionDescriptionInput.addEventListener("blur", () => {
+  saveSessionDescription();
+});
+
+
 
   let turnStartScore = null;
 
@@ -534,6 +552,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       dartIndex = 2;
     }
+    
 
     // ============================
     // ≡ƒöƒ Move to next dart
@@ -544,9 +563,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================
     // 1∩╕ÅΓâú1∩╕ÅΓâú Recalculate next target
     // ============================
-    if (!setTargetMode && !boardLocked) {
+    // if (!setTargetMode && !boardLocked) {  REPLACE BY THE FOLLOWING LINE
+      if (!setTargetMode) {
       const dartsRemaining = 3 - darts.length;
       currentTarget = getTarget(remainingScore, dartsRemaining);
+      console.log("Target AFTER throw:", currentTarget);
       highlightTarget(currentTarget.score, currentTarget.multiplier);
       updateTargetText(currentTarget);
     }
@@ -921,7 +942,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 2∩╕ÅΓâú Exact double-out (even numbers Γëñ 40)
-    if (remainingScore % 2 === 0 && finishMode) {
+    if (remainingScore > 0 && remainingScore % 2 === 0 && finishMode) {
       return { score: remainingScore / 2, multiplier: 2, checkoutMode: true, 
       route: [`D${remainingScore / 2}`] };
     }
@@ -1053,7 +1074,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dartboardEl.classList.add("checkout-mode");
       remainingEl.classList.add("checkout-pulse");
 
-      console.log("Checkout display test:", {
+      console.log("Checkout display test:", { 
         remainingScore,
         checkoutMode: target.checkoutMode,
         route: target.route
@@ -1114,6 +1135,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log(currentTarget);
 
     highlightTarget(currentTarget.score, currentTarget.multiplier);
+    console.log("prepareNextTarget")
     updateTargetText(currentTarget); // "Target: T20" etc
   }
 
@@ -1269,6 +1291,7 @@ document.addEventListener("DOMContentLoaded", () => {
            2️⃣ Populate dropdown
         ------------------------- */
         populateGameDropdown(data.games, currentGameId);
+        updateSessionDescription(data.session.description);
 
         /* -------------------------
            3️⃣ Reset UI
@@ -1341,11 +1364,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateActiveSessionUI() {
     const label = document.getElementById("activeSessionLabel");
 
-    if (!sessionActive) {
-      label.textContent = "No active session";
-    } else {
-      label.textContent = `Active Session #${currentSessionId}`;
-    }
+    // if (!sessionActive) {
+    //   label.textContent = "No active session";
+    // } else {
+    //   label.textContent = `Active Session #${currentSessionId}`;
+    // }
   }
 
   function saveTurnToDb(payload) {
@@ -2567,9 +2590,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 }
   
+function updateSessionDescription(description) {
+  if (!sessionDescriptionInput) return;
+
+  sessionDescriptionInput.value = description || "";
+  sessionDescriptionInput.disabled = false;
+}
   
-  
-  
+function saveSessionDescription() {
+
+  if (!currentSessionId || !sessionDescriptionInput) {
+      return;
+  }
+
+  const description = sessionDescriptionInput.value.trim();
+
+  fetch("update_session_description.php", {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({
+          session_id: currentSessionId,
+          description: description
+      })
+  })
+  .then(response => response.json())
+  .then(data => {
+      console.log("Save result:", data);
+  })
+  .catch(error => {
+      console.error("Save failed:", error);
+  });
+}
   
   //ADD NEW FUNCTIONS HERE
   prepareNextTarget();

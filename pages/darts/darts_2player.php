@@ -402,30 +402,35 @@ if (!$user_id) {
             <!-- RIGHT COLUMN -->
             <!-- ===================== -->
             <div class="session-panel">
-                <div id="sessionPanel" class="session-panel">
-                    <h3>Dart Sessions</h3>
+    <div id="sessionPanel" class="session-panel">
+        <h3>Dart Sessions</h3>
 
-                    <div class="session-controls">
-                        <button id="newSessionBtn">New Session</button>
+        <div class="session-controls">
+            <button id="newSessionBtn">New Session</button>
 
-                        <select id="sessionSelect">
-                            <option value="" disabled selected>Select a session</option>
-                        </select>
+            <select id="sessionSelect">
+                <option value="" disabled selected>Select a session</option>
+            </select>
 
-                        <button id="loadSessionBtn">Load Selected</button>
-                        <div class="game-select-wrapper">
-                            <label for="gameSelect"><strong>Games in Session</strong></label>
+            <button id="loadSessionBtn">Load Selected</button>
 
-                            <select id="gameSelect" disabled>
-                                <option value="">No session loaded</option>
-                            </select>
-                        </div>
+            <div class="game-select-wrapper">
+                <label for="gameSelect"><strong>Games in Session</strong></label>
 
-                        <div id="activeSessionLabel">No active session</div>
-                    </div>
-                </div>
-
+                <select id="gameSelect" disabled>
+                    <option value="">No session loaded</option>
+                </select>
             </div>
+
+            <input
+                type="text"
+                id="sessionDescription"
+                placeholder="Add a description for this session..."
+                maxlength="255"
+                disabled>
+        </div>
+    </div>
+</div>
 
         </div>
     </div>

@@ -23,7 +23,7 @@ try {
        1️⃣ Load session
     ----------------------------- */
     $stmt = $pdo->prepare("
-        SELECT session_id, name, created_at
+        SELECT session_id, name, description, created_at
         FROM dart_sessions
         WHERE session_id = :sid AND user_id = :uid
     ");
