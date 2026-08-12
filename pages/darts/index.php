@@ -50,7 +50,7 @@ if (!$user_id) {
             <h1>Darts Scoring with Stats</h1>
             <p class="muted">Darts tracking and statistics (work in progress)</p>
         </div>
-
+        <input type="hidden" id="game-mode" value="1">
         <button id="infoBtn" class="info-button" title="About this site">
             ⓘ
         </button>

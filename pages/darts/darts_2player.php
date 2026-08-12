@@ -51,7 +51,7 @@ if (!$user_id) {
                 <h1>Darts Scoring with Stats</h1>
                 <p class="muted">Darts tracking and statistics (work in progress)</p>
             </div>
-
+            <input type="hidden" id="game-mode" value="2">
             <button id="infoBtn" class="info-button" title="About this site">
                 ⓘ
             </button>
@@ -91,14 +91,14 @@ if (!$user_id) {
                         <tbody>
                             <tr>
                                 <th>Remaining</th>
-                                <td>101</td>
-                                <td>201</td>
+                                <td id="player1-remaining">501</td>
+                                <td id="player2-remaining">501</td>
                             </tr>
 
                             <tr>
                                 <th>Checkout</th>
-                                <td>T17 → D16</td>
-                                <td>—</td>
+                                <td id="player1-checkout">...</td>
+                                <td id="player2-checkout">...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -402,35 +402,31 @@ if (!$user_id) {
             <!-- RIGHT COLUMN -->
             <!-- ===================== -->
             <div class="session-panel">
-    <div id="sessionPanel" class="session-panel">
-        <h3>Dart Sessions</h3>
+                <div id="sessionPanel" class="session-panel">
+                    <h3>Dart Sessions</h3>
 
-        <div class="session-controls">
-            <button id="newSessionBtn">New Session</button>
+                    <div class="session-controls">
+                        <button id="newSessionBtn">New Session</button>
 
-            <select id="sessionSelect">
-                <option value="" disabled selected>Select a session</option>
-            </select>
+                        <select id="sessionSelect">
+                            <option value="" disabled selected>Select a session</option>
+                        </select>
 
-            <button id="loadSessionBtn">Load Selected</button>
+                        <button id="loadSessionBtn">Load Selected</button>
 
-            <div class="game-select-wrapper">
-                <label for="gameSelect"><strong>Games in Session</strong></label>
+                        <div class="game-select-wrapper">
+                            <label for="gameSelect"><strong>Games in Session</strong></label>
 
-                <select id="gameSelect" disabled>
-                    <option value="">No session loaded</option>
-                </select>
+                            <select id="gameSelect" disabled>
+                                <option value="">No session loaded</option>
+                            </select>
+                        </div>
+
+                        <input type="text" id="sessionDescription" placeholder="Add a description for this session..."
+                            maxlength="255" disabled>
+                    </div>
+                </div>
             </div>
-
-            <input
-                type="text"
-                id="sessionDescription"
-                placeholder="Add a description for this session..."
-                maxlength="255"
-                disabled>
-        </div>
-    </div>
-</div>
 
         </div>
     </div>

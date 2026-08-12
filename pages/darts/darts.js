@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const gameMode = document.getElementById("game-mode").value;
+  const twoPlayerMode = gameMode === "2";
+
+  console.log("Game mode:", gameMode);
+  console.log("Two player mode:", twoPlayerMode);
+
   loadDartSessions();
 
   // ================================
@@ -18,6 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
   let turnNumber = 1;
   let startingScore = 501;
 
+  let activePlayer = 1;
+
+  let playerScores = {
+    1: startingScore,
+    2: startingScore,
+  };
+
+  let playerCheckouts = {
+    1: null,
+    2: null
+};
+
   let gameFinished = true;
   let currentTurns = []; // keeps all turns for the current game
 
@@ -27,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let ricochetMode = false;
 
   let turnStartRemaining = remainingScore;
-
 
   const checkoutRoutes3 = {
     // Impossible
@@ -78,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
     128: ["T18", "T14", "D16"],
     127: ["T20", "T17", "D8"],
     126: ["T19", "T19", "D6"],
-    125: ["25", "T20", "D20"],
+    125: ["T20", "25", "D20"],
     124: ["T20", "T16", "D8"],
     123: ["T19", "T16", "D9"],
     122: ["T18", "T18", "D7"],
@@ -103,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
     103: ["T19", "10", "D18"],
     102: ["T20", "10", "D16"],
     101: ["T17", "10", "D20"],
+    99: ["T19", "10", "D16"],
   };
 
   const checkoutRoutes2 = {
@@ -112,7 +130,6 @@ document.addEventListener("DOMContentLoaded", () => {
     104: ["T18", "D25"],
     101: ["T17", "D25"],
     100: ["T20", "D20"],
-    99: ["T19", "D21"],
     98: ["T20", "D19"],
     97: ["T19", "D20"],
     96: ["T20", "D18"],
@@ -220,7 +237,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // prepareNextTarget();
 
   const scoreboardBody = document.getElementById("scoreboard-body");
-  const remainingSpan = document.getElementById("remaining-score");
+  let remainingSpan;
+  if (twoPlayerMode) {
+    remainingSpan = document.getElementById("player1-remaining");
+} else {
+    remainingSpan = document.getElementById("remaining-score");
+}
 
   // ================================
   // DART SESSION STATE (B)
@@ -229,22 +251,22 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentGameId = null;
   let sessionActive = false;
   let currentSessionDescription = "";
-  
-  const sessionDescriptionInput =
-  document.getElementById("sessionDescription");
 
+  const sessionDescriptionInput = document.getElementById("sessionDescription");
 
   sessionDescriptionInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-        saveSessionDescription();
+      saveSessionDescription();
     }
-});
+  });
 
-sessionDescriptionInput.addEventListener("blur", () => {
-  saveSessionDescription();
-});
+  sessionDescriptionInput.addEventListener("blur", () => {
+    saveSessionDescription();
+  });
 
-
+  console.log("Active player:", activePlayer);
+  console.log("Player scores:", playerScores);
+  console.log("Current remaining score:", remainingScore);
 
   let turnStartScore = null;
 
@@ -314,14 +336,14 @@ sessionDescriptionInput.addEventListener("blur", () => {
   const toggleAllTurns = document.getElementById("toggle-all-turns");
 
   if (toggleAllTurns) {
-      toggleAllTurns.addEventListener("change", (e) => {
-          const checked = e.target.checked;
-  
-          document.querySelectorAll(".turn-toggle").forEach((cb) => {
-              cb.checked = checked;
-              toggleTurnMarkers(cb.dataset.turnId, checked);
-          });
+    toggleAllTurns.addEventListener("change", (e) => {
+      const checked = e.target.checked;
+
+      document.querySelectorAll(".turn-toggle").forEach((cb) => {
+        cb.checked = checked;
+        toggleTurnMarkers(cb.dataset.turnId, checked);
       });
+    });
   }
 
   let setTargetMode = false;
@@ -509,6 +531,8 @@ sessionDescriptionInput.addEventListener("blur", () => {
     totalCell.textContent = turnTotal;
 
     remainingScore -= dartData.score; // 0 for ricochet
+
+    playerScores[activePlayer] = remainingScore;
     remainingSpan.textContent = remainingScore;
 
     // ============================
@@ -552,7 +576,6 @@ sessionDescriptionInput.addEventListener("blur", () => {
 
       dartIndex = 2;
     }
-    
 
     // ============================
     // ≡ƒöƒ Move to next dart
@@ -564,7 +587,7 @@ sessionDescriptionInput.addEventListener("blur", () => {
     // 1∩╕ÅΓâú1∩╕ÅΓâú Recalculate next target
     // ============================
     // if (!setTargetMode && !boardLocked) {  REPLACE BY THE FOLLOWING LINE
-      if (!setTargetMode) {
+    if (!setTargetMode) {
       const dartsRemaining = 3 - darts.length;
       currentTarget = getTarget(remainingScore, dartsRemaining);
       console.log("Target AFTER throw:", currentTarget);
@@ -606,6 +629,9 @@ sessionDescriptionInput.addEventListener("blur", () => {
     console.log("darts array:", darts);
     console.log("turnTotal:", turnTotal);
     console.log("remainingScore BEFORE:", remainingScore);
+    console.log("activePlayer =", activePlayer);
+    console.log("remainingScore =", remainingScore);
+    console.log("playerScores =", playerScores);
 
     if (darts.length === 0) return;
 
@@ -697,6 +723,12 @@ sessionDescriptionInput.addEventListener("blur", () => {
 
     console.log("markersByTurn:", markersByTurn);
     console.groupEnd();
+
+    
+    if (twoPlayerMode) {
+      switchPlayer();
+  }
+
   });
 
   // confirmBtn.addEventListener("click", () => {
@@ -901,7 +933,6 @@ sessionDescriptionInput.addEventListener("blur", () => {
   function getTarget(remainingScore, dartsRemaining) {
     console.log("getTarget", remainingScore, dartsRemaining);
 
-    
     const finishMode = remainingScore <= 40;
 
     let route = null;
@@ -943,8 +974,12 @@ sessionDescriptionInput.addEventListener("blur", () => {
 
     // 2∩╕ÅΓâú Exact double-out (even numbers Γëñ 40)
     if (remainingScore > 0 && remainingScore % 2 === 0 && finishMode) {
-      return { score: remainingScore / 2, multiplier: 2, checkoutMode: true, 
-      route: [`D${remainingScore / 2}`] };
+      return {
+        score: remainingScore / 2,
+        multiplier: 2,
+        checkoutMode: true,
+        route: [`D${remainingScore / 2}`],
+      };
     }
 
     // 3∩╕ÅΓâú Double bull finish
@@ -1050,20 +1085,19 @@ sessionDescriptionInput.addEventListener("blur", () => {
     const targetPanel = document.getElementById("target-panel");
     const remainingContainer = document.getElementById("remaining-container");
     const targetCard = document.getElementById("target-card");
-    const remainingEl = document.getElementById("remaining-score");
+    const remainingEl = remainingSpan;
     const dartboardEl = document.getElementById("dartboard");
 
-    
     const finishMode = remainingScore <= 40;
 
     console.log("New Target: ", target);
 
     console.log({
-    remainingScore,
-    checkoutMode: target.checkoutMode,
-    route: target.route,
-    finishMode,
-});
+      remainingScore,
+      checkoutMode: target.checkoutMode,
+      route: target.route,
+      finishMode,
+    });
 
     if (!target) return;
 
@@ -1074,17 +1108,27 @@ sessionDescriptionInput.addEventListener("blur", () => {
       dartboardEl.classList.add("checkout-mode");
       remainingEl.classList.add("checkout-pulse");
 
-      console.log("Checkout display test:", { 
+      console.log("Checkout display test:", {
         remainingScore,
         checkoutMode: target.checkoutMode,
-        route: target.route
-    });
+        route: target.route,
+      });
+
+      if (twoPlayerMode && target.checkoutMode) {
+        const playerCheckoutEl =
+            document.getElementById(`player${activePlayer}-checkout`);
     
+        playerCheckoutEl.textContent = target.route
+            ? target.route.join(" → ")
+            : "—";
+    }
+      
+      
       if (target.route && finishMode) {
-    targetCard.style.display = "none";
+        targetCard.style.display = "none";
         remainingEl.textContent = target.route.join(" → ");
       } else {
-    targetCard.style.display = "block";
+        targetCard.style.display = "block";
         remainingEl.textContent = remainingScore;
       }
 
@@ -1135,7 +1179,7 @@ sessionDescriptionInput.addEventListener("blur", () => {
     console.log(currentTarget);
 
     highlightTarget(currentTarget.score, currentTarget.multiplier);
-    console.log("prepareNextTarget")
+    console.log("prepareNextTarget");
     updateTargetText(currentTarget); // "Target: T20" etc
   }
 
@@ -1318,7 +1362,7 @@ sessionDescriptionInput.addEventListener("blur", () => {
             lastTurn.turn_result === "bust"
               ? lastTurn.start_score
               : lastTurn.end_score;
-          
+
           turnNumber = lastTurn.turn_number + 1;
         } else {
           // Fresh game
@@ -1637,14 +1681,14 @@ sessionDescriptionInput.addEventListener("blur", () => {
         // -------------------------
         if (currentTurns.length) {
           const lastTurn = currentTurns[currentTurns.length - 1];
-      
+
           remainingScore =
-              lastTurn.turn_result === "bust"
-                  ? lastTurn.start_score
-                  : lastTurn.end_score;
-      } else {
+            lastTurn.turn_result === "bust"
+              ? lastTurn.start_score
+              : lastTurn.end_score;
+        } else {
           remainingScore = 501;
-      }
+        }
         console.log("Remaining BEFORE fix:", remainingScore);
         document.getElementById("remaining-score").textContent = remainingScore;
 
@@ -2586,43 +2630,67 @@ sessionDescriptionInput.addEventListener("blur", () => {
   function updateVisitDisplay() {
     const visitEl = document.getElementById("visit-number");
     if (visitEl) {
-        visitEl.textContent = `Turn #${turnNumber}`;
+      visitEl.textContent = `Turn #${turnNumber}`;
     }
-}
-  
-function updateSessionDescription(description) {
-  if (!sessionDescriptionInput) return;
-
-  sessionDescriptionInput.value = description || "";
-  sessionDescriptionInput.disabled = false;
-}
-  
-function saveSessionDescription() {
-
-  if (!currentSessionId || !sessionDescriptionInput) {
-      return;
   }
 
-  const description = sessionDescriptionInput.value.trim();
+  function updateSessionDescription(description) {
+    if (!sessionDescriptionInput) return;
 
-  fetch("update_session_description.php", {
+    sessionDescriptionInput.value = description || "";
+    sessionDescriptionInput.disabled = false;
+  }
+
+  function saveSessionDescription() {
+    if (!currentSessionId || !sessionDescriptionInput) {
+      return;
+    }
+
+    const description = sessionDescriptionInput.value.trim();
+
+    fetch("update_session_description.php", {
       method: "POST",
       headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-          session_id: currentSessionId,
-          description: description
+        session_id: currentSessionId,
+        description: description,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Save result:", data);
       })
-  })
-  .then(response => response.json())
-  .then(data => {
-      console.log("Save result:", data);
-  })
-  .catch(error => {
-      console.error("Save failed:", error);
-  });
+      .catch((error) => {
+        console.error("Save failed:", error);
+      });
+  }
+
+  function switchPlayer() {
+    activePlayer = activePlayer === 1 ? 2 : 1;
+
+    remainingScore = playerScores[activePlayer];
+
+    remainingSpan = document.getElementById(
+        `player${activePlayer}-remaining`
+    );
+
+    remainingSpan.textContent = remainingScore;
+
+    prepareNextTarget();
+
+    console.log("Active player:", activePlayer);
+    console.log("Remaining score:", remainingScore);
+    console.log("Player scores:", playerScores);
+
+    const table = document.getElementById("player-scoreboard");
+
+    table.classList.remove("player1-active", "player2-active");
+    table.classList.add(`player${activePlayer}-active`);
 }
+  
+  
   
   //ADD NEW FUNCTIONS HERE
   prepareNextTarget();

@@ -679,7 +679,7 @@ input:checked + .slider::before {
   }
 
   50% {
-      transform: scale(1.20);
+      transform: scale(1);
       color: #ff4040;
       text-shadow:
           0 0 10px red,
@@ -696,7 +696,17 @@ input:checked + .slider::before {
 
 .checkout-pulse {
   animation: checkoutPulse 1.5s ease-in-out infinite;
-  display: inline-block;   /* required so transform works nicely */
+  display: inline-block;
+}
+
+#player1-remaining.checkout-pulse,
+#player2-remaining.checkout-pulse {
+  display: table-cell;
+}
+
+#player1-checkout,
+#player2-checkout {
+    white-space: nowrap;
 }
 
 /* ================
@@ -729,7 +739,7 @@ TWO PLAYER CSS
 
 .darts-two-player .darts-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 1fr 450px;
   grid-template-areas:
       "board player"
       "session session";
