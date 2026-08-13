@@ -31,6 +31,13 @@ document.addEventListener("DOMContentLoaded", () => {
     2: startingScore,
   };
 
+  const currentUserIdEl = document.getElementById("current-user-id");
+
+  let playerUsers = {
+      1: currentUserIdEl ? currentUserIdEl.value : null,
+      2: null
+  };
+
   let playerCheckouts = {
     1: null,
     2: null
@@ -46,6 +53,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let turnStartRemaining = remainingScore;
 
+  const player2Select = document.getElementById("player2-user");
+
+if (player2Select) {
+    player2Select.addEventListener("change", () => {
+        playerUsers[2] = player2Select.value;
+
+        const player2Name = player2Select.options[player2Select.selectedIndex].text;
+        document.getElementById("player2-name").textContent = player2Name;
+
+        console.log("Player 2 selected:", playerUsers[2]);
+        console.log("Player users:", playerUsers);
+    });
+}
   const checkoutRoutes3 = {
     // Impossible
     169: null,
@@ -236,6 +256,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // highlightTarget(currentTarget.score, currentTarget.multiplier);
   // prepareNextTarget();
 
+  
+  const testPlayerBtn = document.getElementById("btn-test-player");
+
+  if (testPlayerBtn) {
+      testPlayerBtn.addEventListener("click", switchPlayer);
+  }
+
+  
   const scoreboardBody = document.getElementById("scoreboard-body");
   let remainingSpan;
   if (twoPlayerMode) {
@@ -1244,6 +1272,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return {
       game_id: currentGameId,
+      user_id: playerUsers[activePlayer],
       turn_number: turnNumber,
       start_score: turnStartRemaining,
       end_score: actualRemainingScore,
@@ -1252,17 +1281,17 @@ document.addEventListener("DOMContentLoaded", () => {
         throw_number: i + 1,
         hit_score: d.value ?? 0,
         ring: d.multiplier === 3 ? "T" : d.multiplier === 2 ? "D" : "S",
-
+    
         segment: d.segment ?? d.value ?? null,
         x: d.x ?? null,
         y: d.y ?? null,
         hit_target: !!d.hitTarget,
         aimed_ring: d.aimed_ring ?? null,
         aimed_value: d.aimed_value ?? null,
-
+    
         miss_distance: d.miss_distance ?? null,
         miss_angle: d.miss_angle ?? null,
-
+    
         is_implied: d.isImplied ? 1 : 0,
         throw_type: d.throw_type ?? "normal",
       })),

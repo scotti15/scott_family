@@ -44,7 +44,7 @@ if (!$user_id) {
 </style>
 
 <div class="container darts-page">
-
+<input type="hidden" id="current-user-id" value="<?= htmlspecialchars($user_id) ?>">
     <header class="page-header">
         <div class="header-left">
             <h1>Darts Scoring with Stats</h1>

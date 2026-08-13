@@ -14,7 +14,16 @@ include "../../includes/navbar.php";
 // ---------------------------------
 // User info
 // ---------------------------------
-$user_id = $_SESSION["user_id"] ?? 0;
+$user_id = $_SESSION["user_id"] ?? 0;//get user id
+//GET USER NAME -----------------------------------
+$stmt = $pdo->prepare("
+    SELECT username
+    FROM users
+    WHERE ID = :user_id
+");
+$stmt->execute(['user_id' => $user_id]);
+$player1 = $stmt->fetchColumn();
+//--------------------------------------------------
 $role = $_SESSION["role"] ?? "user";
 $isAdmin = $role === "admin";
 
@@ -44,6 +53,7 @@ if (!$user_id) {
 </style>
 
 <div class="darts-two-player">
+    <input type="hidden" id="current-user-id" value="<?= htmlspecialchars($user_id) ?>">
     <div class="container darts-page">
 
         <header class="page-header">
@@ -83,8 +93,10 @@ if (!$user_id) {
                         <thead>
                             <tr>
                                 <th></th>
-                                <th>Ian</th>
-                                <th>Bob</th>
+                                <th id="player1-name">
+                                    <?= htmlspecialchars($player1) ?>
+                                </th>
+                                <th id="player2-name">Player 2</th>
                             </tr>
                         </thead>
 
@@ -414,6 +426,28 @@ if (!$user_id) {
 
                         <button id="loadSessionBtn">Load Selected</button>
 
+                        <?php
+                            $stmt = $pdo->prepare("
+                                SELECT ID, username
+                                FROM users
+                                WHERE ID != :user_id
+                                ORDER BY username
+                            ");
+                            $stmt->execute(['user_id' => $_SESSION['user_id']]);
+                            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            ?>
+
+                        <div class="player2-selection">
+                            <select id="player2-user">
+                                <option value="">Select Player 2</option>
+
+                                <?php foreach ($users as $user): ?>
+                                <option value="<?= htmlspecialchars($user['ID']) ?>">
+                                    <?= htmlspecialchars($user['username']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                         <div class="game-select-wrapper">
                             <label for="gameSelect"><strong>Games in Session</strong></label>
 

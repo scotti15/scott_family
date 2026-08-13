@@ -3,14 +3,15 @@ session_start();
 require_once '../../config/db.php';
 header('Content-Type: application/json');
 
-$userId = $_SESSION['user_id'] ?? null;
+$data = json_decode(file_get_contents("php://input"), true);
+
+$userId = $data['user_id'] ?? ($_SESSION['user_id'] ?? null);
+
 if (!$userId) {
     http_response_code(403);
-    echo json_encode(['error' => 'Not logged in']);
+    echo json_encode(['error' => 'No player specified']);
     exit;
 }
-
-$data = json_decode(file_get_contents("php://input"), true);
 
 if (
     empty($data['game_id']) ||
@@ -48,6 +49,7 @@ try {
     $stmt = $pdo->prepare("
         INSERT INTO dart_turns (
             game_id,
+            user_id,
             turn_number,
             start_score,
             end_score,
@@ -55,6 +57,7 @@ try {
             turn_result
         ) VALUES (
             :game_id,
+            :user_id,
             :turn_number,
             :start_score,
             :end_score,
@@ -65,6 +68,7 @@ try {
 
     $stmt->execute([
         ':game_id'     => $gameId,
+        ':user_id'     => $userId,
         ':turn_number' => $nextTurn,
         ':start_score' => $startScore,
         ':end_score'   => $endScore,
