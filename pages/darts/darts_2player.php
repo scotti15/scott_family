@@ -430,18 +430,22 @@ if (!$user_id) {
                             $stmt = $pdo->prepare("
                                 SELECT ID, username
                                 FROM users
-                                WHERE ID != :user_id
                                 ORDER BY username
                             ");
                             $stmt->execute(['user_id' => $_SESSION['user_id']]);
                             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
-
+                        <script>
+                        const allUsers = <?= json_encode($users) ?>;
+                        console.log("All users:", allUsers);
+                        </script>
                         <div class="player2-selection">
                             <select id="player2-user">
                                 <option value="">Select Player 2</option>
 
                                 <?php foreach ($users as $user): ?>
+                                <?php if ($user['ID'] == $_SESSION['user_id']) continue; ?>
+
                                 <option value="<?= htmlspecialchars($user['ID']) ?>">
                                     <?= htmlspecialchars($user['username']) ?>
                                 </option>

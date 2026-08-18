@@ -34,14 +34,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentUserIdEl = document.getElementById("current-user-id");
 
   let playerUsers = {
-      1: currentUserIdEl ? currentUserIdEl.value : null,
-      2: null
+    1: currentUserIdEl ? currentUserIdEl.value : null,
+    2: null,
   };
 
   let playerCheckouts = {
     1: null,
-    2: null
-};
+    2: null,
+  };
 
   let gameFinished = true;
   let currentTurns = []; // keeps all turns for the current game
@@ -55,17 +55,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const player2Select = document.getElementById("player2-user");
 
-if (player2Select) {
+  if (player2Select) {
     player2Select.addEventListener("change", () => {
-        playerUsers[2] = player2Select.value;
+      playerUsers[2] = player2Select.value;
 
-        const player2Name = player2Select.options[player2Select.selectedIndex].text;
-        document.getElementById("player2-name").textContent = player2Name;
+      const player2Name =
+        player2Select.options[player2Select.selectedIndex].text;
+      document.getElementById("player2-name").textContent = player2Name;
 
-        console.log("Player 2 selected:", playerUsers[2]);
-        console.log("Player users:", playerUsers);
+      console.log("Player 2 selected:", playerUsers[2]);
+      console.log("Player users:", playerUsers);
     });
-}
+  }
   const checkoutRoutes3 = {
     // Impossible
     169: null,
@@ -256,21 +257,19 @@ if (player2Select) {
   // highlightTarget(currentTarget.score, currentTarget.multiplier);
   // prepareNextTarget();
 
-  
   const testPlayerBtn = document.getElementById("btn-test-player");
 
   if (testPlayerBtn) {
-      testPlayerBtn.addEventListener("click", switchPlayer);
+    testPlayerBtn.addEventListener("click", switchPlayer);
   }
 
-  
   const scoreboardBody = document.getElementById("scoreboard-body");
   let remainingSpan;
   if (twoPlayerMode) {
     remainingSpan = document.getElementById("player1-remaining");
-} else {
+  } else {
     remainingSpan = document.getElementById("remaining-score");
-}
+  }
 
   // ================================
   // DART SESSION STATE (B)
@@ -311,9 +310,17 @@ if (player2Select) {
     .getElementById("newSessionBtn")
     .addEventListener("click", startNewSession);
 
-  document
-    .getElementById("loadSessionBtn")
-    .addEventListener("click", loadSelectedSession);
+  const loadSessionBtn = document.getElementById("loadSessionBtn");
+
+  if (loadSessionBtn) {
+    loadSessionBtn.addEventListener("click", () => {
+      if (twoPlayerMode) {
+        loadSelectedSession2Player();
+      } else {
+        loadSelectedSession();
+      }
+    });
+  }
 
   document.getElementById("closeStatsBtn").addEventListener("click", () => {
     const modal = document.getElementById("gameStatsModal");
@@ -734,6 +741,11 @@ if (player2Select) {
 
     // Clear markers and reset live turn
     clearMarkers();
+
+    if (twoPlayerMode) {
+      switchPlayer();
+    }
+
     resetTurn();
 
     // Prepare next target if automated
@@ -744,6 +756,10 @@ if (player2Select) {
     // Increment turn number
     turnNumber++;
 
+    if (twoPlayerMode && turnNumber === 2 && player2Select) {
+      player2Select.disabled = true;
+  }
+
     const visitEl = document.getElementById("visit-number");
     if (visitEl) {
       visitEl.textContent = `Turn #${turnNumber}`;
@@ -751,12 +767,6 @@ if (player2Select) {
 
     console.log("markersByTurn:", markersByTurn);
     console.groupEnd();
-
-    
-    if (twoPlayerMode) {
-      switchPlayer();
-  }
-
   });
 
   // confirmBtn.addEventListener("click", () => {
@@ -1129,7 +1139,7 @@ if (player2Select) {
 
     if (!target) return;
 
-    if (target.checkoutMode) {
+    if (target.checkoutMode && !gameFinished) {
       // Enter checkout mode
       remainingContainer.classList.add("checkout-mode");
       targetCard.classList.add("checkout-mode");
@@ -1143,15 +1153,15 @@ if (player2Select) {
       });
 
       if (twoPlayerMode && target.checkoutMode) {
-        const playerCheckoutEl =
-            document.getElementById(`player${activePlayer}-checkout`);
-    
+        const playerCheckoutEl = document.getElementById(
+          `player${activePlayer}-checkout`
+        );
+
         playerCheckoutEl.textContent = target.route
-            ? target.route.join(" → ")
-            : "—";
-    }
-      
-      
+          ? target.route.join(" → ")
+          : "—";
+      }
+
       if (target.route && finishMode) {
         targetCard.style.display = "none";
         remainingEl.textContent = target.route.join(" → ");
@@ -1281,17 +1291,17 @@ if (player2Select) {
         throw_number: i + 1,
         hit_score: d.value ?? 0,
         ring: d.multiplier === 3 ? "T" : d.multiplier === 2 ? "D" : "S",
-    
+
         segment: d.segment ?? d.value ?? null,
         x: d.x ?? null,
         y: d.y ?? null,
         hit_target: !!d.hitTarget,
         aimed_ring: d.aimed_ring ?? null,
         aimed_value: d.aimed_value ?? null,
-    
+
         miss_distance: d.miss_distance ?? null,
         miss_angle: d.miss_angle ?? null,
-    
+
         is_implied: d.isImplied ? 1 : 0,
         throw_type: d.throw_type ?? "normal",
       })),
@@ -1340,6 +1350,198 @@ if (player2Select) {
       .catch((err) => console.error("Start session failed", err));
   }
 
+  function loadSelectedSession2Player() {
+    const select = document.getElementById("sessionSelect");
+    if (!select.value) return;
+
+    fetch(`load_dart_session.php?session_id=${select.value}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data || data.error) {
+          console.error("Session load failed:", data?.error);
+          return;
+        }
+
+        currentSessionId = data.session.session_id;
+        currentGameId = data.game ? data.game.game_id : null;
+        sessionActive = true;
+        games = data.games;
+
+        populateGameDropdown(data.games, currentGameId);
+        updateSessionDescription(data.session.description);
+
+        clearHistoryTable();
+        clearMarkers();
+        clearTargetHighlight();
+        resetTurnUI();
+
+        currentTurns = data.turns || [];
+        if (player2Select) {
+          player2Select.disabled = currentTurns.length > 0;
+      }
+        const turns = currentTurns;
+
+        // -------------------------
+        // Restore player identities
+        // -------------------------
+        if (turns.length > 0) {
+          playerUsers[1] = String(turns[0].user_id);
+        }
+
+        if (turns.length > 1) {
+          playerUsers[2] = String(turns[1].user_id);
+        }
+
+        // Restore Player 2 dropdown + name
+        if (playerUsers[2] && player2Select) {
+          player2Select.value = playerUsers[2];
+
+          const player2Name =
+            player2Select.options[player2Select.selectedIndex].text;
+
+          document.getElementById("player2-name").textContent = player2Name;
+        }
+
+        // -------------------------
+        // Restore player scores
+        // -------------------------
+        if (turns.length > 0) {
+          const lastTurn = turns[turns.length - 1];
+
+          // Last turn belongs to whoever played last
+          const lastPlayer =
+            String(lastTurn.user_id) === String(playerUsers[1]) ? 1 : 2;
+
+          playerScores[lastPlayer] =
+            lastTurn.turn_result === "bust"
+              ? lastTurn.start_score
+              : lastTurn.end_score;
+
+          // The previous turn belongs to the other player
+          if (turns.length > 1) {
+            const previousTurn = turns[turns.length - 2];
+
+            const otherPlayer = lastPlayer === 1 ? 2 : 1;
+
+            playerScores[otherPlayer] =
+              previousTurn.turn_result === "bust"
+                ? previousTurn.start_score
+                : previousTurn.end_score;
+          }
+        }
+
+        console.log("Players restored:", playerUsers);
+
+        document.getElementById("player1-remaining").textContent =
+          playerScores[1];
+
+        document.getElementById("player2-remaining").textContent =
+          playerScores[2];
+
+        // -------------------------
+        // Restore active player
+        // -------------------------
+        if (turns.length > 0) {
+          const lastTurn = turns[turns.length - 1];
+
+          if (String(lastTurn.user_id) === String(playerUsers[1])) {
+            activePlayer = 2;
+          } else {
+            activePlayer = 1;
+          }
+
+          turnNumber = lastTurn.turn_number + 1;
+        } else {
+          activePlayer = 1;
+          turnNumber = 1;
+        }
+
+        // Restore live turn state
+        console.log("BEFORE live-state restore:", {
+          activePlayer,
+          playerScores,
+          remainingScore,
+        });
+
+        remainingScore = playerScores[activePlayer];
+
+        console.log("AFTER remainingScore assignment:", {
+          activePlayer,
+          playerScores,
+          remainingScore,
+        });
+
+        remainingSpan = document.getElementById(
+          `player${activePlayer}-remaining`
+        );
+
+        remainingSpan.textContent = remainingScore;
+
+        turnStartRemaining = remainingScore;
+
+        console.log("AFTER turnStartRemaining assignment:", {
+          remainingScore,
+          turnStartRemaining,
+        });
+
+        // Restore active-player UI
+        const table = document.getElementById("player-scoreboard");
+
+        if (table) {
+          table.classList.remove("player1-active", "player2-active");
+          table.classList.add(`player${activePlayer}-active`);
+        }
+
+        console.log("Active player restored:", activePlayer);
+
+        if (turns.length > 0) {
+          Object.keys(markersByTurn).forEach((k) => delete markersByTurn[k]);
+
+          rebuildMarkersFromThrows(turns);
+          console.log("AFTER rebuildMarkersFromThrows:", {
+            remainingScore,
+            turnStartRemaining,
+            activePlayer,
+          });
+        }
+
+        prepareNextTarget();
+        console.log("AFTER prepareNextTarget:", {
+          remainingScore,
+          turnStartRemaining,
+          activePlayer,
+        });
+
+        updateActiveSessionUI();
+        console.log("AFTER updateActiveSessionUI:", {
+          remainingScore,
+          turnStartRemaining,
+          activePlayer,
+        });
+        const complete = isGameComplete(turns);
+
+        boardLocked = complete;
+
+        if (complete) {
+          lockGameUI();
+        } else {
+          unlockGameUI();
+        }
+
+        console.log("2P Session resumed:", {
+          currentGameId,
+          currentTurns,
+          playerUsers,
+          playerScores,
+          activePlayer,
+          remainingScore,
+          turnNumber,
+          turnStartRemaining,
+        });
+      })
+      .catch((err) => console.error("Load session failed:", err));
+  }
+
   function loadSelectedSession() {
     const select = document.getElementById("sessionSelect");
     if (!select.value) return;
@@ -1377,8 +1579,29 @@ if (player2Select) {
         /* -------------------------
            4️⃣ Load turns
         ------------------------- */
-        const turns = data.turns || [];
+        currentTurns = data.turns || [];
+        const turns = currentTurns;
 
+        if (twoPlayerMode && currentTurns.length) {
+          currentTurns.forEach((turn) => {
+            if (turn.turn_number % 2 === 1) {
+              playerUsers[1] = String(turn.user_id);
+            } else {
+              playerUsers[2] = String(turn.user_id);
+            }
+          });
+
+          if (playerUsers[2]) {
+            player2Select.value = playerUsers[2];
+
+            const player2Name =
+              player2Select.options[player2Select.selectedIndex].text;
+
+            document.getElementById("player2-name").textContent = player2Name;
+          }
+
+          console.log("Players restored:", playerUsers);
+        }
         if (turns.length > 0) {
           populateHistoryTable(turns);
 
@@ -1427,8 +1650,10 @@ if (player2Select) {
 
         console.log("Session resumed:", {
           currentGameId,
-          turnNumber,
           remainingScore,
+          turnNumber,
+          currentTurns,
+          playerUsers,
         });
       })
       .catch((err) => console.error("Load session failed:", err));
@@ -1480,8 +1705,10 @@ if (player2Select) {
     remainingSpan.textContent = remainingScore;
 
     // clear history
-    const rows = scoreboardBody.querySelectorAll("tr");
-    rows.forEach((row) => row.remove());
+    if (scoreboardBody) {
+      const rows = scoreboardBody.querySelectorAll("tr");
+      rows.forEach((row) => row.remove());
+    }
 
     clearMarkers();
     clearTargetHighlight();
@@ -1655,16 +1882,21 @@ if (player2Select) {
 
   const gameSelect = document.getElementById("gameSelect");
 
-  gameSelect.addEventListener("change", () => {
-    const selectedGameId = parseInt(gameSelect.value, 10);
+  if (gameSelect) {
+    gameSelect.addEventListener("change", () => {
+      const selectedGameId = parseInt(gameSelect.value, 10);
 
-    if (!selectedGameId) return;
+      if (!selectedGameId) return;
 
-    currentGameId = selectedGameId;
+      currentGameId = selectedGameId;
 
-    // ≡ƒöü reload game state + history
-    loadGameById(currentGameId);
-  });
+      if (twoPlayerMode) {
+        loadGameById2Player(currentGameId);
+      } else {
+        loadGameById(currentGameId);
+      }
+    });
+  }
 
   function loadGameById(gameId) {
     console.log("🎯 Loading game:", gameId);
@@ -1745,6 +1977,217 @@ if (player2Select) {
       .catch((err) => console.error(err));
   }
 
+  function loadGameById2Player(gameId) {
+    console.log("🎯 Loading 2-player game:", gameId);
+
+    fetch(
+      `load_dart_session.php?session_id=${currentSessionId}&game_id=${gameId}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data || data.error || data.status !== "ok") {
+          console.error("2P Load failed", data);
+          return;
+        }
+
+        games = data.games;
+        currentGameId = data.game.game_id;
+
+        // -------------------------
+        // Reset UI first
+        // -------------------------
+        clearHistoryTable();
+        clearMarkers();
+        clearTargetHighlight();
+        resetTurnUI();
+
+        // -------------------------
+        // Load turns
+        // -------------------------
+        currentTurns = data.turns || [];
+        if (twoPlayerMode && player2Select) {
+          player2Select.disabled = currentTurns.length > 0;
+      }
+        const turns = currentTurns;
+
+        console.log("2P Turns data from server:", turns);
+
+        // -------------------------
+        // Restore player identities
+        // -------------------------
+        if (turns.length > 0) {
+          playerUsers[1] = String(turns[0].user_id);
+        }
+
+        if (turns.length > 1) {
+          playerUsers[2] = String(turns[1].user_id);
+        }
+
+        // -------------------------
+        // Restore Player 2 dropdown + name
+        // -------------------------
+        if (playerUsers[2] && player2Select) {
+          console.log(
+            "2P dropdown options:",
+            [...player2Select.options].map((o) => ({
+              value: o.value,
+              text: o.text,
+            }))
+          );
+
+          console.log("Player 2 ID to restore:", playerUsers[2]);
+          player2Select.value = playerUsers[2];
+          console.log(
+            "2P dropdown options:",
+            [...player2Select.options].map((o) => ({
+              value: o.value,
+              text: o.text,
+            }))
+          );
+
+          console.log("Player 2 ID to restore:", playerUsers[2]);
+
+         // -------------------------
+// Restore Player names
+// -------------------------
+const player1User = allUsers.find(
+  user => String(user.ID) === String(playerUsers[1])
+);
+
+const player2User = allUsers.find(
+  user => String(user.ID) === String(playerUsers[2])
+);
+
+if (player1User) {
+  document.getElementById("player1-name").textContent =
+      player1User.username;
+}
+
+if (player2User) {
+  document.getElementById("player2-name").textContent =
+      player2User.username;
+}
+
+        }
+
+        // -------------------------
+        // Restore player scores
+        // -------------------------
+        playerScores[1] = 501;
+        playerScores[2] = 501;
+
+        if (turns.length > 0) {
+          const lastTurn = turns[turns.length - 1];
+
+          const lastPlayer =
+            String(lastTurn.user_id) === String(playerUsers[1]) ? 1 : 2;
+
+          playerScores[lastPlayer] =
+            lastTurn.turn_result === "bust"
+              ? lastTurn.start_score
+              : lastTurn.end_score;
+
+          if (turns.length > 1) {
+            const previousTurn = turns[turns.length - 2];
+
+            const otherPlayer = lastPlayer === 1 ? 2 : 1;
+
+            playerScores[otherPlayer] =
+              previousTurn.turn_result === "bust"
+                ? previousTurn.start_score
+                : previousTurn.end_score;
+          }
+        }
+
+        // -------------------------
+        // Restore score display
+        // -------------------------
+        document.getElementById("player1-remaining").textContent =
+          playerScores[1];
+
+        document.getElementById("player2-remaining").textContent =
+          playerScores[2];
+
+        // -------------------------
+        // Restore active player
+        // -------------------------
+        if (turns.length > 0) {
+          const lastTurn = turns[turns.length - 1];
+
+          if (String(lastTurn.user_id) === String(playerUsers[1])) {
+            activePlayer = 2;
+          } else {
+            activePlayer = 1;
+          }
+
+          turnNumber = lastTurn.turn_number + 1;
+        } else {
+          activePlayer = 1;
+          turnNumber = 1;
+        }
+
+        // -------------------------
+        // Restore live turn state
+        // -------------------------
+        remainingScore = playerScores[activePlayer];
+        turnStartRemaining = remainingScore;
+
+        remainingSpan = document.getElementById(
+          `player${activePlayer}-remaining`
+        );
+
+        remainingSpan.textContent = remainingScore;
+
+        // -------------------------
+        // Restore active-player UI
+        // -------------------------
+        const table = document.getElementById("player-scoreboard");
+
+        if (table) {
+          table.classList.remove("player1-active", "player2-active");
+
+          table.classList.add(`player${activePlayer}-active`);
+        }
+
+        // -------------------------
+        // Restore markers
+        // -------------------------
+        rebuildMarkersFromThrows(turns);
+
+        // -------------------------
+        // Prepare next target
+        // -------------------------
+        prepareNextTarget();
+        updateActiveSessionUI();
+
+        // -------------------------
+        // Lock / unlock
+        // -------------------------
+        const complete = isGameComplete(turns);
+
+        boardLocked = complete;
+
+        if (complete) {
+          lockGameUI();
+        } else {
+          unlockGameUI();
+        }
+
+        console.log("2P Game resumed:", {
+          currentGameId,
+          currentTurns,
+          playerUsers,
+          playerScores,
+          activePlayer,
+          remainingScore,
+          turnNumber,
+          turnStartRemaining,
+          boardLocked,
+        });
+      })
+      .catch((err) => console.error("2P game load failed:", err));
+  }
+
   function createNewGame() {
     fetch("create_new_game.php", {
       method: "POST",
@@ -1771,6 +2214,17 @@ if (player2Select) {
         turnNumber = 1;
         remainingScore = 501;
 
+        if (twoPlayerMode) {
+          playerScores[1] = 501;
+          playerScores[2] = 501;
+          activePlayer = 1;
+
+          remainingSpan = document.getElementById("player1-remaining");
+          remainingSpan.textContent = 501;
+
+          document.getElementById("player2-remaining").textContent = 501;
+        }
+
         // Γ£à Update dropdown and auto-select
         games.push(newGame);
         populateGameDropdown(games, currentGameId);
@@ -1778,6 +2232,10 @@ if (player2Select) {
         // Γ£à Reset UI
         clearHistoryTable();
         resetGameUI();
+        if (twoPlayerMode) {
+          document.getElementById("player1-checkout").textContent = "—";
+          document.getElementById("player2-checkout").textContent = "—";
+        }
         unlockGameUI();
         prepareNextTarget();
         updateGameHeader(newGame.game_number);
@@ -2701,9 +3159,7 @@ if (player2Select) {
 
     remainingScore = playerScores[activePlayer];
 
-    remainingSpan = document.getElementById(
-        `player${activePlayer}-remaining`
-    );
+    remainingSpan = document.getElementById(`player${activePlayer}-remaining`);
 
     remainingSpan.textContent = remainingScore;
 
@@ -2717,10 +3173,8 @@ if (player2Select) {
 
     table.classList.remove("player1-active", "player2-active");
     table.classList.add(`player${activePlayer}-active`);
-}
-  
-  
-  
+  }
+
   //ADD NEW FUNCTIONS HERE
   prepareNextTarget();
 });

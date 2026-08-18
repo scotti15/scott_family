@@ -78,6 +78,7 @@ if ($gameId) {
         SELECT
         t.turn_id,
         t.turn_number,
+        t.user_id,
         t.start_score,
         t.end_score,
         t.turn_result,
@@ -106,6 +107,7 @@ if ($gameId) {
                 $turns[$tid] = [
                     'turn_id'     => $tid,
                     'turn_number' => (int)$row['turn_number'],
+                    'user_id'     => (int)$row['user_id'],
                     'start_score' => (int)$row['start_score'],
                     'end_score'   => (int)$row['end_score'],
                     'turn_result' => $row['turn_result'],
