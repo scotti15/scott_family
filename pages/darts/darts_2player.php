@@ -135,6 +135,7 @@ if (!$user_id) {
 
                     <button id="confirmTurn">Confirm</button>
                     <button id="btn-test-player">Switch Player</button>
+                    <button id="show-winner-modal">Show Winner Modal</button>
                 </div>
 
                 <div id="remaining-container">
@@ -559,6 +560,24 @@ if (!$user_id) {
 
         </div>
     </div>
+
+<!-- 🏆 WINNER MODAL -->
+<div id="winner-modal" class="game-summary-overlay" style="display:none;">
+    <div class="game-summary-modal">
+
+        <h1 class="summary-title">🏆 WINNER 🏆</h1>
+
+        <div class="summary-section">
+            <h2 id="winner-name" class="winner-name"></h2>
+        </div>
+
+        <div class="summary-actions">
+            <button id="winner-modal-close" class="btn-primary">Close</button>
+        </div>
+
+    </div>
+</div>
+
 
     <!-- Info / Help Modal -->
     <div id="infoModal" class="game-summary-overlay" style="display:none;">

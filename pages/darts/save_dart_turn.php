@@ -144,9 +144,10 @@ if (!empty($darts)) {
     $pdo->commit();
 
     echo json_encode([
-        'status'       => 'ok',
-        'turn_id'      => $turnId,
-        'turn_number'  => $nextTurn
+        'status' => 'ok',
+        'turn_id' => $turnId,
+        'turn_number' => $nextTurn,
+        'debug_user_id' => $userId
     ]);
 
 } catch (Exception $e) {

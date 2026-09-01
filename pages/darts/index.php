@@ -51,9 +51,11 @@ if (!$user_id) {
             <p class="muted">Darts tracking and statistics (work in progress)</p>
         </div>
         <input type="hidden" id="game-mode" value="1">
+        </button><button id="sound-toggle" type="button" title="Toggle sound">
+  🔊
+</button>
         <button id="infoBtn" class="info-button" title="About this site">
             ⓘ
-        </button>
     </header>
 
     <!-- ===================== -->

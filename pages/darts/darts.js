@@ -16,6 +16,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const DEBUG_STATS = true;
 
+  const sounds = {
+    dartImpact: new Audio("sounds/dart-impact.mp3"),
+    ricochet: new Audio("sounds/ricochet.mp3"),
+    bust: new Audio("sounds/bust.mp3"),
+    checkout: new Audio("sounds/checkout.mp3"),
+    score100: new Audio("sounds/100.mp3"),
+    score140: new Audio("sounds/140.mp3"),
+    score180: new Audio("sounds/180.mp3"),
+  };
+
+  sounds.dartImpact.preload = "auto";
+sounds.dartImpact.load();
+
+  let soundEnabled = true;
+
+  const soundToggle = document.getElementById("sound-toggle");
+  
+  soundToggle.addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+  
+    soundToggle.textContent = soundEnabled ? "🔊" : "🔇";
+  });
   let totalDarts = 0;
   const markersByTurn = {};
 
@@ -43,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     2: null,
   };
 
-  let gameFinished = true;
+  let gameFinished = false;
   let currentTurns = []; // keeps all turns for the current game
 
   let viewMode = "raw"; // or "wedge"
@@ -201,11 +223,11 @@ document.addEventListener("DOMContentLoaded", () => {
     51: ["11", "D20"],
     50: ["D25"],
     49: ["9", "D20"],
-    48: ["D24"],
+    48: ["16", "D16"],
     47: ["7", "D20"],
     46: ["6", "D20"],
     45: ["13", "D16"],
-    44: ["D22"],
+    44: ["12", "D32"],
     43: ["3", "D20"],
     42: ["10", "D16"],
     41: ["9", "D16"],
@@ -252,6 +274,15 @@ document.addEventListener("DOMContentLoaded", () => {
     2: ["D1"],
   };
 
+  const checkoutRoutes1 = {};
+
+  Object.entries(checkoutRoutes2).forEach(([score, route]) => {
+    checkoutRoutes1[score] = {
+      route: [route[0]],
+      checkoutMode: route.length === 1,
+    };
+  });
+
   let currentTarget;
   // = getTarget(remainingScore);
   // highlightTarget(currentTarget.score, currentTarget.multiplier);
@@ -261,6 +292,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (testPlayerBtn) {
     testPlayerBtn.addEventListener("click", switchPlayer);
+  }
+
+  const showWinnerBtn = document.getElementById("show-winner-modal");
+
+  if (showWinnerBtn) {
+    showWinnerBtn.addEventListener("click", testWinnerModal);
+  }
+  const winnerModalCloseBtn = document.getElementById("winner-modal-close");
+
+  if (winnerModalCloseBtn) {
+    winnerModalCloseBtn.addEventListener("click", () => {
+      document.getElementById("winner-modal").style.display = "none";
+    });
   }
 
   const scoreboardBody = document.getElementById("scoreboard-body");
@@ -571,6 +615,14 @@ document.addEventListener("DOMContentLoaded", () => {
     remainingSpan.textContent = remainingScore;
 
     // ============================
+    // Finish detected — play sound immediately
+    // ============================
+    if (remainingScore === 0 && dartData.multiplier === 2) {
+      sounds.checkout.currentTime = 0;
+      sounds.checkout.play();
+    } 
+
+    // ============================
     // 9∩╕ÅΓâú Bust Detection
     // ============================
     const isDoubleFinish = multiplier === 2;
@@ -579,11 +631,23 @@ document.addEventListener("DOMContentLoaded", () => {
       remainingScore === 1 ||
       (remainingScore === 0 && !isDoubleFinish);
 
+      console.log("100 announcement check:", {
+        dartIndex,
+        turnTotal,
+        isBust,
+        remainingScore,
+        multiplier: dartData.multiplier
+      });
+
     if (isBust) {
       dartCells[dartIndex].classList.add("bust-dart");
       darts[dartIndex].busted = true;
       bustThisTurn = true;
       boardLocked = true; // stop further clicks until Confirm
+      
+
+      // Play bust sound immediately
+      playSound(sounds.bust);
 
       // ≡ƒö╣ AUTO-FILL REMAINING DARTS
       for (let i = dartIndex + 1; i < 3; i++) {
@@ -612,6 +676,14 @@ document.addEventListener("DOMContentLoaded", () => {
       dartIndex = 2;
     }
 
+    if (dartIndex === 2 && turnTotal === 100 && !isBust) {
+      playSound(sounds.score100);
+    } else if (dartIndex === 2 && turnTotal === 140 && !isBust) {
+      playSound(sounds.score140);
+    } else if (dartIndex === 2 && turnTotal === 180 && !isBust) {
+      playSound(sounds.score180);
+    }
+
     // ============================
     // ≡ƒöƒ Move to next dart
     // ============================
@@ -636,7 +708,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ================================
 
   function placeMarker(x, y, turnId) {
-    const key = String(turnId); // ≡ƒöæ normalize here
+    const key = String(turnId);
 
     let marker;
 
@@ -647,6 +719,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     svg.appendChild(marker);
+
+    if (ricochetMode) {
+      playSound(sounds.ricochet);
+    } else {
+      playSound(sounds.dartImpact);
+    }
+
     markers.push(marker);
 
     if (!markersByTurn[key]) {
@@ -729,6 +808,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (winningDart) {
       console.log("Winning dart detected:", winningDart);
+
+      // Play checkout sound immediately
+      playSound(sounds.checkout);
       finishGame("double_out"); // updates DB
       return;
     }
@@ -758,7 +840,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (twoPlayerMode && turnNumber === 2 && player2Select) {
       player2Select.disabled = true;
-  }
+    }
 
     const visitEl = document.getElementById("visit-number");
     if (visitEl) {
@@ -974,15 +1056,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const finishMode = remainingScore <= 40;
 
     let route = null;
+    if (dartsRemaining === 1) {
+      const target1 = checkoutRoutes1[remainingScore];
+
+      if (target1) {
+        return {
+          score: parseInt(target1.route[0].replace(/\D/g, "")),
+          multiplier: getMultiplier(target1.route[0]),
+          checkoutMode: target1.checkoutMode,
+          route: target1.checkoutMode ? target1.route : null,
+        };
+      }
+    }
 
     if (dartsRemaining === 3) {
       route = checkoutRoutes3[remainingScore];
+
       if (!route) {
         route = checkoutRoutes2[remainingScore];
       }
     } else if (dartsRemaining === 2) {
       route = checkoutRoutes2[remainingScore];
     }
+
+    console.log("ROUTE LOOKUP", {
+      remainingScore,
+      dartsRemaining,
+      route,
+    });
 
     let singleRoute = null;
 
@@ -1138,6 +1239,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (!target) return;
+    console.log("CHECKOUT DECISION:", {
+      checkoutMode: target.checkoutMode,
+      gameFinished: gameFinished,
+      remainingScore: remainingScore,
+      target: target,
+    });
 
     if (target.checkoutMode && !gameFinished) {
       // Enter checkout mode
@@ -1378,9 +1485,34 @@ document.addEventListener("DOMContentLoaded", () => {
         currentTurns = data.turns || [];
         if (player2Select) {
           player2Select.disabled = currentTurns.length > 0;
-      }
+        }
         const turns = currentTurns;
 
+        const complete = isGameComplete(turns);
+
+        if (!complete) {
+          prepareNextTarget();
+
+          console.log("AFTER prepareNextTarget:", {
+            remainingScore,
+            turnStartRemaining,
+            activePlayer,
+          });
+        }
+
+        let winnerPlayer = null;
+
+        if (complete) {
+          const winningTurn = turns[turns.length - 1];
+
+          winnerPlayer =
+            String(winningTurn.user_id) === String(playerUsers[1]) ? 1 : 2;
+
+          console.log("🏆 Winner restored:", {
+            winnerPlayer,
+            winnerUserId: winningTurn.user_id,
+          });
+        }
         // -------------------------
         // Restore player identities
         // -------------------------
@@ -1437,6 +1569,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("player2-remaining").textContent =
           playerScores[2];
+
+        if (winnerPlayer === 1) {
+          document.getElementById("player1-name").textContent += " 🏆";
+        }
+
+        if (winnerPlayer === 2) {
+          document.getElementById("player2-name").textContent += " 🏆";
+        }
 
         // -------------------------
         // Restore active player
@@ -1505,20 +1645,12 @@ document.addEventListener("DOMContentLoaded", () => {
           });
         }
 
-        prepareNextTarget();
-        console.log("AFTER prepareNextTarget:", {
-          remainingScore,
-          turnStartRemaining,
-          activePlayer,
-        });
-
         updateActiveSessionUI();
         console.log("AFTER updateActiveSessionUI:", {
           remainingScore,
           turnStartRemaining,
           activePlayer,
         });
-        const complete = isGameComplete(turns);
 
         boardLocked = complete;
 
@@ -1670,6 +1802,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function saveTurnToDb(payload) {
+    console.log("SAVE TURN PLAYER:", {
+      activePlayer,
+      playerUsers,
+      user_id: playerUsers[activePlayer],
+    });
+
+    console.log("SAVE TURN Payload JSON:", JSON.stringify(payload, null, 2));
+
     fetch("save_dart_turn.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1990,6 +2130,8 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
+        console.log("🎯 COMPLETE LOADED GAME DATA:", data);
+
         games = data.games;
         currentGameId = data.game.game_id;
 
@@ -2007,22 +2149,45 @@ document.addEventListener("DOMContentLoaded", () => {
         currentTurns = data.turns || [];
         if (twoPlayerMode && player2Select) {
           player2Select.disabled = currentTurns.length > 0;
-      }
+        }
         const turns = currentTurns;
 
         console.log("2P Turns data from server:", turns);
+
+        const lastTurn = turns[turns.length - 1];
+        //DO NOT INVOKE CHECKOUT MODE IF THE GAME IS FINISHED.
+        gameFinished = lastTurn?.end_score === 0;
 
         // -------------------------
         // Restore player identities
         // -------------------------
         if (turns.length > 0) {
-          playerUsers[1] = String(turns[0].user_id);
-        }
+          turns.forEach((turn) => {
+            if (turn.turn_number % 2 === 1) {
+              playerUsers[1] = String(turn.user_id);
+            } else {
+              playerUsers[2] = String(turn.user_id);
+            }
+          });
+        } else {
+          // Unstarted game: logged-in user is Player 1
+          playerUsers[1] = String(currentUserIdEl.value);
+          playerUsers[2] = null;
 
-        if (turns.length > 1) {
-          playerUsers[2] = String(turns[1].user_id);
-        }
+          const player1User = allUsers.find(
+            (user) => String(user.ID) === playerUsers[1]
+          );
 
+          document.getElementById("player1-name").textContent = player1User
+            ? player1User.username
+            : "Player 1";
+
+          document.getElementById("player2-name").textContent = "Player 2";
+
+          if (player2Select) {
+            player2Select.value = "";
+          }
+        }
         // -------------------------
         // Restore Player 2 dropdown + name
         // -------------------------
@@ -2047,27 +2212,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
           console.log("Player 2 ID to restore:", playerUsers[2]);
 
-         // -------------------------
-// Restore Player names
-// -------------------------
-const player1User = allUsers.find(
-  user => String(user.ID) === String(playerUsers[1])
-);
+          // -------------------------
+          // Restore Player names
+          // -------------------------
+          const player1User = allUsers.find(
+            (user) => String(user.ID) === String(playerUsers[1])
+          );
 
-const player2User = allUsers.find(
-  user => String(user.ID) === String(playerUsers[2])
-);
+          const player2User = allUsers.find(
+            (user) => String(user.ID) === String(playerUsers[2])
+          );
 
-if (player1User) {
-  document.getElementById("player1-name").textContent =
-      player1User.username;
-}
+          if (player1User) {
+            document.getElementById("player1-name").textContent =
+              player1User.username;
+            document.getElementById("player1-checkout").textContent = "—";
+          }
 
-if (player2User) {
-  document.getElementById("player2-name").textContent =
-      player2User.username;
-}
+          if (player2User) {
+            document.getElementById("player2-name").textContent =
+              player2User.username;
+            document.getElementById("player2-checkout").textContent = "—";
+          }
+          // -------------------------
+          // Restore winner trophy
+          // -------------------------
+          if (gameFinished && lastTurn) {
+            const winnerPlayer =
+              String(lastTurn.user_id) === String(playerUsers[1]) ? 1 : 2;
 
+            document.getElementById(`player${winnerPlayer}-name`).textContent +=
+              " 🏆";
+          }
         }
 
         // -------------------------
@@ -2124,6 +2300,12 @@ if (player2User) {
         } else {
           activePlayer = 1;
           turnNumber = 1;
+        }
+        // -------------------------
+        // Restore Player 2 selection state
+        // -------------------------
+        if (twoPlayerMode && player2Select) {
+          player2Select.disabled = turnNumber >= 2;
         }
 
         // -------------------------
@@ -2213,16 +2395,21 @@ if (player2User) {
         currentGameId = newGame.game_id;
         turnNumber = 1;
         remainingScore = 501;
+        gameFinished = false;
 
         if (twoPlayerMode) {
           playerScores[1] = 501;
           playerScores[2] = 501;
           activePlayer = 1;
+          gameFinished = false;
+          playerUsers[2] = null;
 
           remainingSpan = document.getElementById("player1-remaining");
           remainingSpan.textContent = 501;
 
           document.getElementById("player2-remaining").textContent = 501;
+          player2Select.value = "";
+          document.getElementById("player2-name").textContent = "Player 2";
         }
 
         // Γ£à Update dropdown and auto-select
@@ -2247,11 +2434,20 @@ if (player2User) {
 
   async function finishGame(resultType = "finished") {
     // if (gameFinished) return;
+    console.log("🏆 WINNER TEST:", {
+      activePlayer,
+      player1: playerUsers[1],
+      player2: playerUsers[2],
+    });
 
     console.log("≡ƒÅü Finishing game");
 
     gameFinished = true;
     boardLocked = true;
+
+    if (twoPlayerMode) {
+      showWinnerModal();
+    }
 
     // ≡ƒÄë Celebration first
     await celebrateDoubleOut();
@@ -3155,6 +3351,7 @@ if (player2User) {
   }
 
   function switchPlayer() {
+    if (gameFinished) return;
     activePlayer = activePlayer === 1 ? 2 : 1;
 
     remainingScore = playerScores[activePlayer];
@@ -3175,6 +3372,55 @@ if (player2User) {
     table.classList.add(`player${activePlayer}-active`);
   }
 
+  function testWinnerModal() {
+    const winnerUser = allUsers.find(
+      (user) => String(user.ID) === String(playerUsers[activePlayer])
+    );
+
+    document.getElementById("winner-name").textContent = winnerUser
+      ? winnerUser.username
+      : "Winner";
+
+    const modal = document.getElementById("winner-modal");
+
+    if (modal) {
+      modal.style.display = "flex";
+    }
+  }
+
+  function showWinnerModal() {
+    const winnerUser = allUsers.find(
+      (user) => String(user.ID) === String(playerUsers[activePlayer])
+    );
+
+    const winnerNameEl = document.getElementById("winner-name");
+
+    if (winnerNameEl) {
+      winnerNameEl.textContent = winnerUser ? winnerUser.username : "Winner";
+    }
+
+    document.getElementById("winner-modal").style.display = "flex";
+  }
+
+  function logPlayerState(label) {
+    console.log(`👥 PLAYER STATE — ${label}`, {
+      activePlayer,
+      playerUsers: { ...playerUsers },
+      player1Display: document.getElementById("player1-name")?.textContent,
+      player2Display: document.getElementById("player2-name")?.textContent,
+      player2Select: player2Select?.value,
+    });
+  }
+
+  function playSound(sound) {
+    if (!soundEnabled) return;
+  
+    sound.currentTime = 0;
+    sound.play();
+  }
+  
+  
+  
   //ADD NEW FUNCTIONS HERE
   prepareNextTarget();
 });
