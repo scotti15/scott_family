@@ -32,6 +32,7 @@ $stmt = $pdo->prepare("
         AND dt.aimed_ring = 'D'
         AND dt.is_valid = 1
         AND dt.is_implied = 0
+        $rangeWhere
 ");
 
 $stmt->execute($params);

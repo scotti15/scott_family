@@ -20,13 +20,32 @@ if (!$user_id) {
    SESSION FILTER
 ----------------------------- */
 $limit = null;
+$rangeWhere = "";
+$sessionJoin = "";
+
+$params = [
+    ':user_id' => $user_id
+];
 
 if ($sessionFilter === "last1") $limit = 1;
 if ($sessionFilter === "last3") $limit = 3;
 if ($sessionFilter === "last5") $limit = 5;
 
-$sessionJoin = "";
-$params = [':user_id' => $user_id];
+if ($sessionFilter === "range") {
+    $from = (int)($_GET['from'] ?? 0);
+    $to   = (int)($_GET['to'] ?? 0);
+
+    if ($from > $to) {
+        [$from, $to] = [$to, $from];
+    }
+
+    $rangeWhere = "
+        AND s.session_id BETWEEN :from_session AND :to_session
+    ";
+
+    $params[':from_session'] = $from;
+    $params[':to_session'] = $to;
+}
 
 if ($limit !== null) {
     $sessionJoin = "
@@ -38,6 +57,7 @@ if ($limit !== null) {
             LIMIT $limit
         ) recent_sessions ON s.session_id = recent_sessions.session_id
     ";
+
     $params[':user_id_inner'] = $user_id;
 }
 
@@ -58,8 +78,10 @@ switch ($metric) {
 
     case 't20':
         $metricSql = "
-            (SUM(CASE WHEN dt.hit_target = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(*),0)) * 100
+            (SUM(CASE WHEN dt.hit_target = 1 THEN 1 ELSE 0 END) 
+            / NULLIF(COUNT(*),0)) * 100
         ";
+
         $havingSql = "
             AND dt.aimed_ring = 'T'
             AND dt.aimed_value = 20
@@ -67,21 +89,22 @@ switch ($metric) {
         ";
         break;
 
-        case 'wedge20_t20':
-            $metricSql = "
-                (SUM(CASE WHEN dt.hit_score = 20 THEN 1 ELSE 0 END) 
-                / NULLIF(COUNT(*),0)) * 100
-            ";
-        
-            $havingSql = "
-                AND dt.aimed_ring = 'T'
-                AND dt.aimed_value = 20
-                AND dt.is_valid = 1
-            ";
-            break;
-        
+    case 'wedge20_t20':
+        $metricSql = "
+            (SUM(CASE WHEN dt.hit_score = 20 THEN 1 ELSE 0 END) 
+            / NULLIF(COUNT(*),0)) * 100
+        ";
+
+        $havingSql = "
+            AND dt.aimed_ring = 'T'
+            AND dt.aimed_value = 20
+            AND dt.is_valid = 1
+        ";
+        break;
+
     case 'doubleAttempts':
         $metricSql = "COUNT(*)";
+
         $havingSql = "
             AND dt.aimed_ring = 'D'
             AND dt.is_valid = 1
@@ -114,6 +137,7 @@ $sessionJoin
 WHERE s.user_id = :user_id
   AND dt.is_valid = 1
   AND g.finished_at IS NOT NULL
+  $rangeWhere
   $havingSql
 GROUP BY g.game_id
 ORDER BY g.started_at ASC
@@ -133,14 +157,15 @@ $data = [];
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     error_log("RAW metric_value: " . $row["metric_value"]);
     error_log($stmt->queryString);
+
     $labels[] = "G" . $row["game_number"];
+
     $data[] = ($metric === 'double')
-    ? (int)$row["metric_value"]
-    : round($row["metric_value"] ?? 0, 2);
+        ? (int)$row["metric_value"]
+        : round($row["metric_value"] ?? 0, 2);
 }
 
 echo json_encode([
     "labels" => $labels,
     "data" => $data
-    
 ]);

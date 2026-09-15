@@ -1,4 +1,11 @@
-const tabDefaultMetric = {
+
+  let currentFilters = {
+    session: "all",
+    sessionFrom: null,
+    sessionTo: null,
+  };
+  
+  const tabDefaultMetric = {
   overview: "3da",
   scoring: "wedge20_t20",
   finishing: null,
@@ -18,9 +25,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   //   }
   // });
 
-  let currentFilters = {
-    session: "all",
-  };
+  const sessionFrom = document.getElementById("session-from");
+  const sessionTo = document.getElementById("session-to");
+
+  sessionFrom.addEventListener("change", () => {
+    if (sessionFrom.value !== "") {
+      sessionTo.value = sessionFrom.value;
+    }
+  });
+
+
   let chart3DA = null;
   let activeMetric = "3da";
 
@@ -91,9 +105,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("session-filter").addEventListener("change", (e) => {
     currentFilters.session = e.target.value;
-
+  
+    updateOverviewFilterLabel(currentFilters.session);
+  
     reloadAllStats(); // refresh everything
   });
+  
+  document
+    .getElementById("apply-session-range")
+    .addEventListener("click", () => {
+      const from = document.getElementById("session-from").value;
+      const to = document.getElementById("session-to").value;
+  
+      currentFilters.session = "range";
+      currentFilters.sessionFrom = Number(from);
+      currentFilters.sessionTo = Number(to);
+  
+      updateOverviewFilterLabel(
+        currentFilters.session,
+        currentFilters.sessionFrom,
+        currentFilters.sessionTo
+      );
+  
+      reloadAllStats();
+    });
 
   document.querySelectorAll(".stat-card.selectable").forEach((card) => {
     card.addEventListener("click", () => {
@@ -111,8 +146,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function load3DA() {
     try {
-      const res = await fetch(`get_3da.php?session=${currentFilters.session}`);
+      let url = `get_3da.php?session=${currentFilters.session}`;
+
+      if (currentFilters.session === "range") {
+        url += `&from=${currentFilters.sessionFrom}&to=${currentFilters.sessionTo}`;
+      }
+
+      const res = await fetch(url);
       const data = await res.json();
+
       if (data.error) {
         console.error(data.error);
         return;
@@ -126,96 +168,120 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadDartsPerLeg() {
     try {
-      const res = await fetch(
-        `get_darts_per_leg.php?session=${currentFilters.session}`
-      );
+      let url = `get_darts_per_leg.php?session=${currentFilters.session}`;
+  
+      if (currentFilters.session === "range") {
+        url += `&from=${currentFilters.sessionFrom}&to=${currentFilters.sessionTo}`;
+      }
+  
+      const res = await fetch(url);
       const data = await res.json();
-
+  
       console.log("DPL response:", data);
-
+  
       if (data.error) return;
-
+  
       document.getElementById("stat-dpl").textContent = data.darts_per_leg;
     } catch (err) {
       console.error("Error loading DPL:", err);
     }
   }
+async function loadDoubleAttempts() {
+  try {
+    let url = `get_double_pct.php?session=${currentFilters.session}`;
 
-  async function loadDoubleAttempts() {
-    try {
-      const res = await fetch(
-        `get_double_pct.php?session=${currentFilters.session}`
-      );
-      const data = await res.json();
-
-      console.log("Double Attempts response:", data);
-
-      if (data.error) return;
-
-      const avgAttemptsPerGame = data.double_pct
-        ? (data.attempts / data.successes).toFixed(2)
-        : "--";
-
-      document.getElementById("stat-doubleAttempts").textContent =
-        avgAttemptsPerGame;
-    } catch (err) {
-      console.error("Error loading double attempts:", err);
+    if (currentFilters.session === "range") {
+      url += `&from=${currentFilters.sessionFrom}&to=${currentFilters.sessionTo}`;
     }
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    console.log("Double Attempts response:", data);
+
+    if (data.error) return;
+
+    const avgAttemptsPerGame = data.double_pct
+      ? (data.attempts / data.successes).toFixed(2)
+      : "--";
+
+    document.getElementById("stat-doubleAttempts").textContent =
+      avgAttemptsPerGame;
+  } catch (err) {
+    console.error("Error loading double attempts:", err);
   }
+}
 
-  async function loadGamesPlayed() {
-    try {
-      const res = await fetch(
-        `get_games_played.php?session=${currentFilters.session}`
-      );
-      const data = await res.json();
+async function loadGamesPlayed() {
+  try {
+    let url = `get_games_played.php?session=${currentFilters.session}`;
 
-      document.getElementById("stat-games").textContent = data.games_played;
-    } catch (err) {
-      console.error("Error loading games played:", err);
+    if (currentFilters.session === "range") {
+      url += `&from=${currentFilters.sessionFrom}&to=${currentFilters.sessionTo}`;
     }
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    document.getElementById("stat-games").textContent = data.games_played;
+  } catch (err) {
+    console.error("Error loading games played:", err);
   }
-  async function loadT20Pct() {
-    try {
-      const res = await fetch(
-        `get_t20_pct.php?session=${currentFilters.session}`
-      );
-      const data = await res.json();
+}
 
-      console.log("T20 %:", data);
+async function loadT20Pct() {
+  try {
+    let url = `get_t20_pct.php?session=${currentFilters.session}`;
 
-      if (data.error) return;
-
-      document.getElementById("stat-t20").textContent = data.t20_pct + "%";
-    } catch (err) {
-      console.error("Error loading T20 %:", err);
+    if (currentFilters.session === "range") {
+      url += `&from=${currentFilters.sessionFrom}&to=${currentFilters.sessionTo}`;
     }
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    console.log("T20 %:", data);
+
+    if (data.error) return;
+
+    document.getElementById("stat-t20").textContent = data.t20_pct + "%";
+  } catch (err) {
+    console.error("Error loading T20 %:", err);
   }
+}
 
-  async function load3DAChart() {
-    try {
-      const res = await fetch(
-        `get_3da_timeseries.php?session=${currentFilters.session}`
-      );
-      const json = await res.json();
+async function load3DAChart() {
+  try {
+    let url = `get_3da_timeseries.php?session=${currentFilters.session}`;
 
-      if (!chart3DA) {
-        initChart(json.labels, json.data);
-      } else {
-        updateChart(json.labels, json.data);
-      }
-    } catch (err) {
-      console.error("Chart error:", err);
+    if (currentFilters.session === "range") {
+      url += `&from=${currentFilters.sessionFrom}&to=${currentFilters.sessionTo}`;
     }
+
+    const res = await fetch(url);
+    const json = await res.json();
+
+    if (!chart3DA) {
+      initChart(json.labels, json.data);
+    } else {
+      updateChart(json.labels, json.data);
+    }
+  } catch (err) {
+    console.error("Chart error:", err);
   }
+}
 
   async function loadScoring3DA() {
     try {
-      const res = await fetch(
-        `get_scoring_3da.php?session=${currentFilters.session}`
-      );
+      let url = `get_scoring_3da.php?session=${currentFilters.session}`;
+  
+      if (currentFilters.session === "range") {
+        url += `&from=${currentFilters.sessionFrom}&to=${currentFilters.sessionTo}`;
+      }
+  
+      const res = await fetch(url);
       const data = await res.json();
-
+  
       document.getElementById("scoring3da-value").innerText =
         data.three_dart_avg ?? 0;
     } catch (err) {
@@ -317,21 +383,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadChartByMetric(metric) {
     console.log("Loading metric:", metric);
+  
     try {
-      const res = await fetch(
-        `get_timeseries.php?metric=${metric}&session=${currentFilters.session}`
-      );
+      let url = `get_timeseries.php?metric=${metric}&session=${currentFilters.session}`;
+  
+      if (currentFilters.session === "range") {
+        url += `&from=${currentFilters.sessionFrom}&to=${currentFilters.sessionTo}`;
+      }
+  
+      const res = await fetch(url);
       const json = await res.json();
-
+  
       console.log("labels:", json.labels);
       console.log("data:", json.data);
-
+  
       if (!chart3DA) {
         initChart(json.labels, json.data, metric);
       } else {
         updateChart(json.labels, json.data, metric);
       }
-
+  
       // Update title
       const titles = {
         "3da": "3-Dart Average Over Time",
@@ -341,10 +412,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         scoring3da: "Scoring 3-Dart Average Over Time",
         wedge20_t20: "20 Wedge % (T20 Target) Over Time",
       };
-
+  
       document.getElementById("chart-title").textContent =
         titles[metric] || "Statistics Over Time";
-
+  
       updateSliderUI(metric);
     } catch (err) {
       console.error("Chart load error:", err);
@@ -541,20 +612,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function loadT20DistributionWheel() {
-    const filter = document.getElementById("session-filter").value;
+    const filter = currentFilters.session;
 
-    try {
-      const res = await fetch(
-        `stats/scoring/get_T20_target_wedge_distribution.php?filter=${filter}`
-      );
+try {
+  let url =
+    `stats/scoring/get_T20_target_wedge_distribution.php?filter=${filter}`;
+
+  if (filter === "range") {
+    url +=
+      "&from=" +
+      currentFilters.sessionFrom +
+      "&to=" +
+      currentFilters.sessionTo;
+  }
+
+  console.log("T20 Distribution URL:", url);
+
+  const res = await fetch(url);
       const json = await res.json();
 
       document
-      .querySelectorAll("path[id^='t20-segment']")
-      .forEach((segment) => {
-        segment.setAttribute("fill", "#eeeeee");
-        segment.dataset.tooltip = "No attempts";
-      });
+        .querySelectorAll("path[id^='t20-segment']")
+        .forEach((segment) => {
+          segment.setAttribute("fill", "#eeeeee");
+          segment.dataset.tooltip = "No attempts";
+        });
 
       const rows = json.rows;
       const totalAttempts = json.totalAttempts;
@@ -636,33 +718,42 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadDoubleTargetWheel() {
     try {
-      const filter = document.getElementById("session-filter").value;
-
-      const res = await fetch(
-        "stats/finishing/get_double_targets.php?filter=" + filter
-      );
+      const filter = currentFilters.session;
+  
+      let url = "stats/finishing/get_double_targets.php?filter=" + filter;
+  
+      if (filter === "range") {
+        url +=
+          "&from=" +
+          currentFilters.sessionFrom +
+          "&to=" +
+          currentFilters.sessionTo;
+      }
+      console.log("Double Target URL:", url);
+  
+      const res = await fetch(url);
       const rows = await res.json();
-
-document
-  .querySelectorAll("path[id^='double-segment']")
-  .forEach((segment) => {
-    segment.setAttribute("fill", "#eeeeee");
-    segment.dataset.tooltip = "No attempts";
-  });
-
+  
+      document
+        .querySelectorAll("path[id^='double-segment']")
+        .forEach((segment) => {
+          segment.setAttribute("fill", "#eeeeee");
+          segment.dataset.tooltip = "No attempts";
+        });
+  
       rows.forEach((row) => {
         const hits = Number(row.hits);
         const target = row.target;
         const pct = Number(row.pct);
         const attempts = Number(row.attempts);
-
+  
         // Find the SVG segment
         const segment = document.getElementById(`double-segment-${target}`);
         if (!segment) return;
-
+  
         // Determine fill color
         let color = "#cccccc"; // default
-
+  
         if (attempts < 1) {
           color = "#eeeeee"; // too little data
         } else if (pct >= 10) {
@@ -672,29 +763,29 @@ document
         } else {
           color = "#f44336"; // red
         }
-
+  
         segment.setAttribute("fill", color);
-
+  
         document
-        .querySelectorAll(
-          "path[id^='double-segment'], path[id^='double-segment']"
-        )
-        .forEach((el) => {
-          el.addEventListener("mousemove", (e) => {
-            tooltip.style.display = "block";
-            tooltip.style.left = e.pageX + 10 + "px";
-            tooltip.style.top = e.pageY + 10 + "px";
-            tooltip.textContent = el.dataset.tooltip;
+          .querySelectorAll(
+            "path[id^='double-segment'], path[id^='double-segment']"
+          )
+          .forEach((el) => {
+            el.addEventListener("mousemove", (e) => {
+              tooltip.style.display = "block";
+              tooltip.style.left = e.pageX + 10 + "px";
+              tooltip.style.top = e.pageY + 10 + "px";
+              tooltip.textContent = el.dataset.tooltip;
+            });
+  
+            el.addEventListener("mouseleave", () => {
+              tooltip.style.display = "none";
+            });
           });
-      
-          el.addEventListener("mouseleave", () => {
-            tooltip.style.display = "none";
-          });
-        });
-      
+  
         const label = "S";
         const tooltip = document.getElementById("svg-tooltip");
-
+  
         segment.dataset.tooltip =
           `${label}${target}\n` +
           `${pct.toFixed(2)}%\n` +
@@ -704,51 +795,61 @@ document
     } catch (err) {
       console.error("Souble Target Wheel load error:", err);
     }
-  }
-
-  async function loadSetupTargetWheel() {
+  }async function loadSetupTargetWheel() {
     try {
-      const filter = document.getElementById("session-filter").value;
-
-      const res = await fetch(
-        "stats/finishing/get_setup_targets.php?filter=" + filter
-      );
+      const filter = currentFilters.session;
+  
+      let url =
+        "stats/finishing/get_setup_targets.php?filter=" + filter;
+  
+      if (filter === "range") {
+        url +=
+          "&from=" +
+          currentFilters.sessionFrom +
+          "&to=" +
+          currentFilters.sessionTo;
+      }
+  
+      console.log("Setup Target URL:", url);
+  
+      const res = await fetch(url);
       const rows = await res.json();
-
+  
       document
-  .querySelectorAll("path[id^='setup-segment']")
-  .forEach((segment) => {
-    segment.setAttribute("fill", "#eeeeee");
-    segment.dataset.tooltip = "No attempts";
-  });
+        .querySelectorAll("path[id^='setup-segment']")
+        .forEach((segment) => {
+          segment.setAttribute("fill", "#eeeeee");
+          segment.dataset.tooltip = "No attempts";
+        });
+  
       rows.forEach((row) => {
         const hits = Number(row.hits);
         const target = row.target;
         const pct = Number(row.pct);
         const attempts = Number(row.attempts);
-
+  
         // Find the SVG segment
         const segment = document.getElementById(`setup-segment-${target}`);
         if (!segment) return;
-
+  
         // Determine fill color
-        let color = "#cccccc"; // default
-
+        let color = "#cccccc";
+  
         if (attempts < 1) {
-          color = "#eeeeee"; // too little data
+          color = "#eeeeee";
         } else if (pct >= 35) {
-          color = "#4caf50"; // green
+          color = "#4caf50";
         } else if (pct >= 20) {
-          color = "#ffeb3b"; // yellow
+          color = "#ffeb3b";
         } else {
-          color = "#f44336"; // red
+          color = "#f44336";
         }
-
+  
         segment.setAttribute("fill", color);
-
+  
         const label = "S";
         const tooltip = document.getElementById("svg-tooltip");
-
+  
         document
           .querySelectorAll(
             "path[id^='setup-segment'], path[id^='setup-segment']"
@@ -760,12 +861,12 @@ document
               tooltip.style.top = e.pageY + 10 + "px";
               tooltip.textContent = el.dataset.tooltip;
             });
-
+  
             el.addEventListener("mouseleave", () => {
               tooltip.style.display = "none";
             });
           });
-
+  
         segment.dataset.tooltip =
           `${label}${target}\n` +
           `${pct.toFixed(2)}%\n` +
@@ -781,9 +882,21 @@ document
 });
 
 function loadScoringStats() {
-  const filter = document.getElementById("session-filter").value;
+  const filter = currentFilters.session;
 
-  fetch("stats/scoring/get_scoring_stats.php?filter=" + filter)
+  let url = "stats/scoring/get_scoring_stats.php?filter=" + filter;
+
+  if (filter === "range") {
+    url +=
+      "&from=" +
+      currentFilters.sessionFrom +
+      "&to=" +
+      currentFilters.sessionTo;
+  }
+
+  console.log("Scoring Stats URL:", url);
+
+  fetch(url)
     .then((res) => res.json())
     .then((data) => {
       const el = document.getElementById("stat-s20-t20");
@@ -799,15 +912,29 @@ function loadScoringStats() {
 
 async function loadPureDouble() {
   try {
-    const filter = document.getElementById("session-filter").value;
+    const filter = currentFilters.session;
 
-    const res = await fetch(
-      "stats/finishing/get_pure_double.php?filter=" + filter);
+    let url =
+      "stats/finishing/get_pure_double.php?filter=" + filter;
+
+    if (filter === "range") {
+      url +=
+        "&from=" +
+        currentFilters.sessionFrom +
+        "&to=" +
+        currentFilters.sessionTo;
+    }
+
+    console.log("Pure Double URL:", url);
+    
+    const res = await fetch(url);
     const json = await res.json();
-    const pct = Number(json.pure_double_pct ?? 0);
+
+      const pct = Number(json.pure_double_pct ?? 0);
 
     document.getElementById("stat-pure-double").textContent =
       (json.pure_double_pct ?? 0) + "%";
+
     // Derived stat: attempts per success
     const attemptsPerSuccess = pct > 0 ? 100 / pct : 0;
 
@@ -821,11 +948,22 @@ async function loadPureDouble() {
 
 async function loadGameplayDouble() {
   try {
-    const filter = document.getElementById("session-filter").value;
+    const filter = currentFilters.session;
 
-    const res = await fetch(
-      "stats/finishing/get_gameplay_double.php?filter=" + filter
-    );
+    let url =
+      "stats/finishing/get_gameplay_double.php?filter=" + filter;
+
+    if (filter === "range") {
+      url +=
+        "&from=" +
+        currentFilters.sessionFrom +
+        "&to=" +
+        currentFilters.sessionTo;
+    }
+
+    console.log("Gameplay Double URL:", url);
+
+    const res = await fetch(url);
     const json = await res.json();
     const pct = Number(json.gameplay_double_pct ?? 0);
 
@@ -846,12 +984,22 @@ async function loadGameplayDouble() {
 
 async function loadSetupS() {
   try {
-    const filter = document.getElementById("session-filter").value;
+    const filter = currentFilters.session;
 
-    const res = await fetch(
-      "stats/finishing/get_setup_s.php?filter=" + filter
-    );
+    let url =
+      "stats/finishing/get_setup_s.php?filter=" + filter;
 
+    if (filter === "range") {
+      url +=
+        "&from=" +
+        currentFilters.sessionFrom +
+        "&to=" +
+        currentFilters.sessionTo;
+    }
+
+    console.log("Setup S URL:", url);
+
+    const res = await fetch(url);
     const json = await res.json();
 
     document.getElementById("stat-setup-s").textContent =
@@ -862,11 +1010,21 @@ async function loadSetupS() {
 }
 async function loadDPCA() {
   try {
-    const filter = document.getElementById("session-filter").value;
+    const filter = currentFilters.session;
 
-    const res = await fetch(
-      "stats/finishing/get_dpc_a.php?filter=" + filter
-    );
+    let url = "stats/finishing/get_dpc_a.php?filter=" + filter;
+
+    if (filter === "range") {
+      url +=
+        "&from=" +
+        currentFilters.sessionFrom +
+        "&to=" +
+        currentFilters.sessionTo;
+    }
+
+    console.log("DPC-A URL:", url);
+
+    const res = await fetch(url);
     const json = await res.json();
 
     document.getElementById("stat-dpc-a").textContent = json.dpc_a ?? "--";
@@ -877,15 +1035,56 @@ async function loadDPCA() {
 
 async function loadDPCB() {
   try {
-    const filter = document.getElementById("session-filter").value;
+    const filter = currentFilters.session;
 
-    const res = await fetch(
-      "stats/finishing/get_dpc_b.php?filter=" + filter
-    );
+    let url = "stats/finishing/get_dpc_b.php?filter=" + filter;
+
+    if (filter === "range") {
+      url +=
+        "&from=" +
+        currentFilters.sessionFrom +
+        "&to=" +
+        currentFilters.sessionTo;
+    }
+
+    console.log("DPC-B URL:", url);
+
+    const res = await fetch(url);
     const json = await res.json();
 
     document.getElementById("stat-dpc-b").textContent = json.dpc_b ?? "--";
   } catch (err) {
     console.error("DPC-B load error:", err);
+  }
+}
+
+function updateOverviewFilterLabel(session, from = null, to = null) {
+  const label = document.getElementById("overview-filter");
+
+  if (!label) return;
+
+  switch (session) {
+    case "all":
+      label.textContent = "— All Sessions";
+      break;
+
+    case "last1":
+      label.textContent = "— Last 1 Session";
+      break;
+
+    case "last3":
+      label.textContent = "— Last 3 Sessions";
+      break;
+
+    case "last5":
+      label.textContent = "— Last 5 Sessions";
+      break;
+
+    case "range":
+      label.textContent = `— Sessions ${from}–${to}`;
+      break;
+
+    default:
+      label.textContent = "";
   }
 }

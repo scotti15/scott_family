@@ -24,18 +24,23 @@ document.addEventListener("DOMContentLoaded", () => {
     score100: new Audio("sounds/100.mp3"),
     score140: new Audio("sounds/140.mp3"),
     score180: new Audio("sounds/180.mp3"),
+    targetTriple: new Audio("sounds/triple.mp3"),
   };
 
   sounds.dartImpact.preload = "auto";
-sounds.dartImpact.load();
+  sounds.dartImpact.load();
+
+  sounds.dartImpact.addEventListener("canplaythrough", () => {
+    console.log("🔊 Dart impact fully loaded and ready");
+  });
 
   let soundEnabled = true;
 
   const soundToggle = document.getElementById("sound-toggle");
-  
+
   soundToggle.addEventListener("click", () => {
     soundEnabled = !soundEnabled;
-  
+
     soundToggle.textContent = soundEnabled ? "🔊" : "🔇";
   });
   let totalDarts = 0;
@@ -593,9 +598,14 @@ sounds.dartImpact.load();
       if (hitTarget) {
         dartData.hitTarget = true;
         dartData.classes.push("hit-target");
-        if (aimedRing === "T") dartData.classes.push("triple");
-        else if (aimedRing === "D") dartData.classes.push("double");
-        else dartData.classes.push("single");
+        if (aimedRing === "T") {
+          dartData.classes.push("triple");
+          playSound(sounds.targetTriple);
+        } else if (aimedRing === "D") {
+          dartData.classes.push("double");
+        } else {
+          dartData.classes.push("single");
+        }
 
         dartData.classes.forEach((cls) =>
           dartCells[dartIndex].classList.add(cls)
@@ -618,9 +628,8 @@ sounds.dartImpact.load();
     // Finish detected — play sound immediately
     // ============================
     if (remainingScore === 0 && dartData.multiplier === 2) {
-      sounds.checkout.currentTime = 0;
-      sounds.checkout.play();
-    } 
+      playSound(sounds.checkout);
+    }
 
     // ============================
     // 9∩╕ÅΓâú Bust Detection
@@ -631,20 +640,19 @@ sounds.dartImpact.load();
       remainingScore === 1 ||
       (remainingScore === 0 && !isDoubleFinish);
 
-      console.log("100 announcement check:", {
-        dartIndex,
-        turnTotal,
-        isBust,
-        remainingScore,
-        multiplier: dartData.multiplier
-      });
+    console.log("100 announcement check:", {
+      dartIndex,
+      turnTotal,
+      isBust,
+      remainingScore,
+      multiplier: dartData.multiplier,
+    });
 
     if (isBust) {
       dartCells[dartIndex].classList.add("bust-dart");
       darts[dartIndex].busted = true;
       bustThisTurn = true;
       boardLocked = true; // stop further clicks until Confirm
-      
 
       // Play bust sound immediately
       playSound(sounds.bust);
@@ -674,6 +682,8 @@ sounds.dartImpact.load();
       }
 
       dartIndex = 2;
+    } else if (dartIndex === 2 && turnTotal === 0) {
+      playSound(sounds.bust); // "No score"
     }
 
     if (dartIndex === 2 && turnTotal === 100 && !isBust) {
@@ -810,7 +820,6 @@ sounds.dartImpact.load();
       console.log("Winning dart detected:", winningDart);
 
       // Play checkout sound immediately
-      playSound(sounds.checkout);
       finishGame("double_out"); // updates DB
       return;
     }
@@ -1006,27 +1015,46 @@ sounds.dartImpact.load();
     tdRemaining.textContent = remainingScore;
     tr.appendChild(tdRemaining);
 
-    /* =========================
+/* =========================
    Visit accuracy
 ========================= */
-    const tdAccuracy = document.createElement("td");
+const tdAccuracy = document.createElement("td");
 
-    const validDarts = darts.filter((d) => d.miss_distance != null);
+const validDarts = darts.filter((d) => d.miss_distance != null);
 
-    if (validDarts.length) {
-      const avg =
-        validDarts.reduce((sum, d) => sum + d.miss_distance, 0) /
-        validDarts.length;
+if (validDarts.length) {
+  // Use horizontal accuracy only when all three darts were aimed at T20
+  const horizontalAccuracy =
+    validDarts.length === 3 &&
+    validDarts.every(
+      (d) =>
+        d.aimed_ring === "T" &&
+        Number(d.aimed_value) === 20
+    );
 
-      const accuracy = avg / 10; // mm → cm
+  const avg =
+    validDarts.reduce((sum, d) => {
+      const distance = horizontalAccuracy
+        ? Math.abs(d.x)
+        : d.miss_distance;
 
-      tdAccuracy.textContent = accuracy.toFixed(1);
+      return sum + distance;
+    }, 0) / validDarts.length;
 
-      applyAccuracyClass(tdAccuracy, accuracy);
-    } else {
-      tdAccuracy.textContent = "-";
-    }
-    tr.appendChild(tdAccuracy);
+  const accuracy = avg / 10; // mm → cm
+
+  tdAccuracy.textContent = accuracy.toFixed(1);
+
+  if (horizontalAccuracy) {
+    tdAccuracy.classList.add("accuracy-horizontal");
+  }
+
+  applyAccuracyClass(tdAccuracy, accuracy);
+} else {
+  tdAccuracy.textContent = "-";
+}
+
+tr.appendChild(tdAccuracy);
 
     tbody.appendChild(tr);
   }
@@ -3030,42 +3058,32 @@ sounds.dartImpact.load();
   // 1️⃣ Compile Game Stats from Darts
   // ---------------------------
   function compileGameStatsFromDarts(darts) {
-    // Conversion: pixels → cm
-    const board = document.getElementById("dartboard");
-    const boardRadiusPx = board.getBoundingClientRect().width / 2;
-
-    const PIXEL_TO_CM = 17 / boardRadiusPx;
-
+    // missDistance is stored in SVG units, which correspond to mm.
+    // 170 SVG units = 170 mm = 17 cm.
+    const MM_TO_CM = 1 / 10;
+  
     const stats = {
       T: { aimed: 0, hit: 0, missDistances: [] },
       D: { aimed: 0, hit: 0, missDistances: [] },
       S: { aimed: 0, hit: 0, missDistances: [] },
     };
-
+  
     darts.forEach((d) => {
-      // Ignore darts with no aim (ricochet / unknown)
       if (!d.aimedRing) return;
-
+  
       const ring = d.aimedRing;
-
-      // Count aimed
       stats[ring].aimed++;
-
-      // Compute miss distance in cm
+  
       let missCm = 0;
-      // if (d.hitTarget !== true && d.missDistance != null) {
-      missCm = d.missDistance * PIXEL_TO_CM;
-      // }
-
-      // Count hit
+      missCm = d.missDistance * MM_TO_CM;
+  
       if (d.hitTarget === true) {
         stats[ring].hit++;
-        stats[ring].missDistances.push(0); // hit → 0 cm
-      } else {
-        stats[ring].missDistances.push(missCm); // miss → cm
       }
+  
+      stats[ring].missDistances.push(missCm);
     });
-
+  
     return stats;
   }
 
@@ -3414,13 +3432,11 @@ sounds.dartImpact.load();
 
   function playSound(sound) {
     if (!soundEnabled) return;
-  
+
     sound.currentTime = 0;
     sound.play();
   }
-  
-  
-  
+
   //ADD NEW FUNCTIONS HERE
   prepareNextTarget();
 });

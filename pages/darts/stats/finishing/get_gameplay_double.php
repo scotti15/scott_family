@@ -31,6 +31,7 @@ $stmt = $pdo->prepare("
         s.user_id = :user_id
         AND dt.aimed_ring = 'D'
         AND dt.is_valid = 1
+        $rangeWhere
 ");
 
 $stmt->execute($params);

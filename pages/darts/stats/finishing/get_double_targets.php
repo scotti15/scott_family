@@ -10,6 +10,7 @@ header('Content-Type: application/json');
 $user_id = $_SESSION['user_id'] ?? 0;
 $sessionFilter = $_GET['filter'] ?? 'all';
 
+
 if (!$user_id) {
   echo json_encode(["error" => "Not logged in"]);
   exit();
@@ -32,6 +33,7 @@ $sessionJoin
 WHERE dt.aimed_ring = 'D'
   AND dt.is_valid = 1
   AND s.user_id = :user_id
+  $rangeWhere
 GROUP BY dt.aimed_value
 ORDER BY dt.aimed_value
 ";

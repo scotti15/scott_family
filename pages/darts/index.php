@@ -44,7 +44,7 @@ if (!$user_id) {
 </style>
 
 <div class="container darts-page">
-<input type="hidden" id="current-user-id" value="<?= htmlspecialchars($user_id) ?>">
+    <input type="hidden" id="current-user-id" value="<?= htmlspecialchars($user_id) ?>">
     <header class="page-header">
         <div class="header-left">
             <h1>Darts Scoring with Stats</h1>
@@ -52,8 +52,8 @@ if (!$user_id) {
         </div>
         <input type="hidden" id="game-mode" value="1">
         </button><button id="sound-toggle" type="button" title="Toggle sound">
-  🔊
-</button>
+            🔊
+        </button>
         <button id="infoBtn" class="info-button" title="About this site">
             ⓘ
     </header>
@@ -143,7 +143,10 @@ if (!$user_id) {
                             <th>3</th>
                             <th>Total</th>
                             <th>Score</th>
-                            <th>Acc.</th>
+                            <th
+                                title="Italicized numbers indicate horizontal accuracy only is calculated (T20 target only).">
+                                Acc.
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="scoreboard-body"></tbody>
@@ -401,35 +404,31 @@ if (!$user_id) {
         <!-- ===================== -->
 
         <div class="session-panel">
-    <div id="sessionPanel" class="session-panel">
-        <h3>Dart Sessions</h3>
+            <div id="sessionPanel" class="session-panel">
+                <h3>Dart Sessions</h3>
 
-        <div class="session-controls">
-            <button id="newSessionBtn">New Session</button>
+                <div class="session-controls">
+                    <button id="newSessionBtn">New Session</button>
 
-            <select id="sessionSelect">
-                <option value="" disabled selected>Select a session</option>
-            </select>
+                    <select id="sessionSelect">
+                        <option value="" disabled selected>Select a session</option>
+                    </select>
 
-            <button id="loadSessionBtn">Load Selected</button>
+                    <button id="loadSessionBtn">Load Selected</button>
 
-            <div class="game-select-wrapper">
-                <label for="gameSelect"><strong>Games in Session</strong></label>
+                    <div class="game-select-wrapper">
+                        <label for="gameSelect"><strong>Games in Session</strong></label>
 
-                <select id="gameSelect" disabled>
-                    <option value="">No session loaded</option>
-                </select>
+                        <select id="gameSelect" disabled>
+                            <option value="">No session loaded</option>
+                        </select>
+                    </div>
+
+                    <input type="text" id="sessionDescription" placeholder="Add a description for this session..."
+                        maxlength="255" disabled>
+                </div>
             </div>
-
-            <input
-                type="text"
-                id="sessionDescription"
-                placeholder="Add a description for this session..."
-                maxlength="255"
-                disabled>
         </div>
-    </div>
-</div>
 
     </div>
 </div>

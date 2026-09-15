@@ -63,6 +63,7 @@ $sessionJoin
       AND dt.is_valid = 1
       AND t.turn_number >= fc.first_checkout_turn
       AND dt.throw_id <= co.checkout_throw_id
+      $rangeWhere
 
     GROUP BY g.game_id
 ) x

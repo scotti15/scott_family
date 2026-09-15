@@ -38,6 +38,7 @@ WHERE s.user_id = :user_id
   AND g.finished_at IS NOT NULL
   AND dt.aimed_ring = 'T'
   AND dt.aimed_value = 20
+  $rangeWhere
 GROUP BY dt.hit_score
 ORDER BY FIELD(
     dt.hit_score,

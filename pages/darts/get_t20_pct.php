@@ -19,6 +19,12 @@ if (!$user_id) {
    SESSION FILTER SETUP
 ----------------------------- */
 $limit = null;
+$rangeWhere = "";
+$sessionJoin = "";
+
+$params = [
+    ':user_id' => $user_id
+];
 
 if ($sessionFilter === "last1") $limit = 1;
 if ($sessionFilter === "last3") $limit = 3;
@@ -42,6 +48,26 @@ if ($limit !== null) {
 }
 
 /* -----------------------------
+   SESSION RANGE
+----------------------------- */
+if ($sessionFilter === "range") {
+
+    $from = (int)($_GET['from'] ?? 0);
+    $to   = (int)($_GET['to'] ?? 0);
+
+    if ($from > $to) {
+        [$from, $to] = [$to, $from];
+    }
+
+    $rangeWhere = "
+        AND s.session_id BETWEEN :from_session AND :to_session
+    ";
+
+    $params[':from_session'] = $from;
+    $params[':to_session'] = $to;
+}
+
+/* -----------------------------
    QUERY
 ----------------------------- */
 $stmt = $pdo->prepare("
@@ -58,6 +84,7 @@ $stmt = $pdo->prepare("
       AND dt.aimed_ring = 'T'
       AND dt.aimed_value = 20
       AND dt.is_valid = 1
+      $rangeWhere
 ");
 
 /* -----------------------------

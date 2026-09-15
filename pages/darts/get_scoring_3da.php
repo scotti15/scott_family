@@ -15,16 +15,48 @@ if (!$user_id) {
     exit();
 }
 
-/* FILTER SETUP */
+/* -----------------------------
+   FILTER SETUP
+----------------------------- */
 $limit = null;
+$rangeWhere = "";
+$sessionJoin = "";
+
+$params = [
+    ':user_id' => $user_id
+];
+
 if ($sessionFilter === "last1") $limit = 1;
 if ($sessionFilter === "last3") $limit = 3;
 if ($sessionFilter === "last5") $limit = 5;
 
-$sessionJoin = "";
-$params = [':user_id' => $user_id];
 
+/* -----------------------------
+   SESSION RANGE
+----------------------------- */
+if ($sessionFilter === "range") {
+
+    $from = (int)($_GET['from'] ?? 0);
+    $to   = (int)($_GET['to'] ?? 0);
+
+    if ($from > $to) {
+        [$from, $to] = [$to, $from];
+    }
+
+    $rangeWhere = "
+        AND s.session_id BETWEEN :from_session AND :to_session
+    ";
+
+    $params[':from_session'] = $from;
+    $params[':to_session'] = $to;
+}
+
+
+/* -----------------------------
+   RECENT SESSIONS
+----------------------------- */
 if ($limit !== null) {
+
     $sessionJoin = "
         JOIN (
             SELECT session_id
@@ -34,10 +66,14 @@ if ($limit !== null) {
             LIMIT $limit
         ) recent_sessions ON s.session_id = recent_sessions.session_id
     ";
+
     $params[':user_id_inner'] = $user_id;
 }
 
-/* QUERY */
+
+/* -----------------------------
+   QUERY
+----------------------------- */
 $stmt = $pdo->prepare("
 SELECT
     SUM(dt.hit_score * dt.segment) AS total_score,
@@ -50,7 +86,8 @@ JOIN dart_sessions s ON g.play_session_id = s.session_id
 $sessionJoin
 WHERE s.user_id = :user_id
   AND t.start_score > 160
-  AND dt.is_valid = 1;
+  AND dt.is_valid = 1
+  $rangeWhere
 ");
 
 $stmt->execute($params);

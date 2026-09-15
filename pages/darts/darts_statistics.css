@@ -138,3 +138,8 @@
 .box.red {
     background-color: #f44336;
 }
+
+#session-from,
+#session-to {
+    width: 5em;
+}

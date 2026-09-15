@@ -117,6 +117,15 @@
   max-width: 100%;
 }
 
+
+
+/* ========================= */
+/* ITALICIZE ACCURACY FOR THE T20 VISITS */
+/* ========================= */
+.accuracy-horizontal {
+  font-style: italic;
+}
+
 /* ========================= */
 /* TARGET / HIT STATES */
 /* ========================= */
@@ -648,12 +657,12 @@ input:checked + .slider::before {
 }
 
 .accuracy-cool {
-  color: #33aaff;       /* light blue */
+  color:#003f8c;       /* deep blue */
   font-weight: bold;
 }
 
 .accuracy-cold {
-  color: #003f8c;       /* deep blue */
+  color: #33aaff ;       /* light blue */
   font-weight: bold;
 }
 

@@ -32,6 +32,7 @@ $sessionJoin
 WHERE dt.aimed_ring = 'S'
   AND dt.is_valid = 1
   AND s.user_id = :user_id
+  $rangeWhere
 GROUP BY dt.aimed_value
 ORDER BY dt.aimed_value
 ";

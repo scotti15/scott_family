@@ -34,6 +34,7 @@ WHERE s.user_id = :user_id
   AND dt.aimed_ring = 'T'
   AND dt.aimed_value = 20
   AND dt.is_valid = 1
+  $rangeWhere
 ";
 
 $stmt = $pdo->prepare($sql);

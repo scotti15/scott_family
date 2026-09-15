@@ -33,8 +33,20 @@ if (!$user_id) {
                 <option value="last5">Last 5 Sessions</option>
             </select>
         </label>
-    </div>
 
+        <label>
+            From:
+            <input type="number" id="session-from" min="1" placeholder="From">
+        </label>
+
+        <label>
+            To:
+            <input type="number" id="session-to" min="1" placeholder="To">
+        </label>
+        <button type="button" id="apply-session-range">
+            Apply
+        </button>
+    </div>
     <!-- TABS -->
     <div class="tabs-row">
 
@@ -57,8 +69,9 @@ if (!$user_id) {
     <!-- OVERVIEW TAB -->
     <!-- ========================= -->
     <div id="overview" class="tab-content">
-
-        <h2>Overview</h2>
+    <h2>
+  Overview <span id="overview-filter">— All Sessions</span>
+</h2>
 
         <div class="stats-grid">
 
@@ -198,54 +211,54 @@ if (!$user_id) {
 
         <div class="target-wheel-grid">
 
-<div class="stat-card">
-    <h3>Double Accuracy by Target</h3>
-    <div id="double-target-wheel"></div>
+            <div class="stat-card">
+                <h3>Double Accuracy by Target</h3>
+                <div id="double-target-wheel"></div>
 
-    <div class="legend-section">
-        <div class="legend-item"><span class="box green"></span> ≥ 10%</div>
-        <div class="legend-item"><span class="box yellow"></span> 5–9.99%</div>
-        <div class="legend-item"><span class="box red"></span> &lt; 5%</div>
-    </div>
-</div>
-
-
-<div class="stat-card">
-    <h3>Setup Accuracy by Target</h3>
-    <div id="setup-target-wheel"></div>
-
-    <div class="legend-section">
-        <div class="legend-item"><span class="box green"></span> ≥ 35%</div>
-        <div class="legend-item"><span class="box yellow"></span> 20–34.99%</div>
-        <div class="legend-item"><span class="box red"></span> &lt; 20%</div>
-    </div>
-</div>
-
-</div>
-
-            <!-- ========================= -->
-            <!-- INSIGHTS TAB -->
-            <!-- ========================= -->
-            <div id="insights" class="tab-content" style="display:none;">
-                <h2>Insights</h2>
-                <p>This is the insights page.</p>
+                <div class="legend-section">
+                    <div class="legend-item"><span class="box green"></span> ≥ 10%</div>
+                    <div class="legend-item"><span class="box yellow"></span> 5–9.99%</div>
+                    <div class="legend-item"><span class="box red"></span> &lt; 5%</div>
+                </div>
             </div>
 
-            <!-- ========================= -->
-            <!-- HEATMAPS TAB -->
-            <!-- ========================= -->
-            <div id="heatmaps" class="tab-content" style="display:none;">
-                <h2>Heatmaps</h2>
-                <p>This is the heatmaps page.</p>
+
+            <div class="stat-card">
+                <h3>Setup Accuracy by Target</h3>
+                <div id="setup-target-wheel"></div>
+
+                <div class="legend-section">
+                    <div class="legend-item"><span class="box green"></span> ≥ 35%</div>
+                    <div class="legend-item"><span class="box yellow"></span> 20–34.99%</div>
+                    <div class="legend-item"><span class="box red"></span> &lt; 20%</div>
+                </div>
             </div>
 
         </div>
 
-        <!-- TOOLTIP (GLOBAL - IMPORTANT) -->
-        <div id="svg-tooltip"></div>
+        <!-- ========================= -->
+        <!-- INSIGHTS TAB -->
+        <!-- ========================= -->
+        <div id="insights" class="tab-content" style="display:none;">
+            <h2>Insights</h2>
+            <p>This is the insights page.</p>
+        </div>
 
-        <!-- SCRIPTS -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="darts_statistics.js"></script>
+        <!-- ========================= -->
+        <!-- HEATMAPS TAB -->
+        <!-- ========================= -->
+        <div id="heatmaps" class="tab-content" style="display:none;">
+            <h2>Heatmaps</h2>
+            <p>This is the heatmaps page.</p>
+        </div>
 
-        <?php include "../../includes/footer.php"; ?>
+    </div>
+
+    <!-- TOOLTIP (GLOBAL - IMPORTANT) -->
+    <div id="svg-tooltip"></div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="darts_statistics.js"></script>
+
+    <?php include "../../includes/footer.php"; ?>

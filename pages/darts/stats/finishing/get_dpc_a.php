@@ -69,6 +69,7 @@ FROM (
         AND dt.throw_id BETWEEN fd.first_double_throw_id
                             AND co.checkout_throw_id
         AND dt.is_valid = 1
+        $rangeWhere
 
     GROUP BY g.game_id
 ) x
