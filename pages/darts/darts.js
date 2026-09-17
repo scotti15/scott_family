@@ -74,6 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentTurns = []; // keeps all turns for the current game
 
   let viewMode = "raw"; // or "wedge"
+  let historyNewestFirst = false;
 
   let remainingScore = startingScore;
   let ricochetMode = false;
@@ -292,6 +293,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // = getTarget(remainingScore);
   // highlightTarget(currentTarget.score, currentTarget.multiplier);
   // prepareNextTarget();
+
+  document.getElementById("historyToggle").addEventListener("change", function () {
+    historyNewestFirst = this.checked;
+  
+    const tbody = document.getElementById("scoreboard-body");
+    if (!tbody) return;
+  
+    const rows = Array.from(tbody.children);
+  
+    rows.reverse().forEach((row) => {
+      tbody.appendChild(row);
+    });
+  
+    console.log("History newest first:", historyNewestFirst);
+  });
 
   const testPlayerBtn = document.getElementById("btn-test-player");
 
@@ -1015,48 +1031,62 @@ document.addEventListener("DOMContentLoaded", () => {
     tdRemaining.textContent = remainingScore;
     tr.appendChild(tdRemaining);
 
-/* =========================
+    /* =========================
    Visit accuracy
 ========================= */
-const tdAccuracy = document.createElement("td");
+    const tdAccuracy = document.createElement("td");
 
-const validDarts = darts.filter((d) => d.miss_distance != null);
+    const validDarts = darts.filter((d) => d.miss_distance != null);
 
-if (validDarts.length) {
-  // Use horizontal accuracy only when all three darts were aimed at T20
-  const horizontalAccuracy =
-    validDarts.length === 3 &&
-    validDarts.every(
-      (d) =>
-        d.aimed_ring === "T" &&
-        Number(d.aimed_value) === 20
-    );
+    if (validDarts.length) {
+      ////////////////////////////////////////  HORIZONTAL ACCURACY ///////////////////////////////////////////////
+      // Use horizontal accuracy only when all three darts were aimed at T20  → COMMENTED OUT UNTIL FURTHER NOTICE
+      // const horizontalAccuracy =
+      //   validDarts.length === 3 &&
+      //   validDarts.every(
+      //     (d) =>
+      //       d.aimed_ring === "T" &&
+      //       Number(d.aimed_value) === 20
+      //   );
 
-  const avg =
-    validDarts.reduce((sum, d) => {
-      const distance = horizontalAccuracy
-        ? Math.abs(d.x)
-        : d.miss_distance;
+      // const avg =
+      //   validDarts.reduce((sum, d) => {
+      //     const distance = horizontalAccuracy
+      //       ? Math.abs(d.x)
+      //       : d.miss_distance;
 
-      return sum + distance;
-    }, 0) / validDarts.length;
+      //     return sum + distance;
+      //   }, 0) / validDarts.length;
+      ////////////////////////////////////////  HORIZONTAL ACCURACY ///////////////////////////////////////////////
 
-  const accuracy = avg / 10; // mm → cm
+      ////////////////////////////////////////  MISS DISTANCE ACCURACY ///////////////////////////////////////////////
+      const avg =
+        validDarts.reduce((sum, d) => sum + d.miss_distance, 0) /
+        validDarts.length;
+      ////////////////////////////////////////  MISS DISTANCE ACCURACY ///////////////////////////////////////////////
 
-  tdAccuracy.textContent = accuracy.toFixed(1);
+      const accuracy = avg / 10; // mm → cm
 
-  if (horizontalAccuracy) {
-    tdAccuracy.classList.add("accuracy-horizontal");
-  }
+      tdAccuracy.textContent = accuracy.toFixed(1);
 
-  applyAccuracyClass(tdAccuracy, accuracy);
-} else {
-  tdAccuracy.textContent = "-";
-}
+      ////////////////////////////////////////  HORIZONTAL ACCURACY ///////////////////////////////////////////////
+      // if (horizontalAccuracy) {
+      //   tdAccuracy.classList.add("accuracy-horizontal");
+      // }
+      ////////////////////////////////////////  HORIZONTAL ACCURACY ///////////////////////////////////////////////
 
-tr.appendChild(tdAccuracy);
+      applyAccuracyClass(tdAccuracy, accuracy);
+    } else {
+      tdAccuracy.textContent = "-";
+    }
 
-    tbody.appendChild(tr);
+    tr.appendChild(tdAccuracy);
+
+    if (historyNewestFirst) {
+      tbody.insertBefore(tr, tbody.firstChild);
+    } else {
+      tbody.appendChild(tr);
+    }
   }
 
   function highlightTarget(segmentNumber, multiplier = 1) {
@@ -2023,7 +2053,14 @@ tr.appendChild(tdAccuracy);
     tdScore.textContent = isBust ? turn.start_score : turn.end_score;
     tr.appendChild(tdScore);
 
-    tbody.appendChild(tr);
+    console.log("Adding completed history turn:", turn.turn_number);
+console.log("historyNewestFirst:", historyNewestFirst);
+
+    if (historyNewestFirst) {
+  tbody.insertBefore(tr, tbody.firstChild);
+} else {
+  tbody.appendChild(tr);
+}
 
     /* =========================
  Accuracy
@@ -3061,29 +3098,29 @@ tr.appendChild(tdAccuracy);
     // missDistance is stored in SVG units, which correspond to mm.
     // 170 SVG units = 170 mm = 17 cm.
     const MM_TO_CM = 1 / 10;
-  
+
     const stats = {
       T: { aimed: 0, hit: 0, missDistances: [] },
       D: { aimed: 0, hit: 0, missDistances: [] },
       S: { aimed: 0, hit: 0, missDistances: [] },
     };
-  
+
     darts.forEach((d) => {
       if (!d.aimedRing) return;
-  
+
       const ring = d.aimedRing;
       stats[ring].aimed++;
-  
+
       let missCm = 0;
       missCm = d.missDistance * MM_TO_CM;
-  
+
       if (d.hitTarget === true) {
         stats[ring].hit++;
       }
-  
+
       stats[ring].missDistances.push(missCm);
     });
-  
+
     return stats;
   }
 
@@ -3436,6 +3473,21 @@ tr.appendChild(tdAccuracy);
     sound.currentTime = 0;
     sound.play();
   }
+
+  function reverseHistoryTable() {
+    const tbody = document.getElementById("scoreboard-body");
+    if (!tbody) return;
+  
+    const rows = Array.from(tbody.children);
+  
+    rows.reverse().forEach((row) => {
+      tbody.appendChild(row);
+    });
+  }
+  
+  
+  
+  
 
   //ADD NEW FUNCTIONS HERE
   prepareNextTarget();

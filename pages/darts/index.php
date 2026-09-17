@@ -129,7 +129,16 @@ if (!$user_id) {
                 </div>
             </div>
 
+            <div class="view-toggle">
+    <span class="toggle-label left">Oldest First</span>
 
+    <label class="switch">
+        <input type="checkbox" id="historyToggle">
+        <span class="slider"></span>
+    </label>
+
+    <span class="toggle-label right">Newest First</span>
+</div>
             <div id="scoreboard-container">
                 <table id="scoreboard">
                     <thead>
@@ -143,8 +152,8 @@ if (!$user_id) {
                             <th>3</th>
                             <th>Total</th>
                             <th>Score</th>
-                            <th
-                                title="Italicized numbers indicate horizontal accuracy only is calculated (T20 target only).">
+                            <th>
+                                <!-- title="Italicized numbers indicate horizontal accuracy only is calculated (T20 target only)."> -->
                                 Acc.
                             </th>
                         </tr>
@@ -534,30 +543,30 @@ if (!$user_id) {
         </div>
 
         <div class="modal-body">
-            <section>
-                <h3>🎯 Targets</h3>
-                <ul>
-                    <li>Highlighted segment shows the current target</li>
-                    <li>Manual target overrides automatic calculation</li>
-                    <li>Targets are recorded per dart for stats</li>
-                </ul>
-            </section>
 
             <section>
                 <h3>📍 Markers</h3>
                 <ul>
-                    <li><span class="legend normal"></span> Normal throw</li>
-                    <li><span class="legend ricochet"></span> Ricochet (R)</li>
-                    <li><span class="legend bust"></span> Bust throw</li>
-                    <li>Use turn checkboxes to replay markers</li>
+                    <li><span class="legend normal"></span> Click the board to indicate where your throw landed</li>
+                    <li><span class="legend normal"></span> Use the Ricochet button before clicking the board</li>
+                    <li><span class="legend ricochet"></span> Normal throw = green dot.  Ricochet = red dot </li>
+                    <li> Use the scoring table checkboxes to illuminate hit points</li>
                 </ul>
             </section>
 
             <section>
+                <h3>🎯 Targets</h3>
+                <ul>
+                    <li>Glowing segment shows the current target</li>
+                    <li>Manual target button overrides automatic target calculation.  Use the button and click the board to indicate</li>
+                    <li>Targets are recorded per dart for stats</li>
+                </ul>
+            </section>
+            <section>
                 <h3>📊 Stats</h3>
                 <ul>
                     <li>Target accuracy compares aimed vs hit</li>
-                    <li>Heat maps show actual impact points</li>
+                    <li>Heat maps show actual impact points.</li>
                     <li>Key stats are calculated per game</li>
                 </ul>
             </section>
