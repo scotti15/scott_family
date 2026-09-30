@@ -3018,15 +3018,15 @@ console.log("historyNewestFirst:", historyNewestFirst);
 
   //GAME STATS FUNCTIONS//
 
-  function compileGameStatsFromDarts(darts) {
-    return {
-      throws: darts.length,
-      scoringThrows: darts.filter((d) => d.score > 0).length,
-      ricochets: darts.filter((d) => d.throw_type === "ricochet").length,
-      targetAttempts: darts.filter((d) => d.aimedRing).length,
-      targetHits: darts.filter((d) => d.hitTarget).length,
-    };
-  }
+  // function compileGameStatsFromDarts(darts) {→ Unused Version
+  //   return {
+  //     throws: darts.length,
+  //     scoringThrows: darts.filter((d) => d.score > 0).length,
+  //     ricochets: darts.filter((d) => d.throw_type === "ricochet").length,
+  //     targetAttempts: darts.filter((d) => d.aimedRing).length,
+  //     targetHits: darts.filter((d) => d.hitTarget).length,
+  //   };
+  // }
 
   async function showGameStatsUnified(gameId) {
     console.log("showGameStatsUnified fired", gameId);

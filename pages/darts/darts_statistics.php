@@ -28,7 +28,7 @@ if (!$user_id) {
             Session:
             <select id="session-filter">
                 <option value="all">All Sessions</option>
-                <option value="last1">Last Session</option>
+        <option value="last1" selected>Last Session</option>
                 <option value="last3">Last 3 Sessions</option>
                 <option value="last5">Last 5 Sessions</option>
             </select>

@@ -39,6 +39,10 @@
     .controls button:hover {
         background: #444;
     }
+    .controls button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
     .group {
         margin-top: 30px;
     }
@@ -54,6 +58,7 @@
         margin: 8px 0;
         border-radius: 8px;
         transition: background 0.2s;
+        cursor: pointer;
     }
     .link-card:hover {
         background: #333;
@@ -65,6 +70,54 @@
     }
     .link-card a:hover {
         text-decoration: underline;
+    }
+
+    /* Segment Generator */
+    #segmentBox {
+        margin-top: 50px;
+        padding: 20px;
+        background: #252525;
+        border-radius: 10px;
+    }
+    #segmentBox h2 {
+        margin-bottom: 10px;
+        color: #fff;
+    }
+    #segmentBox input {
+        padding: 8px;
+        background: #333;
+        color: #eee;
+        border: 1px solid #555;
+        border-radius: 6px;
+        font-size: 0.95em;
+        margin-right: 10px;
+    }
+    #segmentBox button {
+        padding: 8px 14px;
+        background: #444;
+        color: #eee;
+        border: 1px solid #666;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    #segmentBox button:hover {
+        background: #555;
+    }
+
+    /* CLICKED SEGMENT STYLE */
+    .segment-clicked {
+        background: #355a35 !important;
+        opacity: 0.90;
+        position: relative;
+    }
+    .segment-clicked::before {
+        content: "✔ ";
+        color: #8fda8f;
+        font-weight: bold;
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        font-size: 1.2em;
     }
 </style>
 </head>
@@ -89,38 +142,124 @@
     ">
 </div>
 
-
 <div id="content"></div>
 
+<!-- SEGMENT GENERATOR -->
+<div id="segmentBox">
+    <h2>Segment Generator</h2>
+    <div id="selectedShow">No show selected. Click a show card to select it.</div>
+
+    <div style="margin-top:15px;">
+        <input type="number" id="segmentStart" placeholder="Start time (seconds)">
+        <button id="btn-generate-segments">Generate Segments</button>
+    </div>
+
+    <div id="segmentOutput" style="margin-top:20px;"></div>
+</div>
+
 <script>
-let offset = 0;
+let selectedDate = new Date();
+let currentBaseUrl = "";
+let currentShowLength = 0;
+let currentShowName = "";
+
+/* Helper: slug converter */
+function slugify(name) {
+    return name
+        .toLowerCase()
+        .replace(/['’]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+/* Helper: convert "7am" → hour number */
+function parseHour(str) {
+    const num = parseInt(str);
+    const isPM = str.includes("pm");
+    return (isPM && num < 12) ? num + 12 : num;
+}
+
+/* Helper: convert hour number → "7am" / "4pm" */
+function hourSuffix(h) {
+    const isPM = h >= 12;
+    const hour12 = (h % 12 === 0) ? 12 : (h % 12);
+    return hour12 + (isPM ? "pm" : "am");
+}
 
 function buildPage() {
-    const now = new Date();
-    now.setDate(now.getDate() + offset);
+    const today = new Date();
+    today.setHours(0,0,0,0);
 
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
+    const yyyy = selectedDate.getFullYear();
+    const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(selectedDate.getDate()).padStart(2, '0');
     const yyyymmdd = yyyy + mm + dd;
+
+    const M = selectedDate.getMonth() + 1;
+    const D = selectedDate.getDate();
+    const YY = String(yyyy).slice(-2);
+
+    const dow = selectedDate.getDay();
+    const isWeekend = (dow === 0 || dow === 6);
 
     document.getElementById("timestamp").textContent =
         "Showing links for " + yyyy + "-" + mm + "-" + dd;
 
-    const shows = [
-        { name: "Money, Power, Politics", channel: "MSNOW", time: "130000", show: "Money_Power_Politics_With_Stephanie_Ruhle" },
-        { name: "The Moment", channel: "MSNOW", time: "180000", show: "The_Moment_With_Katy_Tur" },
-        { name: "On The Line", channel: "MSNOW", time: "160000", show: "On_the_Line_With_Alicia_Menendez" },
-        { name: "Morning Joe", channel: "MSNOW", time: "100000", show: "Morning_Joe" },
-        { name: "The Arena", channel: "CNNW", time: "200000", show: "The_Arena_With_Kasie_Hunt" },
-        { name: "CNN News Central (Hour 1)", channel: "CNNW", time: "110000", show: "CNN_News_Central" },
-		{ name: "CNN News Central (Hour 2)", channel: "CNNW", time: "120000", show: "CNN_News_Central" },
-		{ name: "CNN News Central (Hour 3)", channel: "CNNW", time: "130000", show: "CNN_News_Central" },
-        { name: "Squawk Box", channel: "CNBC", time: "100000", show: "Squawk_Box" }
+    /* Disable future dates in calendar */
+    document.getElementById("datePicker").max = today.toISOString().split("T")[0];
+
+    /* Disable Tomorrow button if selectedDate >= today */
+    const btnTomorrow = document.getElementById("btn-tomorrow");
+    if (selectedDate >= today) {
+        btnTomorrow.disabled = true;
+    } else {
+        btnTomorrow.disabled = false;
+    }
+
+    /* ARCHIVE.ORG SHOWS */
+    const archiveShows = [
+        { name: "Money, Power, Politics", channel: "MSNOW", time: "130000", show: "Money_Power_Politics_With_Stephanie_Ruhle", length: 7200, days: "weekday", source: "archive" },
+        { name: "The Moment", channel: "MSNOW", time: "180000", show: "The_Moment_With_Katy_Tur", length: 7200, days: "weekday", source: "archive" },
+        { name: "On The Line", channel: "MSNOW", time: "160000", show: "On_the_Line_With_Alicia_Menendez", length: 7200, days: "weekday", source: "archive" },
+        { name: "State of Play", channel: "MSNOW", time: "150000", show: "State_of_Play_with_Peter_Alexander", length: 3600, days: "weekday", source: "archive" },
+        { name: "Morning Joe", channel: "MSNOW", time: "100000", show: "Morning_Joe", length: 10800, days: "weekday", source: "archive" },
+
+        { name: "The Arena", channel: "CNNW", time: "200000", show: "The_Arena_With_Kasie_Hunt", length: 3600, days: "weekday", source: "archive" },
+        { name: "CNN News Central (Hour 1)", channel: "CNNW", time: "110000", show: "CNN_News_Central", length: 3600, days: "weekday", source: "archive" },
+        { name: "CNN News Central (Hour 2)", channel: "CNNW", time: "120000", show: "CNN_News_Central", length: 3600, days: "weekday", source: "archive" },
+        { name: "CNN News Central (Hour 3)", channel: "CNNW", time: "130000", show: "CNN_News_Central", length: 3600, days: "weekday", source: "archive" },
+
+        { name: "Squawk Box", channel: "CNBC", time: "100000", show: "Squawk_Box", length: 10800, days: "weekday", source: "archive" },
+
+        { name: "Chris Jansing Reports", channel: "MSNOW", time: "160000", show: "Chris_Jansing_Reports", length: 7200, days: "weekday", source: "archive" },
+        { name: "Chris Jansing Reports", channel: "MSNBC", time: "160000", show: "Chris_Jansing_Reports", length: 7200, days: "weekday", source: "archive" },
+    ];
+
+    /* TOPNEWS SHOWS */
+    const topNewsShows = [
+        /* WEEKDAY */
+        { name: "The Moment With Katy Tur", slug: slugify("The Moment With Katy Tur"), length: 7200, start: "2pm", days: "weekday", source: "topnews" },
+        { name: "On the Line with Alicia Menendez", slug: slugify("On the Line with Alicia Menendez"), length: 7200, start: "12pm", days: "weekday", source: "topnews" },
+        { name: "Morning Joe", slug: slugify("Morning Joe"), length: 10800, start: "7am", days: "weekday", source: "topnews" },
+        { name: "Deadline: White House", slug: slugify("Deadline White House"), length: 7200, start: "4pm", days: "weekday", source: "topnews" },
+
+        { name: "The 11th Hour with Ali Velshi", slug: slugify("The 11th Hour with Ali Velshi"), length: 3600, days: "weekday", source: "topnews" },
+        { name: "The Briefing with Jen Psaki", slug: slugify("The Briefing with Jen Psaki"), length: 3600, days: "weekday", source: "topnews" },
+        { name: "All In with Chris Hayes", slug: slugify("All In with Chris Hayes"), length: 3600, days: "weekday", source: "topnews" },
+        { name: "The Weeknight", slug: slugify("The Weeknight"), length: 3600, days: "weekday", source: "topnews" },
+        { name: "The Beat With Ari Melber", slug: slugify("The Beat With Ari Melber"), length: 3600, days: "weekday", source: "topnews" },
+        { name: "The Last Word with Lawrence O’Donnell", slug: slugify("The Last Word with Lawrence ODonnell"), length: 3600, days: "weekday", source: "topnews" },
+
+        /* WEEKEND */
+        { name: "Politics Nation with Al Sharpton", slug: slugify("Politics Nation with Al Sharpton"), length: 3600, days: "weekend", source: "topnews" },
+        { name: "The Assignment with Antonia Hylton", slug: slugify("The Assignment with Antonia Hylton"), length: 10800, start: "1pm", days: "weekend", source: "topnews" },
+        { name: "Connect with Jacob Soboroff", slug: slugify("Connect with Jacob Soboroff"), length: 10800, start: "10am", days: "weekend", source: "topnews" },
+        { name: "The Weekend", slug: slugify("The Weekend"), length: 10800, start: "7am", days: "weekend", source: "topnews" },
     ];
 
     const networks = {
-        MSNOW: "MSNBC",
+        MSNOW: "MSNOW",
+        MSNBC: "MSNBC",
         CNNW: "CNN",
         CNBC: "CNBC"
     };
@@ -128,8 +267,12 @@ function buildPage() {
     const container = document.getElementById("content");
     container.innerHTML = "";
 
+    /* GROUP ARCHIVE SHOWS */
     const grouped = {};
-    shows.forEach(s => {
+    archiveShows.forEach(s => {
+        if (isWeekend && s.days !== "weekend") return;
+        if (!isWeekend && s.days !== "weekday") return;
+
         if (!grouped[s.channel]) grouped[s.channel] = [];
         grouped[s.channel].push(s);
     });
@@ -149,10 +292,25 @@ function buildPage() {
             const card = document.createElement("div");
             card.className = "link-card";
 
+            /* ARCHIVE.ORG: clicking selects show */
+            card.addEventListener("click", () => {
+                currentBaseUrl = url;
+                currentShowLength = s.length;
+                currentShowName = s.name;
+
+                document.getElementById("selectedShow").textContent =
+                    "Selected show: " + currentShowName +
+                    " | Length: " + currentShowLength + " seconds";
+            });
+
             const a = document.createElement("a");
             a.href = url;
             a.target = "_blank";
             a.textContent = s.name;
+
+            a.addEventListener("click", (event) => {
+                event.stopPropagation();
+            });
 
             card.appendChild(a);
             groupDiv.appendChild(card);
@@ -160,40 +318,130 @@ function buildPage() {
 
         container.appendChild(groupDiv);
     }
+
+    /* TOPNEWS GROUP */
+    const topGroup = document.createElement("div");
+    topGroup.className = "group";
+
+    const topHeader = document.createElement("h2");
+    topHeader.textContent = "TopNewsShow";
+    topGroup.appendChild(topHeader);
+
+    topNewsShows.forEach(s => {
+        if (isWeekend && s.days !== "weekend") return;
+        if (!isWeekend && s.days !== "weekday") return;
+
+        /* MULTI-HOUR URL EXPANSION */
+        const hours = s.length / 3600;
+
+        if (hours === 1) {
+            /* Single URL */
+            const url = `https://topnewsshow.com/${s.slug}-${M}-${D}-${YY}/`;
+
+            const card = document.createElement("div");
+            card.className = "link-card";
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.target = "_blank";
+            a.textContent = s.name;
+
+            card.appendChild(a);
+            topGroup.appendChild(card);
+
+        } else {
+            /* Multiple URLs */
+            let startHour = parseHour(s.start);
+
+            for (let i = 0; i < hours; i++) {
+                const suffix = hourSuffix(startHour + i);
+                const url = `https://topnewsshow.com/${s.slug}-${M}-${D}-${YY}-${suffix}/`;
+
+                const card = document.createElement("div");
+                card.className = "link-card";
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.target = "_blank";
+                a.textContent = `${s.name} (Hour ${i+1})`;
+
+                card.appendChild(a);
+                topGroup.appendChild(card);
+            }
+        }
+    });
+
+    container.appendChild(topGroup);
 }
 
+/* BUTTONS NOW WORK RELATIVE TO SELECTED DATE */
 document.getElementById("btn-yesterday").addEventListener("click", () => {
-    offset = -1;
+    selectedDate.setDate(selectedDate.getDate() - 1);
     buildPage();
 });
 
 document.getElementById("btn-today").addEventListener("click", () => {
-    offset = 0;
+    selectedDate = new Date();
     buildPage();
 });
 
 document.getElementById("btn-tomorrow").addEventListener("click", () => {
-    offset = 1;
-    buildPage();
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    if (selectedDate < today) {
+        selectedDate.setDate(selectedDate.getDate() + 1);
+        buildPage();
+    }
 });
+
 document.getElementById("datePicker").addEventListener("change", (e) => {
     const [y, m, d] = e.target.value.split("-").map(Number);
-
-    // Picked date in UTC days
-    const pickedUTC = Date.UTC(y, m - 1, d);
-
-    // Today in UTC days
-    const todayObj = new Date();
-    const todayUTC = Date.UTC(
-        todayObj.getFullYear(),
-        todayObj.getMonth(),
-        todayObj.getDate()
-    );
-
-    const diff = (pickedUTC - todayUTC) / 86400000; // ms → days
-    offset = diff;
-
+    selectedDate = new Date(y, m - 1, d);
     buildPage();
+});
+
+/* SEGMENT GENERATOR (ARCHIVE ONLY) */
+document.getElementById("btn-generate-segments").addEventListener("click", () => {
+    if (!currentBaseUrl) {
+        document.getElementById("segmentOutput").innerHTML =
+            "<div>Please select a show first.</div>";
+        return;
+    }
+
+    const start = Number(document.getElementById("segmentStart").value);
+
+    if (isNaN(start) || start < 0 || start >= currentShowLength) {
+        document.getElementById("segmentOutput").innerHTML =
+            "<div>Invalid start time.</div>";
+        return;
+    }
+
+    let html = "";
+    let s = start;
+
+    while (s < currentShowLength) {
+        const end = Math.min(s + 360, currentShowLength);
+        const link = `${currentBaseUrl}/start/${s}/end/${end}`;
+
+        html += `
+            <div class="link-card segment-card" data-start="${s}">
+                <a href="${link}" target="_blank">${s}–${end}</a>
+            </div>
+        `;
+
+        s += 360;
+    }
+
+    document.getElementById("segmentOutput").innerHTML = html;
+
+    document.querySelectorAll(".segment-card a").forEach(a => {
+        a.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const card = event.target.closest(".segment-card");
+            card.classList.add("segment-clicked");
+        });
+    });
 });
 
 buildPage();

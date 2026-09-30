@@ -1,0 +1,408 @@
+/* =========================================
+   Subtitle Hover Sidebar
+   ========================================= */
+
+.subtitle-sidebar {
+    position: fixed;
+    top: 64px;
+    bottom: 0;
+    left: 0;
+
+    width: 55px;
+
+    /* background: rgba(248, 249, 250, 0.75); */
+    background: rgba(13, 110, 253, 0.5);
+
+    border: 1px solid rgba(222, 226, 230, 0.6);
+    border-left: none;
+
+    border-radius: 0 8px 8px 0;
+
+    overflow: hidden;
+
+    transition: width 0.2s ease;
+
+    z-index: 1000;
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Expanded sidebar */
+
+.subtitle-sidebar:hover {
+    width: 190px;
+}
+
+
+/* Individual menu item */
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    height: 48px;
+
+    padding: 0 14px;
+
+    border: none;
+    background: transparent;
+    color: inherit;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+    text-align: left;
+
+    appearance: none;
+}
+
+/* Language submenu is hidden when sidebar is collapsed */
+
+.sidebar-submenu {
+    display: none;
+}
+
+
+/* Show language submenu when sidebar expands */
+
+.subtitle-sidebar:hover .sidebar-submenu {
+    display: block;
+}
+
+
+/* Individual language links */
+
+.sidebar-language {
+    display: block;
+
+    padding: 6px 14px 6px 54px;
+
+    color: white;
+    text-decoration: none;
+
+    white-space: nowrap;
+}
+
+
+/* Language hover */
+
+.sidebar-language:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Icon */
+
+.sidebar-icon {
+    width: 28px;
+
+    flex-shrink: 0;
+
+    font-size: 20px;
+
+    text-align: center;
+}
+
+
+/* Label is hidden when collapsed */
+
+.sidebar-label {
+    margin-left: 12px;
+
+    visibility: hidden;
+    opacity: 0;
+
+    transition: opacity 0.15s ease;
+}
+
+
+/* Labels appear when expanded */
+
+.subtitle-sidebar:hover .sidebar-label {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+/* Individual item hover */
+
+.sidebar-item:hover {
+    background: #e9ecef;
+}
+
+.subtitle-text.editing {
+    background-color: #fffde7;
+}
+
+.subtitle-text.editing .subtitle-edit-text {
+    background-color: #fffde7;
+}
+
+/* =========================================
+   Subtitle Control Panel
+   ========================================= */
+
+   .subtitle-control-panel {
+    position: sticky;
+    top: 56px;
+    z-index: 900;
+
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    column-gap: 24px;
+    row-gap: 6px;
+    align-items: start;
+
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 10px 14px;
+
+    background: #d9f0ff;
+    border: 1px solid #8ecae6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Panel heading */
+
+.subtitle-control-heading {
+    grid-column: 1 / -1;
+
+    margin-bottom: 0;
+
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #495057;
+}
+
+/* Individual sections */
+.control-section:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.control-section:last-child .control-section-title {
+    flex-basis: 100%;
+}
+
+.control-section:last-child > div {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.control-section:last-child button {
+    margin-top: 0;
+}
+
+.control-section {
+    padding-right: 20px;
+    border-right: 2px solid #8ecae6;
+}
+
+.selection-section {
+    flex: 0 0 150px;
+}
+
+.timing-section {
+    flex: 1 1 auto;
+}
+
+.actions-section {
+    flex: 0 0 auto;
+    padding-right: 0;
+    border-right: none;
+}
+
+.control-section-title {
+    margin-bottom: 5px;
+
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #495057;
+}
+
+/* Selection */
+
+#selected-count {
+    font-size: 0.82rem;
+}
+
+/* Timing */
+
+.timing-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.timing-target,
+.timing-adjustment {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.timing-target span,
+.timing-adjustment label {
+    font-size: 0.8rem;
+}
+
+.timing-adjustment select,
+#compare-language {
+    height: 29px;
+    padding: 2px 6px;
+    font-size: 0.8rem;
+}
+
+#time-increase,
+#time-decrease {
+    position: relative;
+
+    width: 27px;
+    height: 27px;
+    padding: 0;
+
+    background: white;
+    border: 1px solid #8ecae6;
+    border-radius: 4px;
+
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+
+    font-size: 0;
+}
+
+#time-increase:hover,
+#time-decrease:hover {
+    background: #eef9ff;
+}
+
+#time-increase::before,
+#time-decrease::before {
+    content: "";
+
+    position: absolute;
+    left: 50%;
+    top: 50%;
+
+    width: 7px;
+    height: 7px;
+
+    border-left: 2px solid #3fa9d8;
+    border-top: 2px solid #3fa9d8;
+
+    transform-origin: center;
+}
+
+#time-increase::before {
+    transform: translate(-50%, -25%) rotate(45deg);
+}
+
+#time-decrease::before {
+    transform: translate(-50%, -75%) rotate(225deg);
+}
+
+
+
+/* Actions */
+
+#compare-language {
+    margin-right: 4px;
+}
+#compare-subtitles,
+#export-subtitles,
+#delete-subtitles {
+    margin-top: 6px;
+    padding: 4px 12px;
+
+    font-size: 0.8rem;
+    font-weight: 500;
+
+    color: white;
+    background: #3fa9d8;
+    border: 1px solid #3298c6;
+    border-radius: 5px;
+
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+
+    transition: background-color 0.15s ease,
+                box-shadow 0.15s ease;
+}
+
+#compare-subtitles:hover,
+#export-subtitles:hover {
+    background: #2d91bf;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Destructive action */
+
+#delete-subtitles {
+    background: #dc3545;
+    border-color: #c82333;
+}
+
+#delete-subtitles:hover {
+    background: #c82333;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.control-section {
+    padding-right: 30px;
+    border-right: 1px solid #dee2e6;
+}
+
+.control-section:last-child {
+    border-right: none;
+}
+
+.control-section-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.timing-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.timing-target,
+.timing-adjustment {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.timing-adjustment select {
+    min-width: 90px;
+}
+
+.timing-adjustment button {
+    width: 35px;
+    height: 30px;
+}
+
+.subtitle-table tbody tr.selected > td {
+    background-color: #fff3cd !important;
+}
+
+.subtitle-table tbody td.selected {
+    background-color: #fff3cd !important;
+}
+
+.subtitle-control-panel #time-amount {
+    width: 48px !important;
+    min-width: 48px;
+    max-width: 48px;
+}

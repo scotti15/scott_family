@@ -1,6 +1,6 @@
 
   let currentFilters = {
-    session: "all",
+    session: "last1",
     sessionFrom: null,
     sessionTo: null,
   };
@@ -17,6 +17,7 @@
 
 document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
+  updateOverviewFilterLabel(currentFilters.session);
 
   //   // simulate clicking the default active tab
   //   const activeTab = document.querySelector(".tab-btn.active");
@@ -1069,7 +1070,7 @@ function updateOverviewFilterLabel(session, from = null, to = null) {
       break;
 
     case "last1":
-      label.textContent = "— Last 1 Session";
+      label.textContent = "— Last Session";
       break;
 
     case "last3":

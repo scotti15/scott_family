@@ -168,6 +168,9 @@ function renderFlatMenu($parent_id, $menu_tree, $level = 0) {
 .navbar {
     background: linear-gradient(90deg, #4e73df, #1cc88a);
     padding: 0.75rem 1rem;
+    position: sticky;
+top: 0;
+z-index: 1000;
 }
 
 /* Top-level links */

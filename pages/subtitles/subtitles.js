@@ -1,0 +1,629 @@
+document.addEventListener("DOMContentLoaded", function () {
+  const projectSelect = document.getElementById("project_id");
+  const projectTitleGroup = document.getElementById("project-title-group");
+  const projectTitle = document.getElementById("project-title");
+  let compareSubtitles = [];
+
+  function updateProjectTitleVisibility() {
+    if (projectSelect.value === "new") {
+      projectTitleGroup.style.display = "";
+      projectTitle.required = true;
+    } else {
+      projectTitleGroup.style.display = "none";
+      projectTitle.required = false;
+      projectTitle.value = "";
+    }
+  }
+
+  projectSelect.addEventListener("change", updateProjectTitleVisibility);
+
+  updateProjectTitleVisibility();
+
+  console.log(
+    "Edit buttons found:",
+    document.querySelectorAll(".edit-subtitle").length
+  );
+
+  document
+    .getElementById("subtitle-table-body")
+    .addEventListener("dblclick", function (event) {
+      const textCell = event.target.closest(".subtitle-text");
+
+      if (!textCell) {
+        return;
+      }
+
+      // Don't create another textarea if already editing
+      if (textCell.querySelector("textarea")) {
+        return;
+      }
+
+      const currentText = textCell.innerText;
+
+      textCell.classList.add("editing");
+
+      textCell.innerHTML = `
+      <textarea class="form-control subtitle-edit-text" rows="3">${currentText}</textarea>
+    `;
+
+      const textarea = textCell.querySelector("textarea");
+
+      textarea.focus();
+
+      // Save when the textarea loses focus
+      textarea.addEventListener("blur", async function () {
+        const newText = textarea.value;
+        const entryId =
+          textCell.dataset.entryId || textCell.closest("tr").dataset.entryId;
+        console.log("Editing entry:", entryId);
+
+        try {
+          const formData = new FormData();
+
+          formData.append("entry_id", entryId);
+          formData.append("text", newText);
+
+          const response = await fetch("subtitle_update_text.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          console.log("Text update:", result);
+
+          if (!result.success) {
+            console.error("Text update failed:", result.error);
+            alert(result.error || "The subtitle text could not be saved.");
+            return;
+          }
+
+          textCell.classList.remove("editing");
+          textCell.textContent = newText;
+        } catch (error) {
+          console.error("Text update failed:", error);
+          alert("The subtitle text could not be saved.");
+        }
+      });
+    });
+
+  document.querySelectorAll(".subtitle-time").forEach(function (timeCell) {
+    timeCell.addEventListener("dblclick", function () {
+      // Don't create another input if already editing
+      if (timeCell.querySelector("input")) {
+        return;
+      }
+
+      const currentTime = timeCell.innerText.trim();
+
+      timeCell.classList.add("editing");
+
+      timeCell.innerHTML = `
+                <input
+                    type="text"
+                    class="form-control subtitle-edit-time"
+                    value="${currentTime}"
+                >
+            `;
+
+      const input = timeCell.querySelector("input");
+
+      input.focus();
+
+      // Save only to the UI for now
+      input.addEventListener("blur", function () {
+        const newTime = input.value.trim();
+
+        timeCell.classList.remove("editing");
+
+        timeCell.textContent = newTime;
+      });
+    });
+  });
+
+  let selectedEntryIds = [];
+  let lastClickedRow = null;
+
+  /**********************************
+   * DELETE SUBTITLES
+   **********************************/
+
+  document
+    .getElementById("delete-subtitles")
+    .addEventListener("click", async () => {
+      if (selectedEntryIds.length === 0) {
+        console.log("No subtitle lines selected.");
+        return;
+      }
+
+      const confirmed = confirm(
+        `Delete ${selectedEntryIds.length} selected subtitle line(s)?`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      console.log("Deleting entries:", selectedEntryIds);
+
+      try {
+        for (const entryId of selectedEntryIds) {
+          const formData = new FormData();
+
+          formData.append("entry_id", entryId);
+
+          const response = await fetch("subtitle_delete.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          console.log("Delete result:", result);
+
+          if (!result.success) {
+            console.error("Delete failed:", result.error);
+            alert(result.error || "The subtitle could not be deleted.");
+            return;
+          }
+        }
+
+        /**********************************
+         * RESTORE COMPARE MODE AFTER DELETE
+         **********************************/
+
+        const compareLanguageId =
+          document.getElementById("compare-language").value;
+
+        const currentUrl = new URL(window.location.href);
+
+        if (compareLanguageId) {
+          currentUrl.searchParams.set("compare_language_id", compareLanguageId);
+        }
+
+        window.location.href = currentUrl.toString();
+      } catch (error) {
+        console.error("Delete request failed:", error);
+        alert("The subtitle could not be deleted.");
+      }
+    });
+
+  function selectComparisonEntry(entryId, selected) {
+    document
+      .querySelectorAll(`#subtitle-table-body td[data-entry-id="${entryId}"]`)
+      .forEach((cell) => {
+        cell.classList.toggle("selected", selected);
+      });
+  }
+
+  document
+    .getElementById("subtitle-table-body")
+    .addEventListener("click", (event) => {
+      const cell = event.target.closest("[data-entry-id]");
+
+      if (!cell) {
+        return;
+      }
+
+      const row = cell.closest("tr");
+
+      const rows = Array.from(
+        document.querySelectorAll("#subtitle-table-body tr")
+      );
+
+      const entryId = cell.dataset.entryId;
+
+      // ==========================================
+      // SHIFT+CLICK: Select a range
+      // ==========================================
+      if (event.shiftKey && lastClickedRow) {
+        const startIndex = rows.indexOf(lastClickedRow);
+        const endIndex = rows.indexOf(row);
+
+        const rangeStart = Math.min(startIndex, endIndex);
+        const rangeEnd = Math.max(startIndex, endIndex);
+
+        for (let i = rangeStart; i <= rangeEnd; i++) {
+          const rangeRow = rows[i];
+
+          const rangeEntryId =
+            rangeRow.dataset.entryId ||
+            rangeRow.querySelector("[data-entry-id]")?.dataset.entryId;
+
+          if (rangeEntryId && !selectedEntryIds.includes(rangeEntryId)) {
+            selectedEntryIds.push(rangeEntryId);
+          }
+
+          rangeRow.classList.add("selected");
+        }
+      }
+
+      // ==========================================
+      // CTRL+CLICK: Toggle individual row
+      // ==========================================
+      else if (event.ctrlKey) {
+        if (selectedEntryIds.includes(entryId)) {
+          selectedEntryIds = selectedEntryIds.filter((id) => id !== entryId);
+
+          selectComparisonEntry(entryId, false);
+        } else {
+          selectedEntryIds.push(entryId);
+          selectComparisonEntry(entryId, true);
+        }
+      }
+
+      // ==========================================
+      // NORMAL CLICK: Start a new selection
+      // ==========================================
+      else {
+        document
+          .querySelectorAll("#subtitle-table-body td.selected")
+          .forEach((cell) => cell.classList.remove("selected"));
+
+        selectedEntryIds = [entryId];
+
+        const isCompareRow =
+          row.querySelectorAll("td[data-entry-id]").length > 0;
+
+        if (isCompareRow) {
+          selectComparisonEntry(entryId, true);
+        } else {
+          row.classList.add("selected");
+        }
+      }
+
+      // Remember this row for the next Shift+click
+      lastClickedRow = row;
+
+      document.getElementById("selected-count").textContent = `${
+        selectedEntryIds.length
+      } ${selectedEntryIds.length === 1 ? "line" : "lines"} selected`;
+
+      console.log("Selected subtitle entries:", selectedEntryIds);
+    });
+
+  function adjustSelectedTiming(direction) {
+    if (selectedEntryIds.length === 0) {
+      console.log("No subtitle lines selected.");
+      return;
+    }
+
+    const target = document.querySelector(
+      'input[name="timing-target"]:checked'
+    ).value;
+
+    const adjustment = getTimingAdjustment() * direction;
+
+    console.log("Timing adjustment:", {
+      entries: selectedEntryIds,
+      target: target,
+      adjustment: adjustment,
+    });
+  }
+
+  document.getElementById("time-increase").addEventListener("click", () => {
+    applyTimingAdjustment(1);
+  });
+
+  document.getElementById("time-decrease").addEventListener("click", () => {
+    applyTimingAdjustment(-1);
+  });
+
+  document
+    .getElementById("compare-subtitles")
+    .addEventListener("click", async () => {
+      const compareLanguageId =
+        document.getElementById("compare-language").value;
+
+      if (!compareLanguageId) {
+        console.log("No comparison language selected.");
+        return;
+      }
+
+      const projectId = new URLSearchParams(window.location.search).get(
+        "project_id"
+      );
+
+      const formData = new FormData();
+
+      formData.append("project_id", projectId);
+      formData.append("language_id", compareLanguageId);
+
+      try {
+        const response = await fetch("subtitle_compare.php", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await response.json();
+
+        compareSubtitles = result.subtitles;
+
+        const tableHead = document.querySelector(".subtitle-table thead");
+        const tableBody = document.getElementById("subtitle-table-body");
+
+        const currentSubtitles = [];
+
+        document
+          .querySelectorAll("#subtitle-table-body tr[data-entry-id]")
+          .forEach((row) => {
+            const cells = row.querySelectorAll("td");
+
+            currentSubtitles.push({
+              entry_id: row.dataset.entryId,
+              subtitle_number: cells[0].textContent.trim(),
+              start_time: cells[1].textContent.trim(),
+              end_time: cells[2].textContent.trim(),
+              text: cells[3].textContent.trim(),
+            });
+          });
+
+        console.log("Current subtitles:", currentSubtitles);
+
+        tableHead.innerHTML = `
+          <tr>
+              <th>#</th>
+              <th>Current Start</th>
+              <th>Current End</th>
+              <th>Current Text</th>
+              <th>Compare Start</th>
+              <th>Compare End</th>
+              <th>Compare Text</th>
+          </tr>
+      `;
+
+        tableBody.innerHTML = "";
+
+        currentSubtitles.forEach((currentEntry, index) => {
+          const compareEntry = compareSubtitles[index];
+
+          const row = document.createElement("tr");
+
+          row.dataset.entryId = currentEntry.entry_id;
+
+          row.innerHTML = `
+        <td>${currentEntry.subtitle_number}</td>
+    
+        <td class="subtitle-time" data-entry-id="${currentEntry.entry_id}">
+        ${currentEntry.start_time}
+    </td>
+    
+    <td class="subtitle-time" data-entry-id="${currentEntry.entry_id}">
+        ${currentEntry.end_time}
+    </td>
+    
+    <td class="subtitle-text" data-entry-id="${currentEntry.entry_id}">
+        ${currentEntry.text}
+    </td>
+    
+    <td class="subtitle-time" data-entry-id="${compareEntry.entry_id}">
+    ${compareEntry.start_time}
+    </td>
+
+    <td class="subtitle-time" data-entry-id="${compareEntry.entry_id}">
+        ${compareEntry.end_time}
+    </td>
+
+    <td class="subtitle-text" data-entry-id="${compareEntry.entry_id}">
+        ${compareEntry.text}
+    </td>
+    `;
+
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error("Compare request failed:", error);
+      }
+    });
+
+    /**********************************
+     * RESTORE COMPARE MODE
+     **********************************/
+
+const compareLanguageId =
+new URLSearchParams(window.location.search).get(
+  "compare_language_id",
+);
+
+if (compareLanguageId) {
+const compareSelect = document.getElementById("compare-language");
+
+if (compareSelect) {
+  compareSelect.value = compareLanguageId;
+
+  document.getElementById("compare-subtitles").click();
+}
+}
+
+  function getTimingAdjustment() {
+    const amount = Number(document.getElementById("time-amount").value);
+    const unit = document.getElementById("time-unit").value;
+
+    const unitValues = {
+      tenth: 100,
+      second: 1000,
+      "ten-second": 10000,
+      minute: 60000,
+      "ten-minute": 600000,
+    };
+
+    return amount * unitValues[unit];
+  }
+
+  async function applyTimingAdjustment(direction) {
+    if (selectedEntryIds.length === 0) {
+      console.log("No subtitle lines selected.");
+      return;
+    }
+
+    const target = document.querySelector(
+      'input[name="timing-target"]:checked'
+    ).value;
+
+    const adjustment = getTimingAdjustment() * direction;
+
+    console.log("Timing adjustment:", {
+      entries: selectedEntryIds,
+      target: target,
+      adjustment: adjustment,
+    });
+
+    // ==========================================
+    // Save adjustment to database first
+    // ==========================================
+
+    try {
+      const response = await fetch("subtitle_adjust_timing.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          entryIds: selectedEntryIds,
+          target: target,
+          adjustment: adjustment,
+        }),
+      });
+
+      const result = await response.json();
+
+      console.log("Database update:", result);
+
+      if (!result.success) {
+        console.error("Database update failed:", result.error);
+        alert(result.error || "The timing adjustment could not be saved.");
+        return;
+      }
+
+      // ==========================================
+      // Database succeeded — update the display
+      // ==========================================
+
+      const compareTimeCells = document.querySelectorAll(
+        ".subtitle-time[data-entry-id]"
+      );
+
+      if (compareTimeCells.length > 0) {
+        // ==========================================
+        // Compare mode
+        // ==========================================
+
+        selectedEntryIds.forEach((entryId) => {
+          const timeCells = document.querySelectorAll(
+            `.subtitle-time[data-entry-id="${entryId}"]`
+          );
+
+          if (timeCells.length < 2) {
+            return;
+          }
+
+          const startCell = timeCells[0];
+          const endCell = timeCells[1];
+
+          if (target === "start" || target === "both") {
+            startCell.textContent = adjustSubtitleTime(
+              startCell.textContent.trim(),
+              adjustment
+            );
+          }
+
+          if (target === "end" || target === "both") {
+            endCell.textContent = adjustSubtitleTime(
+              endCell.textContent.trim(),
+              adjustment
+            );
+          }
+        });
+      } else {
+        // ==========================================
+        // Single-language mode
+        // Existing working code
+        // ==========================================
+
+        const rows = document.querySelectorAll("tbody tr[data-entry-id]");
+
+        rows.forEach((row) => {
+          const entryId = row.dataset.entryId;
+
+          if (!selectedEntryIds.includes(entryId)) {
+            return;
+          }
+
+          const timeCells = row.querySelectorAll(".subtitle-time");
+
+          const startCell = timeCells[0];
+          const endCell = timeCells[1];
+
+          if (target === "start" || target === "both") {
+            startCell.textContent = adjustSubtitleTime(
+              startCell.textContent.trim(),
+              adjustment
+            );
+          }
+
+          if (target === "end" || target === "both") {
+            endCell.textContent = adjustSubtitleTime(
+              endCell.textContent.trim(),
+              adjustment
+            );
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Timing update failed:", error);
+      alert("The timing adjustment could not be saved.");
+    }
+  }
+
+  function adjustSelectedTiming(direction) {
+    if (selectedEntryIds.length === 0) {
+      console.log("No subtitle lines selected.");
+      return;
+    }
+
+    const target = document.querySelector(
+      'input[name="timing-target"]:checked'
+    ).value;
+
+    const adjustment = getTimingAdjustment() * direction;
+
+    console.log("Timing adjustment:", {
+      entries: selectedEntryIds,
+      target: target,
+      adjustment: adjustment,
+    });
+  }
+  function adjustSubtitleTime(timeString, adjustment) {
+    const [hours, minutes, secondsMilliseconds] = timeString.split(":");
+    const [seconds, milliseconds] = secondsMilliseconds.split(",");
+
+    let totalMilliseconds =
+      Number(hours) * 3600000 +
+      Number(minutes) * 60000 +
+      Number(seconds) * 1000 +
+      Number(milliseconds);
+
+    totalMilliseconds += adjustment;
+
+    const newHours = Math.floor(totalMilliseconds / 3600000);
+    totalMilliseconds %= 3600000;
+
+    const newMinutes = Math.floor(totalMilliseconds / 60000);
+    totalMilliseconds %= 60000;
+
+    const newSeconds = Math.floor(totalMilliseconds / 1000);
+    const newMilliseconds = totalMilliseconds % 1000;
+
+    return (
+      String(newHours).padStart(2, "0") +
+      ":" +
+      String(newMinutes).padStart(2, "0") +
+      ":" +
+      String(newSeconds).padStart(2, "0") +
+      "," +
+      String(newMilliseconds).padStart(3, "0")
+    );
+  }
+
+  //ADD NEW FUNCTIONS HERE
+});
