@@ -195,93 +195,101 @@ document.addEventListener("DOMContentLoaded", function () {
         cell.classList.toggle("selected", selected);
       });
   }
-
+  
   document
     .getElementById("subtitle-table-body")
     .addEventListener("click", (event) => {
       const cell = event.target.closest("[data-entry-id]");
-
+  
       if (!cell) {
         return;
       }
-
+  
       const row = cell.closest("tr");
-
+  
       const rows = Array.from(
         document.querySelectorAll("#subtitle-table-body tr")
       );
-
+  
       const entryId = cell.dataset.entryId;
-
+  
       // ==========================================
       // SHIFT+CLICK: Select a range
       // ==========================================
       if (event.shiftKey && lastClickedRow) {
         const startIndex = rows.indexOf(lastClickedRow);
         const endIndex = rows.indexOf(row);
-
+  
         const rangeStart = Math.min(startIndex, endIndex);
         const rangeEnd = Math.max(startIndex, endIndex);
-
+  
         for (let i = rangeStart; i <= rangeEnd; i++) {
           const rangeRow = rows[i];
-
-          const rangeEntryId =
-            rangeRow.dataset.entryId ||
-            rangeRow.querySelector("[data-entry-id]")?.dataset.entryId;
-
+  
+          const rangeCell = rangeRow.querySelector(
+            `[data-language-id="${cell.dataset.languageId}"]`
+          );
+          
+          const rangeEntryId = rangeCell?.dataset.entryId;
+  
           if (rangeEntryId && !selectedEntryIds.includes(rangeEntryId)) {
             selectedEntryIds.push(rangeEntryId);
           }
-
-          rangeRow.classList.add("selected");
+  
+          selectComparisonEntry(rangeEntryId, true);
         }
       }
-
+  
       // ==========================================
       // CTRL+CLICK: Toggle individual row
       // ==========================================
       else if (event.ctrlKey) {
         if (selectedEntryIds.includes(entryId)) {
           selectedEntryIds = selectedEntryIds.filter((id) => id !== entryId);
-
+  
+          row.classList.remove("selected");
+  
           selectComparisonEntry(entryId, false);
         } else {
           selectedEntryIds.push(entryId);
+    
           selectComparisonEntry(entryId, true);
         }
       }
-
+  
       // ==========================================
       // NORMAL CLICK: Start a new selection
       // ==========================================
       else {
         document
-          .querySelectorAll("#subtitle-table-body td.selected")
-          .forEach((cell) => cell.classList.remove("selected"));
-
+  .querySelectorAll("#subtitle-table-body .selected")
+  .forEach((selectedElement) => {
+    selectedElement.classList.remove("selected");
+  });
+  
         selectedEntryIds = [entryId];
-
+  
         const isCompareRow =
           row.querySelectorAll("td[data-entry-id]").length > 0;
-
+  
         if (isCompareRow) {
           selectComparisonEntry(entryId, true);
         } else {
           row.classList.add("selected");
         }
       }
-
+  
       // Remember this row for the next Shift+click
       lastClickedRow = row;
-
+  
       document.getElementById("selected-count").textContent = `${
         selectedEntryIds.length
       } ${selectedEntryIds.length === 1 ? "line" : "lines"} selected`;
-
+  
       console.log("Selected subtitle entries:", selectedEntryIds);
     });
-
+  
+  
   function adjustSelectedTiming(direction) {
     if (selectedEntryIds.length === 0) {
       console.log("No subtitle lines selected.");
@@ -382,32 +390,50 @@ document.addEventListener("DOMContentLoaded", function () {
           row.dataset.entryId = currentEntry.entry_id;
 
           row.innerHTML = `
-        <td>${currentEntry.subtitle_number}</td>
-    
-        <td class="subtitle-time" data-entry-id="${currentEntry.entry_id}">
+    <td>${currentEntry.subtitle_number}</td>
+
+    <td class="subtitle-time"
+        data-entry-id="${currentEntry.entry_id}"
+        data-language-id="${selectedLanguageId}"
+        data-subtitle-number="${currentEntry.subtitle_number}">
         ${currentEntry.start_time}
     </td>
-    
-    <td class="subtitle-time" data-entry-id="${currentEntry.entry_id}">
+
+    <td class="subtitle-time"
+        data-entry-id="${currentEntry.entry_id}"
+        data-language-id="${selectedLanguageId}"
+        data-subtitle-number="${currentEntry.subtitle_number}">
         ${currentEntry.end_time}
     </td>
-    
-    <td class="subtitle-text" data-entry-id="${currentEntry.entry_id}">
+
+    <td class="subtitle-text"
+        data-entry-id="${currentEntry.entry_id}"
+        data-language-id="${selectedLanguageId}"
+        data-subtitle-number="${currentEntry.subtitle_number}">
         ${currentEntry.text}
     </td>
-    
-    <td class="subtitle-time" data-entry-id="${compareEntry.entry_id}">
-    ${compareEntry.start_time}
+
+    <td class="subtitle-time"
+        data-entry-id="${compareEntry.entry_id}"
+        data-language-id="${compareLanguageId}"
+        data-subtitle-number="${compareEntry.subtitle_number}">
+        ${compareEntry.start_time}
     </td>
 
-    <td class="subtitle-time" data-entry-id="${compareEntry.entry_id}">
+    <td class="subtitle-time"
+        data-entry-id="${compareEntry.entry_id}"
+        data-language-id="${compareLanguageId}"
+        data-subtitle-number="${compareEntry.subtitle_number}">
         ${compareEntry.end_time}
     </td>
 
-    <td class="subtitle-text" data-entry-id="${compareEntry.entry_id}">
+    <td class="subtitle-text"
+        data-entry-id="${compareEntry.entry_id}"
+        data-language-id="${compareLanguageId}"
+        data-subtitle-number="${compareEntry.subtitle_number}">
         ${compareEntry.text}
     </td>
-    `;
+`;
 
           tableBody.appendChild(row);
         });
@@ -416,24 +442,23 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    /**********************************
-     * RESTORE COMPARE MODE
-     **********************************/
+  /**********************************
+   * RESTORE COMPARE MODE
+   **********************************/
 
-const compareLanguageId =
-new URLSearchParams(window.location.search).get(
-  "compare_language_id",
-);
+  const compareLanguageId = new URLSearchParams(window.location.search).get(
+    "compare_language_id"
+  );
 
-if (compareLanguageId) {
-const compareSelect = document.getElementById("compare-language");
+  if (compareLanguageId) {
+    const compareSelect = document.getElementById("compare-language");
 
-if (compareSelect) {
-  compareSelect.value = compareLanguageId;
+    if (compareSelect) {
+      compareSelect.value = compareLanguageId;
 
-  document.getElementById("compare-subtitles").click();
-}
-}
+      document.getElementById("compare-subtitles").click();
+    }
+  }
 
   function getTimingAdjustment() {
     const amount = Number(document.getElementById("time-amount").value);

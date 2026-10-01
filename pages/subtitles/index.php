@@ -30,6 +30,11 @@ include __DIR__ . '/../../includes/navbar.php';
 
 ?>
 
+
+<script>
+const selectedLanguageId = <?= json_encode($selectedLanguageId) ?>;
+</script>
+
 <link rel="stylesheet" href="subtitles.css">
 
 <!-- ========================================= -->
@@ -119,171 +124,171 @@ include __DIR__ . '/../../includes/navbar.php';
 
         <div class="control-section selection-section">
 
-    <div class="control-section-title">
-        Selection
-    </div>
+            <div class="control-section-title">
+                Selection
+            </div>
 
-    <div>
-        <span id="selected-count">0 lines selected</span>
-    </div>
-
-</div>
-
-
-<div class="control-section timing-section">
-
-    <div class="control-section-title">
-        Timing
-    </div>
-
-    <div class="timing-controls">
-
-        <div class="timing-target">
-
-            <span>Adjust:</span>
-
-            <label>
-                <input type="radio" name="timing-target" value="start" checked>
-                Start
-            </label>
-
-            <label>
-                <input type="radio" name="timing-target" value="end">
-                End
-            </label>
-
-            <label>
-                <input type="radio" name="timing-target" value="both">
-                Both
-            </label>
+            <div>
+                <span id="selected-count">0 lines selected</span>
+            </div>
 
         </div>
 
 
-        <div class="timing-adjustment">
+        <div class="control-section timing-section">
 
-            <label for="time-amount">
-                Amount
-            </label>
+            <div class="control-section-title">
+                Timing
+            </div>
 
-            <select id="time-amount">
-                <?php for ($i = 1; $i <= 10; $i++): ?>
-                    <option value="<?= $i ?>"><?= $i ?></option>
-                <?php endfor; ?>
-            </select>
+            <div class="timing-controls">
+
+                <div class="timing-target">
+
+                    <span>Adjust:</span>
+
+                    <label>
+                        <input type="radio" name="timing-target" value="start" checked>
+                        Start
+                    </label>
+
+                    <label>
+                        <input type="radio" name="timing-target" value="end">
+                        End
+                    </label>
+
+                    <label>
+                        <input type="radio" name="timing-target" value="both">
+                        Both
+                    </label>
+
+                </div>
 
 
-            <label for="time-unit">
-                Unit
-            </label>
+                <div class="timing-adjustment">
 
-            <select id="time-unit">
-                <option value="tenth">tenth of a second</option>
-                <option value="second" selected>second</option>
-                <option value="ten-second">ten seconds</option>
-                <option value="minute">minute</option>
-                <option value="ten-minute">ten minutes</option>
-            </select>
+                    <label for="time-amount">
+                        Amount
+                    </label>
+
+                    <select id="time-amount">
+                        <?php for ($i = 1; $i <= 10; $i++): ?>
+                        <option value="<?= $i ?>"><?= $i ?></option>
+                        <?php endfor; ?>
+                    </select>
 
 
-            <button type="button" id="time-increase">
-                ▲
-            </button>
+                    <label for="time-unit">
+                        Unit
+                    </label>
 
-            <button type="button" id="time-decrease">
-                ▼
-            </button>
+                    <select id="time-unit">
+                        <option value="tenth">tenth of a second</option>
+                        <option value="second" selected>second</option>
+                        <option value="ten-second">ten seconds</option>
+                        <option value="minute">minute</option>
+                        <option value="ten-minute">ten minutes</option>
+                    </select>
+
+
+                    <button type="button" id="time-increase">
+                        ▲
+                    </button>
+
+                    <button type="button" id="time-decrease">
+                        ▼
+                    </button>
+
+                </div>
+
+            </div>
 
         </div>
 
-    </div>
 
-</div>
+        <div class="control-section actions-section">
 
+            <div class="control-section-title">
+                Actions
+            </div>
 
-<div class="control-section actions-section">
+            <div>
+                <label for="compare-language">
+                    Compare with:
+                </label>
 
-    <div class="control-section-title">
-        Actions
-    </div>
+                <select id="compare-language">
 
-    <div>
-        <label for="compare-language">
-            Compare with:
-        </label>
+                    <option value="">Select language</option>
 
-        <select id="compare-language">
+                    <?php foreach ($languages as $language): ?>
 
-            <option value="">Select language</option>
-
-            <?php foreach ($languages as $language): ?>
-
-                <?php if ($language['language_id'] != $selectedLanguageId): ?>
+                    <?php if ($language['language_id'] != $selectedLanguageId): ?>
 
                     <option value="<?= htmlspecialchars($language['language_id']) ?>">
                         <?= htmlspecialchars($language['language_name']) ?>
                     </option>
 
-                <?php endif; ?>
+                    <?php endif; ?>
 
-            <?php endforeach; ?>
+                    <?php endforeach; ?>
 
-        </select>
+                </select>
+            </div>
+
+            <button type="button" id="compare-subtitles">
+                Compare
+            </button>
+
+            <button type="button" id="delete-subtitles">Delete</button>
+            <button type="button" id="export-subtitles">
+                Export
+            </button>
+
+        </div>
+
     </div>
 
-    <button type="button" id="compare-subtitles">
-        Compare
-    </button>
+    <!-- ========================================= -->
+    <!-- Load Subtitle File Modal -->
+    <!-- ========================================= -->
 
-    <button type="button" id="delete-subtitles">Delete</button>
-    <button type="button" id="export-subtitles">
-        Export
-    </button>
+    <div class="modal fade" id="loadSubtitleModal" tabindex="-1" aria-labelledby="loadSubtitleModalLabel"
+        aria-hidden="true">
 
-</div>
+        <div class="modal-dialog">
 
-</div>
+            <div class="modal-content">
 
-<!-- ========================================= -->
-<!-- Load Subtitle File Modal -->
-<!-- ========================================= -->
+                <form method="POST" action="subtitle_upload.php" enctype="multipart/form-data">
 
-<div class="modal fade" id="loadSubtitleModal" tabindex="-1" aria-labelledby="loadSubtitleModalLabel"
-    aria-hidden="true">
+                    <div class="modal-header">
 
-    <div class="modal-dialog">
+                        <h5 class="modal-title" id="loadSubtitleModalLabel">
+                            Load Subtitle File
+                        </h5>
 
-        <div class="modal-content">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 
-            <form method="POST" action="subtitle_upload.php" enctype="multipart/form-data">
+                    </div>
 
-                <div class="modal-header">
+                    <div class="modal-body">
 
-                    <h5 class="modal-title" id="loadSubtitleModalLabel">
-                        Load Subtitle File
-                    </h5>
+                        <!-- Project -->
 
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <div class="mb-3">
 
-                </div>
+                            <label for="project_id" class="form-label">
+                                Project
+                            </label>
 
-                <div class="modal-body">
+                            <select class="form-select" id="project_id" name="project_id">
 
-                    <!-- Project -->
+                                <option value="new" selected>
+                                    New Project
+                                </option>
 
-                    <div class="mb-3">
-
-                        <label for="project_id" class="form-label">
-                            Project
-                        </label>
-
-                        <select class="form-select" id="project_id" name="project_id">
-
-                            <option value="new" selected>
-                                New Project
-                            </option>
-
-                            <?php
+                                <?php
                             $stmt = $pdo->query(
                                 "SELECT project_id, name
                                  FROM subtitle_projects
@@ -295,153 +300,160 @@ include __DIR__ . '/../../includes/navbar.php';
                             ):
                             ?>
 
-                            <option value="<?= htmlspecialchars($project['project_id']) ?>">
-                                <?= htmlspecialchars($project['name']) ?>
-                            </option>
+                                <option value="<?= htmlspecialchars($project['project_id']) ?>">
+                                    <?= htmlspecialchars($project['name']) ?>
+                                </option>
 
-                            <?php endwhile; ?>
+                                <?php endwhile; ?>
 
-                        </select>
+                            </select>
+
+                        </div>
+
+
+                        <!-- Project Title -->
+
+                        <div class="mb-3" id="project-title-group">
+
+                            <label for="project-title" class="form-label">
+                                Project Title
+                            </label>
+
+                            <input type="text" class="form-control" id="project-title" name="project_title">
+
+                        </div>
+
+
+                        <!-- Language -->
+
+                        <div class="mb-3">
+
+                            <label for="subtitle-language" class="form-label">
+                                Language
+                            </label>
+
+                            <select class="form-select" id="subtitle-language" name="language_code" required>
+
+                                <option value="" selected>
+                                    Select Language
+                                </option>
+
+                                <option value="en">
+                                    English
+                                </option>
+
+                                <option value="fr">
+                                    French
+                                </option>
+
+                                <option value="de">
+                                    German
+                                </option>
+
+                                <option value="es">
+                                    Spanish
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Subtitle File -->
+
+                        <div class="mb-3">
+
+                            <label for="subtitle-file" class="form-label">
+                                Subtitle File
+                            </label>
+
+                            <input type="file" class="form-control" id="subtitle-file" name="subtitle_file"
+                                accept=".srt,.vtt,.ass" required>
+
+                        </div>
 
                     </div>
 
 
-                    <!-- Project Title -->
+                    <div class="modal-footer">
 
-                    <div class="mb-3" id="project-title-group">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
 
-                        <label for="project-title" class="form-label">
-                            Project Title
-                        </label>
-
-                        <input type="text" class="form-control" id="project-title" name="project_title">
-
-                    </div>
-
-
-                    <!-- Language -->
-
-                    <div class="mb-3">
-
-                        <label for="subtitle-language" class="form-label">
-                            Language
-                        </label>
-
-                        <select class="form-select" id="subtitle-language" name="language_code" required>
-
-                            <option value="" selected>
-                                Select Language
-                            </option>
-
-                            <option value="en">
-                                English
-                            </option>
-
-                            <option value="fr">
-                                French
-                            </option>
-
-                            <option value="de">
-                                German
-                            </option>
-
-                            <option value="es">
-                                Spanish
-                            </option>
-
-                        </select>
+                        <button type="submit" class="btn btn-primary">
+                            Load File
+                        </button>
 
                     </div>
 
+                </form>
 
-                    <!-- Subtitle File -->
-
-                    <div class="mb-3">
-
-                        <label for="subtitle-file" class="form-label">
-                            Subtitle File
-                        </label>
-
-                        <input type="file" class="form-control" id="subtitle-file" name="subtitle_file"
-                            accept=".srt,.vtt,.ass" required>
-
-                    </div>
-
-                </div>
-
-
-                <div class="modal-footer">
-
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-
-                    <button type="submit" class="btn btn-primary">
-                        Load File
-                    </button>
-
-                </div>
-
-            </form>
+            </div>
 
         </div>
 
     </div>
 
-</div>
+
+
+    <!-- ========================================= -->
+    <!-- Subtitles -->
+    <!-- ========================================= -->
+
+    <?php if ($selectedLanguageId !== ''): ?>
+
+    <div class="container mt-4">
+
+        <h4>Subtitles</h4>
 
 
 
-<!-- ========================================= -->
-<!-- Subtitles -->
-<!-- ========================================= -->
+        <table class="table table-bordered table-striped subtitle-table">
 
-<?php if ($selectedLanguageId !== ''): ?>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Text</th>
+                </tr>
+            </thead>
 
-<div class="container mt-4">
+            <tbody id="subtitle-table-body">
 
-    <h4>Subtitles</h4>
+                <?php foreach ($subtitles as $entry): ?>
 
+                <tr data-entry-id="<?= htmlspecialchars($entry['entry_id']) ?>">
 
-
-    <table class="table table-bordered table-striped subtitle-table">
-
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Text</th>
-            </tr>
-        </thead>
-
-        <tbody id="subtitle-table-body">
-
-            <?php foreach ($subtitles as $entry): ?>
-
-            <tr data-entry-id="<?= htmlspecialchars($entry['entry_id']) ?>">
-
-                <td>
-                    <?= htmlspecialchars($entry['subtitle_number']) ?>
+                    <td>
+                        <?= htmlspecialchars($entry['subtitle_number']) ?>
                     </td>
-                <td class="subtitle-time">
-                    <?= htmlspecialchars($entry['start_time']) ?>
-                </td>
+                    <td class="subtitle-time" data-entry-id="<?= htmlspecialchars($entry['entry_id']) ?>"
+                        data-language-id="<?= htmlspecialchars($selectedLanguageId) ?>"
+                        data-subtitle-number="<?= htmlspecialchars($entry['subtitle_number']) ?>">
+                        <?= htmlspecialchars($entry['start_time']) ?>
+                    </td>
 
-                <td class="subtitle-time">
-                    <?= htmlspecialchars($entry['end_time']) ?>
-                </td>
-                <td class="subtitle-text">
-                    <?= nl2br(htmlspecialchars($entry['text'])) ?>
-                </td>
-            </tr>
+                    <td class="subtitle-time" data-entry-id="<?= htmlspecialchars($entry['entry_id']) ?>"
+                        data-language-id="<?= htmlspecialchars($selectedLanguageId) ?>"
+                        data-subtitle-number="<?= htmlspecialchars($entry['subtitle_number']) ?>">
+                        <?= htmlspecialchars($entry['end_time']) ?>
+                    </td>
 
-            <?php endforeach; ?>
-        </tbody>
+                    <td class="subtitle-text" data-entry-id="<?= htmlspecialchars($entry['entry_id']) ?>"
+                        data-language-id="<?= htmlspecialchars($selectedLanguageId) ?>"
+                        data-subtitle-number="<?= htmlspecialchars($entry['subtitle_number']) ?>">
+                        <?= nl2br(htmlspecialchars($entry['text'])) ?>
+                    </td>
+                </tr>
 
-    </table>
+                <?php endforeach; ?>
+            </tbody>
 
-</div>
+        </table>
+
+    </div>
 
 </div>
 
