@@ -1417,6 +1417,7 @@ document.addEventListener("DOMContentLoaded", () => {
     unlockGameUI();
     prepareNextTarget();
   }
+
   function buildTurnPayload(actualRemainingScore) {
     let turnResult = "normal";
 
@@ -2155,8 +2156,14 @@ console.log("historyNewestFirst:", historyNewestFirst);
         } else {
           remainingScore = 501;
         }
+
+                turnStartRemaining = remainingScore;
+                
         console.log("Remaining BEFORE fix:", remainingScore);
         document.getElementById("remaining-score").textContent = remainingScore;
+
+        console.log("AFTER LOAD - remainingScore:", remainingScore);
+        console.log("AFTER LOAD - turnStartRemaining:", turnStartRemaining);
 
         turnNumber = currentTurns.length
           ? currentTurns[currentTurns.length - 1].turn_number + 1

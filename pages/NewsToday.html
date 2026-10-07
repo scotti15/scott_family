@@ -149,10 +149,21 @@
     <h2>Segment Generator</h2>
     <div id="selectedShow">No show selected. Click a show card to select it.</div>
 
-    <div style="margin-top:15px;">
-        <input type="number" id="segmentStart" placeholder="Start time (seconds)">
+    <div style="margin-top:15px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+
+        <input type="number" id="segmentStart" placeholder="Start time (seconds)" style="width:160px;">
+    
+        <span>Played:</span>
+        <input type="number" id="playedMin" placeholder="mm" style="width:60px;">
+        <input type="number" id="playedSec" placeholder="ss" style="width:60px;">
+    
+        <span>Commercial:</span>
+        <input type="number" id="commMin" placeholder="mm" style="width:60px;">
+        <input type="number" id="commSec" placeholder="ss" style="width:60px;">
+    
         <button id="btn-generate-segments">Generate Segments</button>
     </div>
+    
 
     <div id="segmentOutput" style="margin-top:20px;"></div>
 </div>
@@ -409,16 +420,31 @@ document.getElementById("btn-generate-segments").addEventListener("click", () =>
         return;
     }
 
-    const start = Number(document.getElementById("segmentStart").value);
+    /* Original start value */
+    let start = Number(document.getElementById("segmentStart").value) || 0;
 
-    if (isNaN(start) || start < 0 || start >= currentShowLength) {
-        document.getElementById("segmentOutput").innerHTML =
-            "<div>Invalid start time.</div>";
-        return;
-    }
+    /* New fields */
+    const playedMin = Number(document.getElementById("playedMin").value) || 0;
+    const playedSec = Number(document.getElementById("playedSec").value) || 0;
 
+    const commMin = Number(document.getElementById("commMin").value) || 0;
+    const commSec = Number(document.getElementById("commSec").value) || 0;
+
+    /* Compute next start */
+    const played = playedMin * 60 + playedSec;
+    const commercial = commMin * 60 + commSec;
+
+    let raw = start + played + commercial;
+
+    /* Round DOWN to nearest 10 seconds */
+    let nextStart = raw - (raw % 10);
+
+    /* Put result back into the box */
+    document.getElementById("segmentStart").value = nextStart;
+
+    /* Generate segments from nextStart */
     let html = "";
-    let s = start;
+    let s = nextStart;
 
     while (s < currentShowLength) {
         const end = Math.min(s + 360, currentShowLength);
@@ -443,6 +469,7 @@ document.getElementById("btn-generate-segments").addEventListener("click", () =>
         });
     });
 });
+
 
 buildPage();
 </script>
