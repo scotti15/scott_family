@@ -4,6 +4,30 @@ document.addEventListener("DOMContentLoaded", function () {
   const projectTitle = document.getElementById("project-title");
   let compareSubtitles = [];
 
+
+  document.querySelectorAll(".sidebar-language-load").forEach((button) => {
+    button.addEventListener("click", () => {
+        window.location.href = button.dataset.url;
+    });
+});
+
+/**********************************
+ * CLEAR SUBTITLES
+ **********************************/
+
+ document
+ .getElementById("clear-subtitles")
+ .addEventListener("click", () => {
+   const tableHead = document.querySelector(".subtitle-table thead");
+   const tableBody = document.getElementById("subtitle-table-body");
+
+   tableHead.innerHTML = "";
+   tableBody.innerHTML = "";
+
+   console.log("Subtitles cleared.");
+ });
+ 
+
   function updateProjectTitleVisibility() {
     if (projectSelect.value === "new") {
       projectTitleGroup.style.display = "";

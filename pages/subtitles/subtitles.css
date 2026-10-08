@@ -320,6 +320,8 @@
     margin-right: 4px;
 }
 #compare-subtitles,
+#combine-subtitles,
+#clear-subtitles,
 #export-subtitles,
 #delete-subtitles {
     margin-top: 6px;
