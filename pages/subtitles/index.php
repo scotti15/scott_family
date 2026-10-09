@@ -239,7 +239,9 @@ const selectedLanguageId = <?= json_encode($selectedLanguageId) ?>;
             <button type="button" id="compare-subtitles">
                 Compare
             </button>
-            
+            <button type="button" id="combine-subtitles" style="display: none;">
+                Combine
+            </button>
             <button type="button" id="clear-subtitles">
                 Clear
             </button>

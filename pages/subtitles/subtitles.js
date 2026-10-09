@@ -2,31 +2,33 @@ document.addEventListener("DOMContentLoaded", function () {
   const projectSelect = document.getElementById("project_id");
   const projectTitleGroup = document.getElementById("project-title-group");
   const projectTitle = document.getElementById("project-title");
+  let currentSubtitles = [];
   let compareSubtitles = [];
-
+  let compareLanguageId = "";
 
   document.querySelectorAll(".sidebar-language-load").forEach((button) => {
     button.addEventListener("click", () => {
-        window.location.href = button.dataset.url;
+      window.location.href = button.dataset.url;
     });
-});
+  });
 
-/**********************************
- * CLEAR SUBTITLES
- **********************************/
+  document.getElementById("combine-subtitles").style.display = compareLanguageId
+    ? "inline-block"
+    : "none";
 
- document
- .getElementById("clear-subtitles")
- .addEventListener("click", () => {
-   const tableHead = document.querySelector(".subtitle-table thead");
-   const tableBody = document.getElementById("subtitle-table-body");
+  /**********************************
+   * CLEAR SUBTITLES
+   **********************************/
 
-   tableHead.innerHTML = "";
-   tableBody.innerHTML = "";
+  document.getElementById("clear-subtitles").addEventListener("click", () => {
+    const tableHead = document.querySelector(".subtitle-table thead");
+    const tableBody = document.getElementById("subtitle-table-body");
 
-   console.log("Subtitles cleared.");
- });
- 
+    tableHead.innerHTML = "";
+    tableBody.innerHTML = "";
+
+    console.log("Subtitles cleared.");
+  });
 
   function updateProjectTitleVisibility() {
     if (projectSelect.value === "new") {
@@ -47,61 +49,61 @@ document.addEventListener("DOMContentLoaded", function () {
     "Edit buttons found:",
     document.querySelectorAll(".edit-subtitle").length
   );
+  const subtitleTableBody = document.getElementById("subtitle-table-body");
 
-  document
-    .getElementById("subtitle-table-body")
-    .addEventListener("dblclick", function (event) {
+  if (subtitleTableBody) {
+    subtitleTableBody.addEventListener("dblclick", function (event) {
       const textCell = event.target.closest(".subtitle-text");
-
+  
       if (!textCell) {
         return;
       }
-
+  
       // Don't create another textarea if already editing
       if (textCell.querySelector("textarea")) {
         return;
       }
-
+  
       const currentText = textCell.innerText;
-
+  
       textCell.classList.add("editing");
-
+  
       textCell.innerHTML = `
-      <textarea class="form-control subtitle-edit-text" rows="3">${currentText}</textarea>
-    `;
-
+        <textarea class="form-control subtitle-edit-text" rows="3">${currentText}</textarea>
+      `;
+  
       const textarea = textCell.querySelector("textarea");
-
+  
       textarea.focus();
-
+  
       // Save when the textarea loses focus
       textarea.addEventListener("blur", async function () {
         const newText = textarea.value;
         const entryId =
           textCell.dataset.entryId || textCell.closest("tr").dataset.entryId;
         console.log("Editing entry:", entryId);
-
+  
         try {
           const formData = new FormData();
-
+  
           formData.append("entry_id", entryId);
           formData.append("text", newText);
-
+  
           const response = await fetch("subtitle_update_text.php", {
             method: "POST",
             body: formData,
           });
-
+  
           const result = await response.json();
-
+  
           console.log("Text update:", result);
-
+  
           if (!result.success) {
             console.error("Text update failed:", result.error);
             alert(result.error || "The subtitle text could not be saved.");
             return;
           }
-
+  
           textCell.classList.remove("editing");
           textCell.textContent = newText;
         } catch (error) {
@@ -110,6 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
     });
+  }
 
   document.querySelectorAll(".subtitle-time").forEach(function (timeCell) {
     timeCell.addEventListener("dblclick", function () {
@@ -196,8 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
          * RESTORE COMPARE MODE AFTER DELETE
          **********************************/
 
-        const compareLanguageId =
-          document.getElementById("compare-language").value;
+        compareLanguageId = document.getElementById("compare-language").value;
 
         const currentUrl = new URL(window.location.href);
 
@@ -219,101 +221,100 @@ document.addEventListener("DOMContentLoaded", function () {
         cell.classList.toggle("selected", selected);
       });
   }
-  
-  document
-    .getElementById("subtitle-table-body")
-    .addEventListener("click", (event) => {
+
+  if (subtitleTableBody) {
+    subtitleTableBody.addEventListener("click", (event) => {
       const cell = event.target.closest("[data-entry-id]");
-  
+
       if (!cell) {
         return;
       }
-  
+
       const row = cell.closest("tr");
-  
+
       const rows = Array.from(
         document.querySelectorAll("#subtitle-table-body tr")
       );
-  
+
       const entryId = cell.dataset.entryId;
-  
+
       // ==========================================
       // SHIFT+CLICK: Select a range
       // ==========================================
       if (event.shiftKey && lastClickedRow) {
         const startIndex = rows.indexOf(lastClickedRow);
         const endIndex = rows.indexOf(row);
-  
+
         const rangeStart = Math.min(startIndex, endIndex);
         const rangeEnd = Math.max(startIndex, endIndex);
-  
+
         for (let i = rangeStart; i <= rangeEnd; i++) {
           const rangeRow = rows[i];
-  
+
           const rangeCell = rangeRow.querySelector(
             `[data-language-id="${cell.dataset.languageId}"]`
           );
-          
+
           const rangeEntryId = rangeCell?.dataset.entryId;
-  
+
           if (rangeEntryId && !selectedEntryIds.includes(rangeEntryId)) {
             selectedEntryIds.push(rangeEntryId);
           }
-  
+
           selectComparisonEntry(rangeEntryId, true);
         }
       }
-  
+
       // ==========================================
       // CTRL+CLICK: Toggle individual row
       // ==========================================
       else if (event.ctrlKey) {
         if (selectedEntryIds.includes(entryId)) {
           selectedEntryIds = selectedEntryIds.filter((id) => id !== entryId);
-  
+
           row.classList.remove("selected");
-  
+
           selectComparisonEntry(entryId, false);
         } else {
           selectedEntryIds.push(entryId);
-    
+
           selectComparisonEntry(entryId, true);
         }
       }
-  
+
       // ==========================================
       // NORMAL CLICK: Start a new selection
       // ==========================================
       else {
         document
-  .querySelectorAll("#subtitle-table-body .selected")
-  .forEach((selectedElement) => {
-    selectedElement.classList.remove("selected");
-  });
-  
+          .querySelectorAll("#subtitle-table-body .selected")
+          .forEach((selectedElement) => {
+            selectedElement.classList.remove("selected");
+          });
+
         selectedEntryIds = [entryId];
-  
+
         const isCompareRow =
           row.querySelectorAll("td[data-entry-id]").length > 0;
-  
+
         if (isCompareRow) {
           selectComparisonEntry(entryId, true);
         } else {
           row.classList.add("selected");
         }
       }
-  
+
       // Remember this row for the next Shift+click
       lastClickedRow = row;
-  
+
       document.getElementById("selected-count").textContent = `${
         selectedEntryIds.length
       } ${selectedEntryIds.length === 1 ? "line" : "lines"} selected`;
-  
+
       console.log("Selected subtitle entries:", selectedEntryIds);
     });
-  
-  
+  }
+
   function adjustSelectedTiming(direction) {
     if (selectedEntryIds.length === 0) {
       console.log("No subtitle lines selected.");
@@ -344,8 +345,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("compare-subtitles")
     .addEventListener("click", async () => {
-      const compareLanguageId =
-        document.getElementById("compare-language").value;
+      compareLanguageId = document.getElementById("compare-language").value;
 
       if (!compareLanguageId) {
         console.log("No comparison language selected.");
@@ -374,7 +374,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const tableHead = document.querySelector(".subtitle-table thead");
         const tableBody = document.getElementById("subtitle-table-body");
 
-        const currentSubtitles = [];
+        currentSubtitles = [];
 
         document
           .querySelectorAll("#subtitle-table-body tr[data-entry-id]")
@@ -461,16 +461,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
           tableBody.appendChild(row);
         });
+        document.getElementById("combine-subtitles").style.display = "inline-block";
       } catch (error) {
         console.error("Compare request failed:", error);
       }
+      
     });
 
   /**********************************
    * RESTORE COMPARE MODE
    **********************************/
 
-  const compareLanguageId = new URLSearchParams(window.location.search).get(
+  compareLanguageId = new URLSearchParams(window.location.search).get(
     "compare_language_id"
   );
 
@@ -673,6 +675,93 @@ document.addEventListener("DOMContentLoaded", function () {
       String(newMilliseconds).padStart(3, "0")
     );
   }
+
+
+  /**********************************
+ * COMBINE SUBTITLES
+ **********************************/
+
+const combineBtn = document.getElementById("combine-subtitles");
+
+combineBtn.addEventListener("click", combineSubtitles);
+
+function combineSubtitles() {
+  if (currentSubtitles.length === 0 || compareSubtitles.length === 0) {
+    console.log("Not enough subtitle data to combine.");
+    return;
+  }
+
+  const outputLength = Math.max(
+    currentSubtitles.length,
+    compareSubtitles.length
+  );
+
+  const combinedSubtitles = [];
+
+  for (let i = 0; i < outputLength; i++) {
+    const currentEntry = currentSubtitles[i];
+    const compareEntry = compareSubtitles[i];
+
+    const textParts = [];
+
+    if (currentEntry) {
+      textParts.push(currentEntry.text.trim());
+    }
+
+    if (compareEntry) {
+      textParts.push(compareEntry.text.trim());
+    }
+
+    const timingEntry = currentEntry || compareEntry;
+
+    combinedSubtitles.push({
+      subtitle_number: i + 1,
+      start_time: timingEntry.start_time,
+      end_time: timingEntry.end_time,
+      text: textParts.join("\n"),
+    });
+  }
+
+/**********************************
+ * GENERATE AND DOWNLOAD SRT
+ **********************************/
+
+ const srtContent = combinedSubtitles
+ .map((entry) => {
+   return [
+     entry.subtitle_number,
+     `${entry.start_time} --> ${entry.end_time}`,
+     entry.text,
+   ].join("\n");
+ })
+ .join("\n\n");
+ 
+   const blob = new Blob([srtContent], {
+     type: "text/plain;charset=utf-8",
+   });
+ 
+   const downloadUrl = URL.createObjectURL(blob);
+   const downloadLink = document.createElement("a");
+ 
+   downloadLink.href = downloadUrl;
+   downloadLink.download = "combined_subtitles.srt";
+ 
+   document.body.appendChild(downloadLink);
+   downloadLink.click();
+   downloadLink.remove();
+ 
+   URL.revokeObjectURL(downloadUrl);
+
+   console.log("Combined subtitles before SRT formatting:", combinedSubtitles);
+
+combinedSubtitles.forEach((entry, index) => {
+  console.log(`Subtitle ${index + 1} text:`, JSON.stringify(entry.text));
+});
+ 
+   console.log("Combined SRT generated:", srtContent);
+
+   console.log("SRT string as JSON:", JSON.stringify(srtContent));
+}
 
   //ADD NEW FUNCTIONS HERE
 });

@@ -312,6 +312,9 @@ function buildPage() {
                 document.getElementById("selectedShow").textContent =
                     "Selected show: " + currentShowName +
                     " | Length: " + currentShowLength + " seconds";
+
+                    document.getElementById("segmentBox").scrollIntoView({ behavior: "smooth" });
+
             });
 
             const a = document.createElement("a");
