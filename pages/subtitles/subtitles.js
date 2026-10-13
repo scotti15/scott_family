@@ -709,7 +709,9 @@ function combineSubtitles() {
     }
 
     if (compareEntry) {
-      textParts.push(compareEntry.text.trim());
+      textParts.push(
+        `<font color="#FFFF99"><i>${compareEntry.text.trim()}</i></font>`
+      ); 
     }
 
     const timingEntry = currentEntry || compareEntry;

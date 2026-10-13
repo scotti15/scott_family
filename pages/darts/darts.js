@@ -424,6 +424,81 @@ document.addEventListener("DOMContentLoaded", () => {
     clearLiveBoard();
   });
 
+  /**********************************
+   * KEYBOARD SHORTCUTS
+   **********************************/
+
+   document.addEventListener("keydown", (event) => {
+    // Ignore keystrokes when typing in a field
+    if (
+      event.target.matches("input, textarea, select") ||
+      event.target.isContentEditable
+    ) {
+      return;
+    }
+
+    // N = New Game
+    if (
+      event.key.toLowerCase() === "n" &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      newGameBtn.click();
+    }
+
+    // T = Set Target
+if (
+  event.key.toLowerCase() === "t" &&
+  !event.ctrlKey &&
+  !event.altKey &&
+  !event.metaKey
+) {
+  event.preventDefault();
+  setTargetBtn.click();
+}
+
+
+    // G = Game Stats
+    if (
+      event.key.toLowerCase() === "g" &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      gameStatsBtn.click();
+    }
+
+    
+    // R = Ricochet
+    if (
+      event.key.toLowerCase() === "r" &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      ricochetBtn.click();
+    }
+
+    
+    // U = Undo
+    if (
+      event.key.toLowerCase() === "u" &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      document.getElementById("undo-btn").click();
+    }
+
+
+  });
+
+
   document.addEventListener("change", (e) => {
     if (!e.target.classList.contains("turn-toggle")) return;
 
