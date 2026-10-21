@@ -495,6 +495,73 @@ if (
       document.getElementById("undo-btn").click();
     }
 
+    
+    // C = Confirm Turn
+    if (
+      event.key.toLowerCase() === "c" &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      confirmBtn.click();
+    }
+
+    
+    // I = Information
+    if (
+      event.key.toLowerCase() === "i" &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      document.getElementById("infoBtn").click();
+    }
+
+
+    // V = Toggle Raw / Wedge Values
+    if (
+      event.key.toLowerCase() === "v" &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      const scoreToggle = document.getElementById("scoreToggle");
+      scoreToggle.checked = !scoreToggle.checked;
+      scoreToggle.dispatchEvent(new Event("change"));
+    }
+
+
+
+    // F = Toggle Newest First / Oldest First
+    if (
+      event.key.toLowerCase() === "f" &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      const historyToggle = document.getElementById("historyToggle");
+      historyToggle.checked = !historyToggle.checked;
+      historyToggle.dispatchEvent(new Event("change"));
+    }
+
+
+    // M = Mute / Unmute
+    if (
+      event.key.toLowerCase() === "m" &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      soundToggle.click();
+    }
+
+
+
 
   });
 
@@ -2245,6 +2312,11 @@ console.log("historyNewestFirst:", historyNewestFirst);
           : 1;
 
         prepareNextTarget();
+        console.log("LOAD CHECKOUT DEBUG:", {
+          gameFinished,
+          remainingScore,
+          currentTarget,
+        });
 
         // -------------------------
         // 🔒 FINAL: Lock/Unlock
