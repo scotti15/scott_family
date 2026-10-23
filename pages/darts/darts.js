@@ -931,7 +931,10 @@ if (
       remainingScore = turnStartRemaining; // reset UI
       turnTotal = 0;
     }
-
+    if (!turnWasBust && darts.length < 3) {
+      console.warn("Confirm blocked: fewer than 3 darts and not a bust.");
+      return;
+    }
     remainingSpan.textContent = remainingScore;
 
     // Build classes array for each dart if not already done

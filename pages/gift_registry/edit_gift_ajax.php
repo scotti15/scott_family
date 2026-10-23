@@ -1,4 +1,9 @@
 <?php
+
+http_response_code(200);
+echo json_encode(['test' => 'endpoint reached']);
+exit;
+
 require_once '../../config/db.php';
 require_once '../../auth/check_login.php';
 header('Content-Type: application/json');
