@@ -931,8 +931,15 @@ if (
       remainingScore = turnStartRemaining; // reset UI
       turnTotal = 0;
     }
-    if (!turnWasBust && darts.length < 3) {
-      console.warn("Confirm blocked: fewer than 3 darts and not a bust.");
+
+    
+    const winningDart = darts.find(
+      (d) => remainingScoreBeforeReset === 0 && d.multiplier === 2
+    );
+
+    
+    if (!turnWasBust && !winningDart && darts.length < 3) {
+      console.warn("Confirm blocked: fewer than 3 darts, not a bust, and no checkout.");
       return;
     }
     remainingSpan.textContent = remainingScore;
@@ -958,10 +965,6 @@ if (
         dart.dart = i + 1; // 1-based index for table
       }
     });
-
-    const winningDart = darts.find(
-      (d) => remainingScoreBeforeReset === 0 && d.multiplier === 2
-    );
 
     // Add row to history table
     addLiveTurnRow(darts, turnTotal, remainingScore, turnNumber);

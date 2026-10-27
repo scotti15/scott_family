@@ -16,37 +16,51 @@ if (!$user_id) {
     include "../../includes/footer.php";
     exit();
 }
+// Get total number of sessions for the current user
+$stmt = $pdo->prepare("
+    SELECT COUNT(*)
+    FROM dart_sessions
+    WHERE user_id = ?
+");
+$stmt->execute([$user_id]);
+$totalSessions = (int) $stmt->fetchColumn();
 ?>
 
 <link rel="stylesheet" href="darts_statistics.css">
 
 <div class="container" style="padding:20px;">
 
-    <!-- FILTERS -->
-    <div class="filters">
-        <label>
-            Session:
-            <select id="session-filter">
-                <option value="all">All Sessions</option>
-        <option value="last1" selected>Last Session</option>
-                <option value="last3">Last 3 Sessions</option>
-                <option value="last5">Last 5 Sessions</option>
-            </select>
-        </label>
 
-        <label>
-            From:
-            <input type="number" id="session-from" min="1" placeholder="From">
-        </label>
+<!-- FILTERS -->
+<div class="filters">
+    <label>
+        Session:
+        <select id="session-filter">
+            <option value="all">All Sessions</option>
+            <option value="last1" selected>Last Session</option>
+            <option value="last3">Last 3 Sessions</option>
+            <option value="last5">Last 5 Sessions</option>
+        </select>
+    </label>
 
-        <label>
-            To:
-            <input type="number" id="session-to" min="1" placeholder="To">
-        </label>
-        <button type="button" id="apply-session-range">
-            Apply
-        </button>
-    </div>
+    <label>
+        From:
+        <input type="number" id="session-from" min="1" placeholder="From">
+    </label>
+
+    <label>
+        To:
+        <input type="number" id="session-to" min="1" placeholder="To">
+    </label>
+
+    <button type="button" id="apply-session-range">
+        Apply
+    </button>
+
+    <span id="total-sessions" class="total-sessions">
+    Total Sessions: <strong><?= $totalSessions ?></strong>
+</span></div>
+
     <!-- TABS -->
     <div class="tabs-row">
 
